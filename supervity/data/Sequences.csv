@@ -1,0 +1,7 @@
+sequence_id,name,steps,num_touches,eligible_stage,channel,wait_days,active
+SEQ-01,Inbound High-Intent MY,5,5,MQL,email,2,true
+SEQ-02,Pricing-Page Fast Follow,3,3,SQL,email,1,true
+SEQ-03,Buying-Group Account Play,6,6,Opportunity,multi,3,true
+SEQ-04,Trade-Show Nurture,4,4,Open,email,4,true
+SEQ-05,Re-engagement 90d,3,3,MQL,linkedin,7,false
+SEQ-06,Enterprise Exec Outreach,5,5,SQL,multi,3,true

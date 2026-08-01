@@ -1,0 +1,550 @@
+id,visitor_id,prospect_id,type,created_at,url,duration_seconds,campaign,source,company_domain,channel
+880000,566081,,Download,05/07/2026,/case-studies,426,Always-On Search,linkedin,,social
+880001,542823,,Download,2026-07-11 00:00:00,/pricing,277,Webinar Series,direct,,direct
+880002,560262,,Visit,2026-07-09 00:00:00,/,691,Q3 Launch,direct,,direct
+880003,532374,,Page View,11/07/2026,/pricing,630,,linkedin,,social
+880004,575108,,Visit,2026-07-14 00:00:00,/product,792,,linkedin,,social
+880005,531227,003dSq7BAsMzOeip2s,Click,Jul 09 2026,/case-studies,877,Q3 Launch,direct,sabah.com,direct
+880006,511633,,Page View,2026-07-11 00:00:00,/blog/agentic-ai,164,Q3 Launch,direct,,
+880007,582370,,Visit,2026-07-15 00:00:00,/pricing,602,Newsletter,email,,
+880008,518416,,Page View,2026-07-14 00:00:00,/case-studies,143,Always-On Search,direct,,
+880009,550665,0034Kp57AK0Q8FTBl6,Page View,2026-07-12 00:00:00,/contact,796,,bing,straits.com,paid_search
+880010,518406,,Download,2026-07-08 00:00:00,/contact,338,Always-On Search,google,,paid_search
+880011,587200,,Download,2026-07-12 00:00:00,/pricing,142,Q3 Launch,linkedin,,social
+880012,504530,003oOBGVzbrYIzgfgJ,Visit,2026-07-08 00:00:00,/pricing,763,Q3 Launch,bing,pacific.com,paid_search
+880013,535684,,Download,2026-07-07 00:00:00,/demo,420,Always-On Search,bing,,paid_search
+880014,548479,,Click,2026-07-10 00:00:00,/pricing,845,Webinar Series,linkedin,,social
+880015,500287,,Click,2026-07-15 00:00:00,/demo,557,Q3 Launch,linkedin,,social
+880016,573557,003tT8Vs3kvf9rHxYC,Click,2026-07-13 00:00:00,/demo,821,Always-On Search,linkedin,lumina.com,social
+880017,561486,,Click,2026-07-09 00:00:00,/contact,458,Webinar Series,direct,,direct
+880018,553845,,Download,07/07/2026,/pricing,283,Newsletter,direct,,direct
+880019,514931,,Click,05/07/2026,/blog/agentic-ai,615,Q3 Launch,google,,paid_search
+880020,529217,003HO1DgljEAXus2tS,Page View,2026-07-06 00:00:00,/product,587,Always-On Search,google,lumina.com,paid_search
+880021,566001,,Form Submission,2026-07-11 00:00:00,/product,246,Q3 Launch,email,,email
+880022,514893,003zxgJgL2leXYC0VW,Click,2026-07-09 00:00:00,/case-studies,899,Q3 Launch,email,lumina.com,
+880023,569032,,Form Submission,2026-07-12 00:00:00,/pricing,751,Q3 Launch,google,,
+880024,595382,,Form Submission,2026-07-14 00:00:00,/pricing,279,Webinar Series,bing,,paid_search
+880025,535407,003leygdPNcc2Vk7xE,Page View,Jul 07 2026,/product,799,Newsletter,bing,meridian.com,paid_search
+880026,535613,0039dOnvbLvkGO5FvE,Page View,2026-07-13 00:00:00,/demo,419,,linkedin,johor.com,
+880027,592361,,Form Submission,2026-07-14 00:00:00,/,110,Webinar Series,direct,,direct
+880028,520818,003e9k8XA1wJ6glkhd,Click,2026-07-11 00:00:00,/case-studies,595,Webinar Series,email,lotus.com,
+880029,587564,003W4dZ2v2dIiMtvbC,Download,2026-07-15 00:00:00,/,652,Always-On Search,bing,bharat.com,paid_search
+880030,547871,,Page View,07/07/2026,/case-studies,681,,email,,email
+880031,564208,003yDzRUt7uV8voYAZ,Download,2026-07-09 00:00:00,/case-studies,348,Webinar Series,direct,andaman.com,direct
+880032,523576,003mk7P8B7O8Tk4M38,Click,05/07/2026,/pricing,458,,bing,andaman.com,paid_search
+880033,526590,,Page View,2026-07-09 00:00:00,/blog/agentic-ai,538,Always-On Search,bing,,paid_search
+880034,587415,003zGvsU55UC7Ep3Fv,Visit,14/07/2026,/blog/agentic-ai,48,Webinar Series,linkedin,meridian.com,social
+880035,547321,00339p4BY9ZPVCzAqd,Visit,05/07/2026,/contact,91,,linkedin,summit.com,
+880036,512857,,Click,2026-07-06 00:00:00,/pricing,748,Q3 Launch,linkedin,,social
+880037,553007,003gF41vvjhfxjw0U8,Download,2026-07-13 00:00:00,/product,247,Q3 Launch,google,pacific.com,paid_search
+880038,544052,,Visit,2026-07-11 00:00:00,/pricing,423,,email,,email
+880039,576099,003snsSNc31BW1Ojii,Download,Jul 06 2026,/contact,540,Always-On Search,email,klang.com,email
+880040,572081,,Visit,2026-07-14 00:00:00,/contact,72,Webinar Series,google,,paid_search
+880041,517486,,Form Submission,2026-07-15 00:00:00,/blog/agentic-ai,192,,direct,,direct
+880042,591943,,Form Submission,2026-07-12 00:00:00,/blog/agentic-ai,805,Webinar Series,email,,email
+880043,516520,003e9k8XA1wJ6glkhd,Visit,2026-07-10 00:00:00,/demo,692,Q3 Launch,linkedin,orion.com,social
+880044,587022,003vriF5P63luchp9A,Download,2026-07-11 00:00:00,/,119,Newsletter,google,lumina.com,paid_search
+880045,582228,0032kprEnDkDmvntmO,Page View,2026-07-14 00:00:00,/product,523,Q3 Launch,bing,northgate.com,paid_search
+880046,530680,003hj8MRa5GGQVGTED,Form Submission,2026-07-10 00:00:00,/contact,836,Webinar Series,bing,lumina.com,paid_search
+880047,523642,,Form Submission,Jul 06 2026,/pricing,714,Q3 Launch,google,,paid_search
+880048,521494,003dSq7BAsMzOeip2s,Visit,2026-07-09 00:00:00,/contact,880,Webinar Series,email,highland.com,email
+880049,562271,0039dOnvbLvkGO5FvE,Click,2026-07-14 00:00:00,/blog/agentic-ai,744,Newsletter,linkedin,johor.com,social
+880050,527917,003blM0OJ6mHvqPbbV,Visit,2026-07-10 00:00:00,/case-studies,667,,bing,kirana.com,paid_search
+880051,560036,,Click,Jul 11 2026,/demo,298,Always-On Search,bing,,paid_search
+880052,568949,003tT8Vs3kvf9rHxYC,Page View,2026-07-11 00:00:00,/pricing,608,Webinar Series,bing,lotus.com,paid_search
+880053,592377,,Click,2026-07-11 00:00:00,/case-studies,101,Q3 Launch,email,,email
+880054,591360,,Click,2026-07-12 00:00:00,/pricing,809,Always-On Search,google,,paid_search
+880055,543527,,Download,2026-07-15 00:00:00,/,884,Always-On Search,linkedin,,social
+880056,549071,,Form Submission,2026-07-09 00:00:00,/blog/agentic-ai,225,Q3 Launch,email,,email
+880057,565486,,Download,2026-07-12 00:00:00,/product,336,Newsletter,bing,,
+880058,566530,,Page View,Jul 11 2026,/,866,Newsletter,linkedin,,social
+880059,560025,,Click,2026-07-10 00:00:00,/pricing,834,Q3 Launch,google,,paid_search
+880060,561894,,Page View,2026-07-10 00:00:00,/blog/agentic-ai,736,Q3 Launch,email,,email
+880061,500139,,Form Submission,Jul 08 2026,/,875,Webinar Series,bing,,paid_search
+880062,502072,,Click,2026-07-07 00:00:00,/,206,Q3 Launch,bing,,
+880063,564430,,Click,10/07/2026,/pricing,95,Always-On Search,email,,email
+880064,543540,,Download,2026-07-15 00:00:00,/case-studies,70,Webinar Series,google,,paid_search
+880065,574860,,Form Submission,2026-07-05 00:00:00,/blog/agentic-ai,29,Newsletter,direct,,direct
+880066,587558,,Visit,2026-07-09 00:00:00,/pricing,862,Always-On Search,linkedin,,social
+880067,574256,003RpNTfclJb0OUUe8,Click,2026-07-15 00:00:00,/pricing,636,Always-On Search,linkedin,everbright.com,social
+880068,588522,,Visit,2026-07-12 00:00:00,/blog/agentic-ai,227,Q3 Launch,bing,,paid_search
+880069,589542,,Page View,2026-07-05 00:00:00,/,568,Q3 Launch,linkedin,,social
+880070,512240,003q3eY8n5JUh6hn5e,Download,2026-07-05 00:00:00,/case-studies,548,Webinar Series,linkedin,harbor.com,
+880071,541271,003TTAe7YV378jlm2Z,Form Submission,2026-07-14 00:00:00,/contact,535,,email,lumina.com,email
+880072,586652,,Download,2026-07-05 00:00:00,/product,802,Newsletter,bing,,paid_search
+880073,582164,,Download,Jul 10 2026,/contact,496,Webinar Series,direct,,direct
+880074,549811,,Click,2026-07-14 00:00:00,/blog/agentic-ai,811,Webinar Series,google,,paid_search
+880075,506681,,Download,2026-07-14 00:00:00,/case-studies,858,Newsletter,linkedin,,social
+880076,587450,,Form Submission,2026-07-14 00:00:00,/,257,Q3 Launch,google,,paid_search
+880077,576393,,Page View,2026-07-06 00:00:00,/case-studies,669,Always-On Search,bing,,paid_search
+880078,505133,,Download,2026-07-10 00:00:00,/demo,335,Q3 Launch,google,,paid_search
+880079,546785,,Click,2026-07-13 00:00:00,/pricing,738,Webinar Series,direct,,direct
+880080,508089,,Click,2026-07-11 00:00:00,/case-studies,174,Q3 Launch,email,,email
+880081,516041,,Download,2026-07-05 00:00:00,/blog/agentic-ai,82,Webinar Series,email,,email
+880082,505130,003Mt2xVzKFS6UVS1X,Download,2026-07-14 00:00:00,/contact,73,Always-On Search,google,andaman.com,paid_search
+880083,594235,,Form Submission,2026-07-15 00:00:00,/,348,Q3 Launch,linkedin,,social
+880084,520629,,Page View,2026-07-14 00:00:00,/pricing,752,,email,,email
+880085,510624,,Form Submission,2026-07-06 00:00:00,/,522,Webinar Series,google,,paid_search
+880086,526584,,Click,2026-07-13 00:00:00,/product,403,Webinar Series,direct,,direct
+880087,563735,,Download,2026-07-12 00:00:00,/demo,821,,linkedin,,social
+880088,595659,,Page View,2026-07-09 00:00:00,/pricing,655,Q3 Launch,linkedin,,social
+880089,511374,003qJpbc3hrClcIFuO,Click,2026-07-13 00:00:00,/case-studies,431,,direct,highland.com,direct
+880090,539557,,Click,06/07/2026,/contact,333,Newsletter,linkedin,,social
+880091,567568,,Form Submission,05/07/2026,/demo,618,Webinar Series,direct,,direct
+880092,531775,,Click,2026-07-13 00:00:00,/product,418,Webinar Series,google,,paid_search
+880093,524885,,Click,2026-07-08 00:00:00,/pricing,794,Webinar Series,direct,,direct
+880094,590330,003dSq7BAsMzOeip2s,Download,2026-07-11 00:00:00,/blog/agentic-ai,191,Webinar Series,bing,sabah.com,paid_search
+880095,580937,003aWNXPWFPn6ZfzWQ,Visit,2026-07-10 00:00:00,/case-studies,378,Q3 Launch,direct,andaman.com,direct
+880096,501795,,Form Submission,2026-07-10 00:00:00,/pricing,603,Webinar Series,linkedin,,social
+880097,519041,,Download,2026-07-05 00:00:00,/,221,,google,,paid_search
+880098,597199,003sNGixBTRY5NKMY9,Page View,2026-07-14 00:00:00,/contact,67,Newsletter,email,bharat.com,email
+880099,593373,003leygdPNcc2Vk7xE,Click,2026-07-11 00:00:00,/contact,793,Always-On Search,email,lumina.com,email
+880100,521426,,Download,2026-07-11 00:00:00,/case-studies,732,Q3 Launch,bing,,paid_search
+880101,541190,,Download,2026-07-11 00:00:00,/,242,Always-On Search,google,,paid_search
+880102,517792,,Visit,2026-07-08 00:00:00,/pricing,614,Q3 Launch,google,,paid_search
+880103,534541,003vriF5P63luchp9A,Click,11/07/2026,/pricing,558,Newsletter,linkedin,mekong.com,social
+880104,538857,,Download,2026-07-12 00:00:00,/,894,Newsletter,linkedin,,social
+880105,540760,003vriF5P63luchp9A,Download,2026-07-15 00:00:00,/case-studies,691,,email,mekong.com,email
+880106,531752,,Click,2026-07-06 00:00:00,/pricing,770,Newsletter,email,,email
+880107,587848,0038lsG6yy7CXcdEmA,Page View,2026-07-05 00:00:00,/contact,730,Newsletter,linkedin,pacific.com,social
+880108,575985,003vSm1cXIKdObrpEr,Form Submission,2026-07-11 00:00:00,/blog/agentic-ai,415,Webinar Series,direct,lumina.com,
+880109,573829,,Page View,2026-07-07 00:00:00,/contact,895,Q3 Launch,email,,email
+880110,583609,003Cz5BK79Vc8PxESN,Visit,2026-07-11 00:00:00,/pricing,391,Always-On Search,bing,lumina.com,paid_search
+880111,516459,003r4UPWYyigjcqffH,Click,2026-07-09 00:00:00,/demo,523,Webinar Series,linkedin,highland.com,social
+880112,545347,,Click,2026-07-06 00:00:00,/contact,407,Newsletter,bing,,paid_search
+880113,584629,,Download,2026-07-11 00:00:00,/product,696,Webinar Series,google,,paid_search
+880114,590678,,Form Submission,2026-07-08 00:00:00,/pricing,477,Q3 Launch,bing,,paid_search
+880115,560483,,Page View,2026-07-10 00:00:00,/case-studies,482,Newsletter,email,,email
+880116,502991,,Form Submission,Jul 15 2026,/,64,Always-On Search,google,,paid_search
+880117,525449,003foruN2bI7irZa7S,Visit,2026-07-05 00:00:00,/pricing,175,Always-On Search,direct,northern.com,direct
+880118,523902,0033mj4VEg9rs779TN,Page View,2026-07-07 00:00:00,/contact,183,Always-On Search,linkedin,nexus.com,social
+880119,529652,003U9ntar9qHDO0O2g,Visit,2026-07-12 00:00:00,/,629,Q3 Launch,bing,zenith.com,paid_search
+880120,527539,,Download,2026-07-07 00:00:00,/contact,780,,bing,,paid_search
+880121,539839,003EHGL4D4Vo3txzQT,Download,2026-07-12 00:00:00,/product,749,Webinar Series,direct,andaman.com,direct
+880122,556598,,Form Submission,2026-07-09 00:00:00,/case-studies,846,Webinar Series,bing,,paid_search
+880123,552943,,Click,2026-07-06 00:00:00,/product,259,Webinar Series,direct,,direct
+880124,515335,003VfCyg8Ht0V7Fj77,Visit,2026-07-14 00:00:00,/case-studies,525,Webinar Series,email,bharat.com,email
+880125,573173,,Form Submission,2026-07-07 00:00:00,/demo,236,Always-On Search,linkedin,,social
+880126,545127,003dSq7BAsMzOeip2s,Page View,2026-07-08 00:00:00,/,259,Q3 Launch,google,andaman.com,paid_search
+880127,568741,00339p4BY9ZPVCzAqd,Page View,2026-07-09 00:00:00,/pricing,138,Newsletter,bing,nexus.com,paid_search
+880128,523039,003oE5P6hX3idrPYJM,Visit,2026-07-07 00:00:00,/contact,832,Always-On Search,linkedin,sunrise.com,social
+880129,561110,,Visit,2026-07-15 00:00:00,/case-studies,751,Always-On Search,linkedin,,social
+880130,503069,,Click,2026-07-08 00:00:00,/pricing,432,Webinar Series,google,,paid_search
+880131,555191,0038fTcys9JCPx7ZYQ,Download,2026-07-07 00:00:00,/pricing,303,Always-On Search,bing,orion.com,paid_search
+880132,518105,,Download,2026-07-15 00:00:00,/pricing,528,Q3 Launch,bing,,paid_search
+880133,535922,,Page View,2026-07-10 00:00:00,/pricing,234,Newsletter,direct,,direct
+880134,549905,003Ua1adavpWKR9c2s,Download,2026-07-07 00:00:00,/contact,129,,email,sabah.com,email
+880135,595882,,Visit,2026-07-08 00:00:00,/case-studies,735,Q3 Launch,direct,,direct
+880136,556923,,Form Submission,2026-07-05 00:00:00,/pricing,168,Newsletter,direct,,direct
+880137,551866,,Visit,2026-07-05 00:00:00,/blog/agentic-ai,552,Newsletter,direct,,direct
+880138,564321,,Page View,2026-07-09 00:00:00,/blog/agentic-ai,501,Always-On Search,google,,paid_search
+880139,519864,,Click,2026-07-06 00:00:00,/pricing,117,Always-On Search,linkedin,,
+880140,535117,003QYoqD7N5s2QrSBT,Click,2026-07-13 00:00:00,/demo,487,Newsletter,linkedin,brightwave.com,social
+880141,523694,,Download,2026-07-08 00:00:00,/contact,449,Always-On Search,direct,,direct
+880142,526421,,Form Submission,2026-07-15 00:00:00,/,877,Q3 Launch,email,,email
+880143,597655,,Download,2026-07-09 00:00:00,/pricing,309,Newsletter,bing,,paid_search
+880144,536424,003GMPRbtpqAKZ82id,Visit,2026-07-12 00:00:00,/pricing,50,,email,highland.com,email
+880145,543187,,Visit,2026-07-15 00:00:00,/case-studies,801,,direct,,direct
+880146,505371,003BdQsRYOo6hA2DJ5,Click,2026-07-13 00:00:00,/pricing,387,Webinar Series,email,kirana.com,email
+880147,588745,003NbW3VTYMpvA4aBs,Form Submission,2026-07-06 00:00:00,/,893,Q3 Launch,direct,andaman.com,direct
+880148,501349,,Form Submission,2026-07-11 00:00:00,/demo,330,Always-On Search,google,,paid_search
+880149,511144,,Click,2026-07-10 00:00:00,/pricing,367,,direct,,direct
+880150,510628,,Visit,2026-07-15 00:00:00,/demo,418,Always-On Search,google,,paid_search
+880151,512390,,Page View,15/07/2026,/demo,363,Newsletter,google,,
+880152,527893,,Click,2026-07-08 00:00:00,/contact,649,,email,,email
+880153,541018,003GkoblyoazHXA4yo,Visit,2026-07-09 00:00:00,/demo,19,,email,andaman.com,email
+880154,526904,003rH1ESExnO8SEB8M,Click,2026-07-15 00:00:00,/case-studies,151,Webinar Series,direct,sunrise.com,direct
+880155,538905,,Page View,2026-07-12 00:00:00,/demo,557,Webinar Series,linkedin,,social
+880156,537004,,Click,15/07/2026,/case-studies,551,,email,,email
+880157,541858,003tCTcFQnlCxeKzeF,Click,2026-07-07 00:00:00,/product,762,,email,orion.com,email
+880158,576768,,Download,2026-07-09 00:00:00,/demo,386,,bing,,paid_search
+880159,568950,,Download,2026-07-13 00:00:00,/product,889,Q3 Launch,google,,paid_search
+880160,569700,003EHGL4D4Vo3txzQT,Click,08/07/2026,/,829,,google,andaman.com,paid_search
+880161,505783,,Click,2026-07-15 00:00:00,/,645,Q3 Launch,linkedin,,social
+880162,547492,003S1oCTn59LBikBrV,Page View,2026-07-06 00:00:00,/,6,Webinar Series,email,straits.com,email
+880163,591232,,Visit,2026-07-10 00:00:00,/demo,416,Newsletter,direct,,
+880164,502155,003GkoblyoazHXA4yo,Visit,2026-07-09 00:00:00,/pricing,824,Webinar Series,bing,everbright.com,paid_search
+880165,563807,,Page View,13/07/2026,/pricing,394,,email,,email
+880166,587704,,Form Submission,2026-07-12 00:00:00,/,736,Always-On Search,bing,,paid_search
+880167,561020,,Download,2026-07-14 00:00:00,/,612,Q3 Launch,email,,email
+880168,511147,,Visit,2026-07-11 00:00:00,/pricing,270,,bing,,paid_search
+880169,586432,,Download,06/07/2026,/case-studies,273,Always-On Search,email,,email
+880170,591117,003p7rC5YwVTNekUnZ,Click,2026-07-12 00:00:00,/demo,733,Q3 Launch,bing,brightwave.com,paid_search
+880171,561333,,Download,2026-07-08 00:00:00,/,127,Newsletter,email,,email
+880172,528087,,Form Submission,Jul 12 2026,/pricing,358,Webinar Series,linkedin,,social
+880173,515385,003vSm1cXIKdObrpEr,Click,2026-07-05 00:00:00,/pricing,92,,google,zenith.com,
+880174,568000,,Click,2026-07-14 00:00:00,/pricing,248,Q3 Launch,linkedin,,social
+880175,520230,,Click,2026-07-12 00:00:00,/pricing,265,Newsletter,bing,,paid_search
+880176,514157,,Download,2026-07-07 00:00:00,/pricing,214,Q3 Launch,google,,paid_search
+880177,567541,,Visit,2026-07-07 00:00:00,/product,409,Webinar Series,linkedin,,social
+880178,541095,,Page View,2026-07-05 00:00:00,/,365,Webinar Series,email,,email
+880179,565915,,Visit,2026-07-07 00:00:00,/product,800,,direct,,direct
+880180,529685,,Visit,Jul 06 2026,/,679,Newsletter,email,,email
+880181,557811,,Form Submission,2026-07-15 00:00:00,/pricing,29,Always-On Search,email,,email
+880182,588980,,Visit,2026-07-10 00:00:00,/pricing,763,Q3 Launch,bing,,paid_search
+880183,524550,,Form Submission,2026-07-12 00:00:00,/,753,,bing,,paid_search
+880184,513115,0036IpmfT3noEy0NAU,Form Submission,2026-07-15 00:00:00,/,315,,linkedin,zenith.com,social
+880185,540881,,Page View,Jul 13 2026,/pricing,182,Q3 Launch,linkedin,,social
+880186,579552,003jOff2KR4ea8nKPy,Download,2026-07-09 00:00:00,/demo,320,Q3 Launch,bing,kirana.com,paid_search
+880187,576309,,Click,2026-07-10 00:00:00,/demo,715,Webinar Series,direct,,direct
+880188,528188,,Form Submission,Jul 07 2026,/pricing,677,,linkedin,,
+880189,520908,003R2WaD3vKzeg8dua,Download,2026-07-07 00:00:00,/product,29,Webinar Series,linkedin,zenith.com,
+880190,529379,,Form Submission,2026-07-05 00:00:00,/pricing,31,Q3 Launch,email,,email
+880191,580794,003rSxXve61Lq38YFh,Visit,2026-07-07 00:00:00,/blog/agentic-ai,67,Q3 Launch,bing,lumina.com,paid_search
+880192,514741,00328hDV9pZCHmbWv1,Form Submission,2026-07-07 00:00:00,/demo,793,Webinar Series,linkedin,kirana.com,social
+880193,572733,003o1KW3FT7J1Wb6gG,Page View,10/07/2026,/pricing,270,Q3 Launch,bing,bharat.com,paid_search
+880194,549123,003gF41vvjhfxjw0U8,Visit,2026-07-15 00:00:00,/contact,598,Always-On Search,direct,zenith.com,direct
+880195,581977,,Form Submission,Jul 10 2026,/,336,Webinar Series,bing,,paid_search
+880196,560107,,Download,2026-07-11 00:00:00,/,653,Q3 Launch,email,,email
+880197,592969,,Download,2026-07-09 00:00:00,/pricing,158,Q3 Launch,bing,,paid_search
+880198,566730,,Visit,2026-07-10 00:00:00,/contact,31,Newsletter,direct,,direct
+880199,557711,003EHGL4D4Vo3txzQT,Download,2026-07-06 00:00:00,/blog/agentic-ai,739,Q3 Launch,google,lotus.com,paid_search
+880200,517448,,Click,2026-07-05 00:00:00,/pricing,466,Always-On Search,bing,,paid_search
+880201,553255,003HFasaAd1KVpFGWD,Page View,2026-07-05 00:00:00,/pricing,590,Webinar Series,direct,mekong.com,direct
+880202,583717,003yOl7wn3BUy2uQA4,Form Submission,2026-07-14 00:00:00,/demo,367,Webinar Series,google,andaman.com,paid_search
+880203,592115,003rH1ESExnO8SEB8M,Download,2026-07-08 00:00:00,/pricing,475,Q3 Launch,email,summit.com,email
+880204,512492,,Click,2026-07-14 00:00:00,/product,285,,direct,,direct
+880205,510178,003vriF5P63luchp9A,Click,2026-07-06 00:00:00,/blog/agentic-ai,866,Webinar Series,google,lumina.com,paid_search
+880206,528163,,Visit,2026-07-07 00:00:00,/pricing,210,Always-On Search,email,,email
+880207,514447,,Click,2026-07-13 00:00:00,/,736,,email,,email
+880208,559507,003j40yPUgr3U4pVAa,Download,2026-07-05 00:00:00,/pricing,357,,email,johor.com,email
+880209,507255,003Mt2xVzKFS6UVS1X,Click,2026-07-11 00:00:00,/blog/agentic-ai,118,Always-On Search,email,zenith.com,email
+880210,548333,003H691WGD0xx81PYU,Visit,2026-07-07 00:00:00,/contact,516,Always-On Search,direct,highland.com,direct
+880211,534607,,Visit,Jul 05 2026,/,304,Webinar Series,linkedin,,social
+880212,565590,,Page View,2026-07-09 00:00:00,/,393,,google,,paid_search
+880213,565718,,Download,2026-07-09 00:00:00,/contact,633,Q3 Launch,google,,paid_search
+880214,503465,,Download,2026-07-12 00:00:00,/product,140,Q3 Launch,linkedin,,social
+880215,515871,003qJpbc3hrClcIFuO,Form Submission,2026-07-05 00:00:00,/pricing,481,,linkedin,brightwave.com,social
+880216,531009,003HYUk5qeCLEy84w3,Form Submission,2026-07-11 00:00:00,/contact,104,Webinar Series,linkedin,sunrise.com,social
+880217,519597,,Visit,2026-07-13 00:00:00,/product,806,Webinar Series,email,,email
+880218,586237,,Page View,2026-07-15 00:00:00,/contact,858,Webinar Series,direct,,direct
+880219,533405,003rH1ESExnO8SEB8M,Visit,11/07/2026,/pricing,844,Webinar Series,direct,straits.com,direct
+880220,676818,003tQLxEJHwBVJvwSD,Visit,2026-07-20 00:00:00,/pricing,502,Q3 Launch,direct,penang-semi.com,direct
+880221,676818,003tQLxEJHwBVJvwSD,Form Submission,2026-07-21 00:00:00,/demo,677,Q3 Launch,linkedin,penang-semi.com,social
+880222,672036,003uhVI8WSlmnVErUL,Visit,2026-07-21T00:00:00+08:00,/pricing,545,Q3 Launch,direct,penang-semi.com,direct
+880223,672036,003uhVI8WSlmnVErUL,Form Submission,Jul 22 2026,/demo,478,Q3 Launch,bing,penang-semi.com,paid_search
+880224,629661,003oxltaTIircdJsS8,Visit,2026-07-22,/pricing,710,Q3 Launch,google,penang-semi.com,paid_search
+880225,629661,003oxltaTIircdJsS8,Form Submission,2026-07-23T00:00:00+08:00,/demo,776,Q3 Launch,email,penang-semi.com,email
+880226,600609,003KsEECvl9dq83Eh0,Visit,2026-07-23,/pricing,533,Q3 Launch,google,penang-semi.com,paid_search
+880227,600609,003KsEECvl9dq83Eh0,Form Submission,2026-07-24T00:00:00+08:00,/demo,559,Q3 Launch,linkedin,penang-semi.com,social
+880228,609487,,Visit,2026-07-22 00:00:00,/pricing,757,Q3 Launch,bing,penang-semi.com,paid_search
+880229,667277,,Visit,2026-07-26T00:00:00+08:00,/pricing,631,Q3 Launch,direct,penang-semi.com,direct
+880230,632786,,Visit,2026-07-23T00:00:00+08:00,/pricing,855,Q3 Launch,email,penang-semi.com,email
+880231,663390,,Visit,2026-07-26,/pricing,624,Q3 Launch,bing,penang-semi.com,paid_search
+880232,689337,,Visit,2026-07-26 00:00:00,/pricing,735,Q3 Launch,direct,penang-semi.com,direct
+880233,663172,,Page View,Jul 20 2026,/pricing,810,Q3 Launch,linkedin,munich-auto.de,social
+880234,608854,,Page View,2026-07-22T00:00:00+08:00,/case-studies,345,Webinar Series,bing,rivalpardot.com,paid_search
+880235,670208,,Visit,Jul 23 2026,/case-studies,389,Webinar Series,bing,competitor-crm.io,paid_search
+880236,609965,,Download,Jul 24 2026,/pricing,607,Always-On Search,bing,competitor-crm.io,paid_search
+880237,623957,,Download,25/07/2026,/case-studies,314,Newsletter,google,competitor-crm.io,paid_search
+880238,634787,,Visit,2026-07-21 00:00:00,/pricing,327,Webinar Series,direct,rivalpardot.com,direct
+880239,615712,,Visit,2026-07-20,/case-studies,624,,linkedin,salesloft-clone.com,social
+880240,580937,003aWNXPWFPn6ZfzWQ,Download,2026-07-22T00:00:00+08:00,/blog/agentic-ai,372,Always-On Search,bing,andaman.com,paid_search
+880241,576768,,Click,2026-07-26T00:00:00+08:00,/pricing,451,Q3 Launch,bing,,paid_search
+880242,576768,,Page View,Jul 26 2026,/contact,619,,google,,paid_search
+880243,508089,,Click,2026-07-20,/blog/agentic-ai,552,Newsletter,email,,email
+880244,508089,,Form Submission,Jul 25 2026,/product,504,Webinar Series,google,,paid_search
+880245,545127,003dSq7BAsMzOeip2s,Form Submission,Jul 21 2026,/contact,444,Q3 Launch,linkedin,andaman.com,social
+880246,545127,003dSq7BAsMzOeip2s,Page View,2026-07-24,/product,354,Always-On Search,bing,andaman.com,paid_search
+880247,588745,003NbW3VTYMpvA4aBs,Download,2026-07-23,/,401,,direct,andaman.com,direct
+880248,588745,003NbW3VTYMpvA4aBs,Page View,Jul 25 2026,/demo,53,Webinar Series,google,andaman.com,paid_search
+880249,512240,003q3eY8n5JUh6hn5e,Page View,2026-07-20,/demo,436,Q3 Launch,linkedin,harbor.com,social
+880250,573173,,Visit,Jul 20 2026,/,436,,linkedin,,social
+880251,530680,003hj8MRa5GGQVGTED,Visit,Jul 21 2026,/blog/agentic-ai,429,Always-On Search,google,lumina.com,paid_search
+880252,581977,,Page View,Jul 20 2026,/demo,569,Webinar Series,linkedin,,social
+880253,581977,,Click,2026-07-22T00:00:00+08:00,/,517,Newsletter,direct,,direct
+880254,503069,,Page View,2026-07-24,/blog/agentic-ai,582,Webinar Series,direct,,direct
+880255,503069,,Form Submission,2026-07-22,/case-studies,566,,bing,,paid_search
+880256,541271,003TTAe7YV378jlm2Z,Visit,22/07/2026,/case-studies,345,Always-On Search,email,lumina.com,email
+880257,541190,,Visit,2026-07-22,/pricing,565,Webinar Series,bing,,paid_search
+880258,541190,,Form Submission,2026-07-22 00:00:00,/pricing,734,Newsletter,email,,email
+880259,549071,,Click,22/07/2026,/contact,266,Q3 Launch,direct,,direct
+880260,549071,,Download,2026-07-21,/contact,477,Newsletter,google,,paid_search
+880261,514741,00328hDV9pZCHmbWv1,Page View,2026-07-24T00:00:00+08:00,/product,111,Newsletter,google,kirana.com,paid_search
+880262,514741,00328hDV9pZCHmbWv1,Click,23/07/2026,/product,694,,bing,kirana.com,paid_search
+880263,515871,003qJpbc3hrClcIFuO,Page View,2026-07-24,/demo,326,Q3 Launch,email,brightwave.com,email
+880264,523576,003mk7P8B7O8Tk4M38,Form Submission,2026-07-21 00:00:00,/case-studies,222,Always-On Search,linkedin,andaman.com,social
+880265,523576,003mk7P8B7O8Tk4M38,Form Submission,22/07/2026,/pricing,220,Q3 Launch,bing,andaman.com,paid_search
+880266,535684,,Visit,23/07/2026,/demo,122,Webinar Series,linkedin,,social
+880267,535684,,Click,2026-07-23 00:00:00,/case-studies,349,Newsletter,bing,,paid_search
+880268,549905,003Ua1adavpWKR9c2s,Visit,2026-07-22,/,798,Webinar Series,linkedin,sabah.com,social
+880269,549905,003Ua1adavpWKR9c2s,Visit,Jul 26 2026,/contact,511,Webinar Series,google,sabah.com,paid_search
+880270,575985,003vSm1cXIKdObrpEr,Visit,2026-07-26,/pricing,816,Webinar Series,email,lumina.com,email
+880271,575985,003vSm1cXIKdObrpEr,Page View,2026-07-25 00:00:00,/blog/agentic-ai,64,Webinar Series,email,lumina.com,email
+880272,556598,,Download,2026-07-21 00:00:00,/case-studies,727,Always-On Search,bing,,paid_search
+880273,564321,,Click,2026-07-22 00:00:00,/case-studies,683,Always-On Search,google,,paid_search
+880274,518416,,Visit,20/07/2026,/demo,678,Newsletter,bing,,paid_search
+880275,523039,003oE5P6hX3idrPYJM,Form Submission,2026-07-20T00:00:00+08:00,/pricing,435,Webinar Series,linkedin,sunrise.com,social
+880276,523039,003oE5P6hX3idrPYJM,Download,2026-07-26 00:00:00,/blog/agentic-ai,640,Webinar Series,bing,sunrise.com,paid_search
+880277,595659,,Page View,2026-07-26 00:00:00,/case-studies,123,,bing,,paid_search
+880278,521426,,Click,2026-07-21,/blog/agentic-ai,187,,linkedin,,social
+880279,520230,,Click,25/07/2026,/contact,837,Always-On Search,email,,email
+880280,587022,003vriF5P63luchp9A,Download,2026-07-20,/product,771,Webinar Series,bing,lumina.com,paid_search
+880281,525449,003foruN2bI7irZa7S,Form Submission,24/07/2026,/product,585,Newsletter,google,northern.com,paid_search
+880282,525449,003foruN2bI7irZa7S,Form Submission,2026-07-26T00:00:00+08:00,/product,361,Newsletter,bing,northern.com,paid_search
+880283,547871,,Visit,Jul 26 2026,/contact,188,Newsletter,bing,,paid_search
+880284,541095,,Download,25/07/2026,/pricing,824,,email,,email
+880285,541095,,Visit,2026-07-22 00:00:00,/contact,402,,google,,paid_search
+880286,518105,,Page View,2026-07-21T00:00:00+08:00,/contact,729,Newsletter,direct,,direct
+880287,518105,,Click,2026-07-20T00:00:00+08:00,/product,449,Always-On Search,linkedin,,social
+880288,528163,,Visit,2026-07-21 00:00:00,/,162,Webinar Series,linkedin,,social
+880289,519597,,Page View,2026-07-25,/pricing,62,,email,,email
+880290,519597,,Form Submission,Jul 20 2026,/contact,748,,bing,,paid_search
+880291,514157,,Form Submission,2026-07-25,/blog/agentic-ai,102,Q3 Launch,google,,paid_search
+880292,560262,,Download,2026-07-24,/,684,Q3 Launch,bing,,paid_search
+880293,532374,,Visit,2026-07-20 00:00:00,/,661,Always-On Search,direct,,direct
+880294,532374,,Click,20/07/2026,/pricing,251,,linkedin,,social
+880295,528087,,Page View,25/07/2026,/demo,568,Webinar Series,direct,,direct
+880296,528087,,Form Submission,2026-07-26T00:00:00+08:00,/blog/agentic-ai,601,Newsletter,linkedin,,social
+880297,592377,,Download,21/07/2026,/blog/agentic-ai,711,Newsletter,linkedin,,social
+880298,592377,,Form Submission,2026-07-24T00:00:00+08:00,/case-studies,546,Always-On Search,google,,paid_search
+880299,519041,,Click,2026-07-23,/product,593,Always-On Search,bing,,paid_search
+880300,519041,,Click,2026-07-21,/contact,276,,direct,,direct
+880301,501349,,Click,2026-07-25 00:00:00,/case-studies,488,Newsletter,linkedin,,social
+880302,501349,,Click,2026-07-22 00:00:00,/contact,46,,google,,paid_search
+880303,535407,003leygdPNcc2Vk7xE,Page View,2026-07-24T00:00:00+08:00,/demo,352,Q3 Launch,bing,meridian.com,paid_search
+880304,535407,003leygdPNcc2Vk7xE,Form Submission,2026-07-20,/contact,615,Webinar Series,linkedin,meridian.com,social
+880305,594235,,Page View,21/07/2026,/demo,301,Always-On Search,direct,,direct
+880306,594235,,Click,2026-07-23T00:00:00+08:00,/,337,Q3 Launch,direct,,direct
+880307,531775,,Visit,2026-07-23T00:00:00+08:00,/blog/agentic-ai,362,Newsletter,google,,paid_search
+880308,537004,,Form Submission,2026-07-23 00:00:00,/blog/agentic-ai,337,Q3 Launch,direct,,direct
+880309,587558,,Click,2026-07-26 00:00:00,/product,866,Newsletter,email,,email
+880310,523642,,Form Submission,2026-07-22T00:00:00+08:00,/pricing,679,Newsletter,linkedin,,social
+880311,535117,003QYoqD7N5s2QrSBT,Click,24/07/2026,/contact,608,Webinar Series,bing,brightwave.com,paid_search
+880312,574256,003RpNTfclJb0OUUe8,Visit,2026-07-26T00:00:00+08:00,/blog/agentic-ai,779,Newsletter,email,everbright.com,email
+880313,561894,,Page View,Jul 21 2026,/case-studies,326,Newsletter,google,,paid_search
+880314,588522,,Download,Jul 23 2026,/contact,793,Q3 Launch,direct,,direct
+880315,527539,,Download,2026-07-23T00:00:00+08:00,/contact,474,Webinar Series,google,,paid_search
+880316,579552,003jOff2KR4ea8nKPy,Download,2026-07-24T00:00:00+08:00,/case-studies,697,,google,kirana.com,paid_search
+880317,563735,,Page View,2026-07-25T00:00:00+08:00,/pricing,302,Newsletter,bing,,paid_search
+880318,524885,,Visit,22/07/2026,/blog/agentic-ai,453,Newsletter,bing,,paid_search
+880319,568000,,Click,Jul 21 2026,/contact,701,Q3 Launch,bing,,paid_search
+880320,568000,,Form Submission,2026-07-21,/,852,Newsletter,direct,,direct
+880321,568741,00339p4BY9ZPVCzAqd,Page View,2026-07-26 00:00:00,/demo,731,Always-On Search,google,nexus.com,paid_search
+880322,553255,003HFasaAd1KVpFGWD,Visit,Jul 20 2026,/demo,665,Webinar Series,bing,mekong.com,paid_search
+880323,588980,,Click,2026-07-21T00:00:00+08:00,/case-studies,512,Q3 Launch,bing,,paid_search
+880324,587848,0038lsG6yy7CXcdEmA,Page View,2026-07-23T00:00:00+08:00,/contact,565,Always-On Search,direct,pacific.com,direct
+880325,533405,003rH1ESExnO8SEB8M,Visit,22/07/2026,/case-studies,626,,linkedin,straits.com,social
+880326,587704,,Click,2026-07-20,/demo,838,,bing,,paid_search
+880327,517792,,Visit,2026-07-26 00:00:00,/case-studies,706,Always-On Search,bing,,paid_search
+880328,507255,003Mt2xVzKFS6UVS1X,Click,2026-07-23T00:00:00+08:00,/,694,Newsletter,google,zenith.com,paid_search
+880329,560483,,Click,21/07/2026,/case-studies,641,,linkedin,,social
+880330,565590,,Form Submission,Jul 24 2026,/blog/agentic-ai,52,Q3 Launch,google,,paid_search
+880331,565590,,Click,Jul 22 2026,/case-studies,432,Webinar Series,linkedin,,social
+880332,505371,003BdQsRYOo6hA2DJ5,Click,Jul 25 2026,/demo,543,Always-On Search,linkedin,kirana.com,social
+880333,505371,003BdQsRYOo6hA2DJ5,Download,21/07/2026,/,60,,bing,kirana.com,paid_search
+880334,526590,,Download,2026-07-24T00:00:00+08:00,/blog/agentic-ai,170,Q3 Launch,email,,email
+880335,526590,,Page View,Jul 23 2026,/case-studies,276,,google,,paid_search
+880336,510178,003vriF5P63luchp9A,Download,2026-07-24T00:00:00+08:00,/contact,164,Webinar Series,google,lumina.com,paid_search
+880337,510178,003vriF5P63luchp9A,Page View,2026-07-21,/,171,Always-On Search,direct,lumina.com,direct
+880338,566530,,Form Submission,2026-07-24 00:00:00,/demo,355,Q3 Launch,direct,,direct
+880339,565915,,Click,2026-07-23,/,179,Q3 Launch,bing,,paid_search
+880340,589542,,Download,26/07/2026,/blog/agentic-ai,871,Always-On Search,google,,paid_search
+880341,589542,,Visit,Jul 24 2026,/demo,219,Q3 Launch,direct,,direct
+880342,561333,,Form Submission,2026-07-20,/demo,266,Q3 Launch,bing,,paid_search
+880343,526421,,Form Submission,2026-07-21,/,649,Newsletter,bing,,paid_search
+880344,583609,003Cz5BK79Vc8PxESN,Download,2026-07-20,/demo,197,Webinar Series,google,lumina.com,paid_search
+880345,583609,003Cz5BK79Vc8PxESN,Visit,26/07/2026,/product,452,Webinar Series,google,lumina.com,paid_search
+880346,557811,,Page View,2026-07-26,/case-studies,661,Newsletter,bing,,paid_search
+880347,527917,003blM0OJ6mHvqPbbV,Download,2026-07-25,/case-studies,824,Q3 Launch,direct,kirana.com,direct
+880348,553007,003gF41vvjhfxjw0U8,Download,2026-07-24T00:00:00+08:00,/contact,790,,direct,pacific.com,direct
+880349,553007,003gF41vvjhfxjw0U8,Visit,2026-07-26 00:00:00,/contact,141,Newsletter,email,pacific.com,email
+880350,544052,,Form Submission,2026-07-23T00:00:00+08:00,/contact,435,Q3 Launch,direct,,direct
+880351,539839,003EHGL4D4Vo3txzQT,Page View,Jul 26 2026,/product,480,Newsletter,bing,andaman.com,paid_search
+880352,540881,,Page View,2026-07-25T00:00:00+08:00,/case-studies,331,,linkedin,,social
+880353,540881,,Page View,2026-07-25T00:00:00+08:00,/case-studies,879,Newsletter,linkedin,,social
+880354,582228,0032kprEnDkDmvntmO,Page View,2026-07-23,/,629,,google,northgate.com,paid_search
+880355,505783,,Download,25/07/2026,/pricing,213,Newsletter,direct,,direct
+880356,505783,,Download,2026-07-25 00:00:00,/pricing,286,Always-On Search,google,,paid_search
+880357,502155,003GkoblyoazHXA4yo,Visit,2026-07-24,/blog/agentic-ai,490,Always-On Search,linkedin,everbright.com,social
+880358,587415,003zGvsU55UC7Ep3Fv,Download,2026-07-22T00:00:00+08:00,/contact,419,Q3 Launch,google,meridian.com,paid_search
+880359,520908,003R2WaD3vKzeg8dua,Page View,Jul 23 2026,/,178,Webinar Series,linkedin,zenith.com,social
+880360,576309,,Download,21/07/2026,/product,671,Webinar Series,linkedin,,social
+880361,576309,,Visit,2026-07-23,/contact,813,Always-On Search,linkedin,,social
+880362,515335,003VfCyg8Ht0V7Fj77,Form Submission,21/07/2026,/,35,,email,bharat.com,email
+880363,515335,003VfCyg8Ht0V7Fj77,Form Submission,2026-07-23 00:00:00,/blog/agentic-ai,517,Newsletter,email,bharat.com,email
+880364,587450,,Page View,26/07/2026,/contact,314,,direct,,direct
+880365,543540,,Page View,2026-07-21 00:00:00,/demo,86,Always-On Search,linkedin,,social
+880366,504530,003oOBGVzbrYIzgfgJ,Click,21/07/2026,/pricing,80,Q3 Launch,email,pacific.com,email
+880367,504530,003oOBGVzbrYIzgfgJ,Click,2026-07-26T00:00:00+08:00,/contact,706,,direct,pacific.com,direct
+880368,559507,003j40yPUgr3U4pVAa,Download,Jul 20 2026,/blog/agentic-ai,622,Always-On Search,linkedin,johor.com,social
+880369,510628,,Click,2026-07-26T00:00:00+08:00,/case-studies,869,Q3 Launch,email,,email
+880370,510628,,Visit,Jul 25 2026,/product,512,Webinar Series,linkedin,,social
+880371,517486,,Form Submission,2026-07-24 00:00:00,/case-studies,567,Webinar Series,google,,paid_search
+880372,517486,,Visit,2026-07-23T00:00:00+08:00,/contact,777,,linkedin,,social
+880373,582370,,Download,2026-07-24T00:00:00+08:00,/contact,354,Always-On Search,direct,,direct
+880374,582370,,Click,2026-07-24,/demo,659,,email,,email
+880375,592361,,Page View,2026-07-20 00:00:00,/contact,268,Always-On Search,google,,paid_search
+880376,592361,,Visit,2026-07-26T00:00:00+08:00,/case-studies,670,Q3 Launch,google,,paid_search
+880377,538857,,Download,26/07/2026,/pricing,371,Always-On Search,direct,,direct
+880378,538857,,Visit,2026-07-26 00:00:00,/blog/agentic-ai,236,Always-On Search,bing,,paid_search
+880379,512492,,Click,Jul 20 2026,/contact,593,Always-On Search,linkedin,,social
+880380,512492,,Click,20/07/2026,/case-studies,771,,direct,,direct
+880381,529685,,Click,2026-07-26 00:00:00,/,376,Newsletter,email,,email
+880382,557711,003EHGL4D4Vo3txzQT,Download,2026-07-22,/demo,672,Newsletter,direct,lotus.com,direct
+880383,583717,003yOl7wn3BUy2uQA4,Visit,Jul 25 2026,/,563,Always-On Search,direct,andaman.com,direct
+880384,583717,003yOl7wn3BUy2uQA4,Form Submission,Jul 25 2026,/contact,49,Webinar Series,direct,andaman.com,direct
+880385,646346,003Qv4XNiMyjkl1SXN,Download,2026-07-24,/blog/agentic-ai,577,Webinar Series,direct,bharat.com,direct
+880386,646346,003Qv4XNiMyjkl1SXN,Page View,2026-07-25 00:00:00,/contact,149,Always-On Search,bing,bharat.com,paid_search
+880387,646346,003Qv4XNiMyjkl1SXN,Click,2026-07-22,/case-studies,118,Newsletter,google,bharat.com,paid_search
+880388,639666,,Visit,2026-07-24 00:00:00,/,236,Q3 Launch,email,klang.com,email
+880389,639666,,Download,2026-07-23T00:00:00+08:00,/contact,187,Webinar Series,bing,klang.com,paid_search
+880390,639666,,Click,2026-07-26T00:00:00+08:00,/,365,Webinar Series,linkedin,klang.com,social
+880391,688698,,Visit,Jul 20 2026,/case-studies,426,,linkedin,,social
+880392,688698,,Visit,2026-07-23 00:00:00,/blog/agentic-ai,638,Q3 Launch,bing,,paid_search
+880393,613513,,Page View,2026-07-22T00:00:00+08:00,/product,235,Webinar Series,bing,cendana.com,paid_search
+880394,613513,,Click,21/07/2026,/,481,Q3 Launch,bing,cendana.com,paid_search
+880395,613513,,Click,2026-07-24 00:00:00,/pricing,45,,direct,cendana.com,direct
+880396,627076,003qJ7LLUAsjmvoyK1,Page View,2026-07-24,/pricing,348,,bing,coastal.com,paid_search
+880397,627076,003qJ7LLUAsjmvoyK1,Visit,2026-07-20,/demo,59,Newsletter,linkedin,coastal.com,social
+880398,607051,0037O1RLhX5CDQL9Gi,Click,2026-07-20,/product,867,Webinar Series,direct,penang-semi.com,direct
+880399,607051,0037O1RLhX5CDQL9Gi,Form Submission,Jul 23 2026,/demo,125,Newsletter,linkedin,penang-semi.com,social
+880400,607051,0037O1RLhX5CDQL9Gi,Download,2026-07-26T00:00:00+08:00,/case-studies,267,Webinar Series,google,penang-semi.com,paid_search
+880401,633823,,Page View,2026-07-23,/blog/agentic-ai,711,Always-On Search,bing,,paid_search
+880402,633823,,Visit,2026-07-23,/pricing,516,Q3 Launch,bing,,paid_search
+880403,633823,,Page View,24/07/2026,/product,816,Always-On Search,direct,,direct
+880404,666577,003Ot4GJnPQD8vx0d0,Click,23/07/2026,/contact,502,Newsletter,direct,everbright.com,direct
+880405,666577,003Ot4GJnPQD8vx0d0,Form Submission,2026-07-23 00:00:00,/demo,591,Webinar Series,email,everbright.com,email
+880406,644658,,Form Submission,2026-07-21 00:00:00,/,380,,google,batam-log.com,paid_search
+880407,644658,,Form Submission,2026-07-24,/,528,Q3 Launch,direct,batam-log.com,direct
+880408,644658,,Click,2026-07-22,/contact,129,Newsletter,google,batam-log.com,paid_search
+880409,609123,,Click,21/07/2026,/case-studies,690,Q3 Launch,linkedin,,social
+880410,609123,,Form Submission,25/07/2026,/,681,Q3 Launch,google,,paid_search
+880411,609123,,Download,2026-07-24,/contact,328,Newsletter,direct,,direct
+880412,625646,003qJ7LLUAsjmvoyK1,Click,2026-07-24,/pricing,626,Q3 Launch,direct,coastal.com,direct
+880413,625646,003qJ7LLUAsjmvoyK1,Page View,2026-07-24 00:00:00,/,331,Q3 Launch,bing,coastal.com,paid_search
+880414,625646,003qJ7LLUAsjmvoyK1,Visit,Jul 26 2026,/blog/agentic-ai,603,Always-On Search,linkedin,coastal.com,social
+880415,604087,,Download,25/07/2026,/case-studies,475,,google,penang-semi.com,paid_search
+880416,604087,,Download,Jul 26 2026,/demo,222,,email,penang-semi.com,email
+880417,604087,,Download,2026-07-20 00:00:00,/demo,325,Webinar Series,google,penang-semi.com,paid_search
+880418,684985,,Visit,2026-07-26T00:00:00+08:00,/demo,687,Newsletter,email,surabaya-tex.com,email
+880419,684985,,Download,2026-07-23T00:00:00+08:00,/contact,214,Newsletter,direct,surabaya-tex.com,direct
+880420,658988,0037KB0UzFbyRBlwn6,Form Submission,2026-07-22,/case-studies,778,Webinar Series,direct,zenith.com,direct
+880421,658988,0037KB0UzFbyRBlwn6,Form Submission,2026-07-24,/contact,405,Q3 Launch,linkedin,zenith.com,social
+880422,692390,,Page View,2026-07-23T00:00:00+08:00,/blog/agentic-ai,778,,bing,jb-steel.com,paid_search
+880423,692390,,Visit,2026-07-23 00:00:00,/contact,654,Q3 Launch,google,jb-steel.com,paid_search
+880424,689662,,Form Submission,2026-07-23,/pricing,381,,linkedin,,social
+880425,689662,,Form Submission,Jul 22 2026,/case-studies,617,Always-On Search,email,,email
+880426,689662,,Click,2026-07-25T00:00:00+08:00,/demo,66,,bing,,paid_search
+880427,634136,,Click,2026-07-22,/,785,,linkedin,delhi-chem.com,social
+880428,634136,,Visit,22/07/2026,/demo,547,Q3 Launch,bing,delhi-chem.com,paid_search
+880429,680713,003GPkL8LjkQNU5Mv1,Form Submission,26/07/2026,/blog/agentic-ai,184,Newsletter,bing,delta.com,paid_search
+880430,680713,003GPkL8LjkQNU5Mv1,Click,2026-07-21T00:00:00+08:00,/,747,Webinar Series,email,delta.com,email
+880431,604337,,Download,2026-07-25,/,452,Newsletter,google,zenith.com,paid_search
+880432,604337,,Page View,Jul 25 2026,/demo,621,Always-On Search,linkedin,zenith.com,social
+880433,699022,,Page View,2026-07-23T00:00:00+08:00,/case-studies,438,Newsletter,bing,,paid_search
+880434,699022,,Page View,22/07/2026,/case-studies,729,Newsletter,email,,email
+880435,669526,,Click,2026-07-24 00:00:00,/,489,Newsletter,bing,,paid_search
+880436,669526,,Visit,Jul 24 2026,/contact,682,Always-On Search,email,,email
+880437,643904,0031O9ZsJHxSgc5kFi,Download,26/07/2026,/,721,Webinar Series,direct,kirana.com,direct
+880438,643904,0031O9ZsJHxSgc5kFi,Form Submission,2026-07-24 00:00:00,/product,723,Webinar Series,bing,kirana.com,paid_search
+880439,643904,0031O9ZsJHxSgc5kFi,Visit,2026-07-20T00:00:00+08:00,/,99,Q3 Launch,email,kirana.com,email
+880440,613619,,Page View,2026-07-20 00:00:00,/blog/agentic-ai,320,Always-On Search,google,,paid_search
+880441,613619,,Form Submission,2026-07-24 00:00:00,/pricing,88,,google,,paid_search
+880442,613619,,Visit,2026-07-25T00:00:00+08:00,/pricing,649,Webinar Series,email,,email
+880443,624217,,Click,2026-07-22,/product,508,Q3 Launch,email,,email
+880444,624217,,Click,2026-07-26 00:00:00,/product,195,Q3 Launch,bing,,paid_search
+880445,650174,003WbtDRUIBIy0opDw,Download,23/07/2026,/pricing,533,Webinar Series,direct,lumina.com,direct
+880446,650174,003WbtDRUIBIy0opDw,Download,2026-07-21T00:00:00+08:00,/pricing,177,,email,lumina.com,email
+880447,684323,,Visit,2026-07-26,/pricing,102,,bing,chennai-fab.com,paid_search
+880448,684323,,Visit,2026-07-25,/case-studies,182,Q3 Launch,linkedin,chennai-fab.com,social
+880449,634922,,Form Submission,2026-07-23,/blog/agentic-ai,819,Newsletter,email,northgate.com,email
+880450,634922,,Visit,2026-07-25,/contact,261,Q3 Launch,email,northgate.com,email
+880451,615886,,Click,2026-07-25 00:00:00,/blog/agentic-ai,340,Newsletter,linkedin,,social
+880452,615886,,Click,Jul 26 2026,/contact,378,Q3 Launch,email,,email
+880453,615886,,Page View,25/07/2026,/demo,597,Q3 Launch,email,,email
+880454,639173,,Click,2026-07-21 00:00:00,/case-studies,116,Newsletter,google,,paid_search
+880455,639173,,Page View,2026-07-23,/pricing,767,,google,,paid_search
+880456,608256,,Download,Jul 20 2026,/contact,884,Newsletter,linkedin,,social
+880457,608256,,Visit,20/07/2026,/product,836,Q3 Launch,email,,email
+880458,608256,,Form Submission,2026-07-25T00:00:00+08:00,/case-studies,724,,google,,paid_search
+880459,630537,,Page View,2026-07-24 00:00:00,/case-studies,699,Q3 Launch,email,,email
+880460,630537,,Page View,2026-07-21 00:00:00,/blog/agentic-ai,694,Webinar Series,linkedin,,social
+880461,640283,,Download,2026-07-26 00:00:00,/contact,204,,linkedin,,social
+880462,640283,,Visit,20/07/2026,/case-studies,639,,google,,paid_search
+880463,655864,003GkhxTPYcy4OqXIN,Click,24/07/2026,/,842,Webinar Series,linkedin,cyberjaya-data.com,social
+880464,655864,003GkhxTPYcy4OqXIN,Click,2026-07-26,/pricing,153,Always-On Search,google,cyberjaya-data.com,paid_search
+880465,622026,,Download,2026-07-20T00:00:00+08:00,/demo,625,Q3 Launch,google,,paid_search
+880466,622026,,Download,2026-07-20 00:00:00,/,191,Q3 Launch,email,,email
+880467,600946,,Download,21/07/2026,/blog/agentic-ai,856,Newsletter,google,zenith.com,paid_search
+880468,600946,,Click,2026-07-21T00:00:00+08:00,/contact,491,Newsletter,google,zenith.com,paid_search
+880469,600946,,Visit,Jul 20 2026,/contact,214,Newsletter,direct,zenith.com,direct
+880470,645593,003wk15qV1Sfsbydk2,Form Submission,2026-07-21,/product,809,,direct,pacific.com,direct
+880471,645593,003wk15qV1Sfsbydk2,Page View,26/07/2026,/product,84,Webinar Series,linkedin,pacific.com,social
+880472,689816,,Download,Jul 25 2026,/demo,193,Q3 Launch,linkedin,,social
+880473,689816,,Click,2026-07-24,/demo,475,Always-On Search,bing,,paid_search
+880474,689816,,Visit,21/07/2026,/pricing,788,Q3 Launch,direct,,direct
+880475,603809,003PIHF48i2GDrmZhv,Form Submission,Jul 25 2026,/contact,363,Newsletter,google,highland.com,paid_search
+880476,603809,003PIHF48i2GDrmZhv,Page View,20/07/2026,/,142,Always-On Search,google,highland.com,paid_search
+880477,603809,003PIHF48i2GDrmZhv,Download,2026-07-20,/,234,Newsletter,google,highland.com,paid_search
+880478,676689,003MdtQVQVlhaTiSak,Download,Jul 25 2026,/product,169,Newsletter,google,batam-log.com,paid_search
+880479,676689,003MdtQVQVlhaTiSak,Click,2026-07-25T00:00:00+08:00,/demo,373,Webinar Series,linkedin,batam-log.com,social
+880480,607818,,Download,2026-07-22T00:00:00+08:00,/demo,808,Always-On Search,google,highland.com,paid_search
+880481,607818,,Page View,2026-07-24T00:00:00+08:00,/,843,,google,highland.com,paid_search
+880482,607818,,Page View,26/07/2026,/pricing,451,,email,highland.com,email
+880483,677539,003YzaqIhDxRVRqLy0,Page View,24/07/2026,/product,474,,google,munich-auto.de,paid_search
+880484,677539,003YzaqIhDxRVRqLy0,Form Submission,2026-07-23T00:00:00+08:00,/pricing,457,Q3 Launch,linkedin,munich-auto.de,social
+880485,604406,,Download,2026-07-26 00:00:00,/case-studies,276,Q3 Launch,direct,penang-semi.com,direct
+880486,604406,,Download,2026-07-21 00:00:00,/demo,165,Always-On Search,bing,penang-semi.com,paid_search
+880487,602087,,Form Submission,23/07/2026,/blog/agentic-ai,627,Q3 Launch,email,cendana.com,email
+880488,602087,,Download,2026-07-25 00:00:00,/demo,838,Always-On Search,email,cendana.com,email
+880489,602087,,Visit,Jul 20 2026,/case-studies,737,Always-On Search,direct,cendana.com,direct
+880490,655823,,Visit,Jul 25 2026,/contact,373,Q3 Launch,direct,,direct
+880491,655823,,Visit,2026-07-24 00:00:00,/pricing,422,Always-On Search,email,,email
+880492,647916,,Page View,2026-07-25,/product,274,,linkedin,lumina.com,social
+880493,647916,,Form Submission,Jul 22 2026,/,749,Webinar Series,google,lumina.com,paid_search
+880494,635043,003iK2FYv5RWdcgOY1,Click,2026-07-26 00:00:00,/case-studies,527,,direct,selangor-precision.com,direct
+880495,635043,003iK2FYv5RWdcgOY1,Download,2026-07-23T00:00:00+08:00,/blog/agentic-ai,574,,bing,selangor-precision.com,paid_search
+880496,635043,003iK2FYv5RWdcgOY1,Click,2026-07-23 00:00:00,/,719,Q3 Launch,google,selangor-precision.com,paid_search
+880497,610508,003yr0Yzxh7KmLIlRX,Page View,21/07/2026,/product,144,Webinar Series,email,lotus.com,email
+880498,610508,003yr0Yzxh7KmLIlRX,Form Submission,2026-07-25T00:00:00+08:00,/blog/agentic-ai,53,Always-On Search,email,lotus.com,email
+880499,617305,,Click,2026-07-26T00:00:00+08:00,/demo,94,Q3 Launch,google,mumbai-alloys.com,paid_search
+880500,617305,,Click,2026-07-23T00:00:00+08:00,/case-studies,622,Always-On Search,bing,mumbai-alloys.com,paid_search
+880501,687274,,Download,Jul 21 2026,/product,610,Webinar Series,bing,,paid_search
+880502,687274,,Page View,Jul 21 2026,/case-studies,410,Always-On Search,linkedin,,social
+880503,687274,,Click,2026-07-25T00:00:00+08:00,/case-studies,200,,google,,paid_search
+880504,637387,,Page View,24/07/2026,/demo,149,Q3 Launch,bing,lotus.com,paid_search
+880505,637387,,Download,2026-07-24 00:00:00,/product,408,Webinar Series,google,lotus.com,paid_search
+880506,687235,0033BSiEeoyfUZggux,Form Submission,23/07/2026,/product,154,Q3 Launch,email,lumina.com,email
+880507,687235,0033BSiEeoyfUZggux,Download,Jul 24 2026,/product,189,Q3 Launch,direct,lumina.com,direct
+880508,684835,,Click,2026-07-25,/,617,Webinar Series,direct,,direct
+880509,684835,,Click,2026-07-21T00:00:00+08:00,/blog/agentic-ai,145,Newsletter,linkedin,,social
+880510,684835,,Visit,26/07/2026,/product,55,Newsletter,direct,,direct
+880511,658454,003KHkRykirtrFjekB,Click,2026-07-26,/demo,53,Q3 Launch,direct,sunrise.com,direct
+880512,658454,003KHkRykirtrFjekB,Visit,2026-07-22T00:00:00+08:00,/contact,433,Webinar Series,email,sunrise.com,email
+880513,679308,,Download,Jul 23 2026,/demo,763,Newsletter,bing,lumina.com,paid_search
+880514,679308,,Visit,2026-07-23T00:00:00+08:00,/product,383,Always-On Search,bing,lumina.com,paid_search
+880515,679308,,Visit,2026-07-26,/demo,775,Newsletter,email,lumina.com,email
+880516,637831,,Page View,21/07/2026,/,631,,linkedin,selangor-precision.com,social
+880517,637831,,Click,2026-07-24,/case-studies,567,Always-On Search,linkedin,selangor-precision.com,social
+880518,637831,,Visit,2026-07-21T00:00:00+08:00,/pricing,449,Always-On Search,email,selangor-precision.com,email
+880519,660570,,Page View,2026-07-24,/demo,882,Newsletter,bing,,paid_search
+880520,660570,,Visit,2026-07-22,/,876,Always-On Search,direct,,direct
+880521,673306,,Visit,2026-07-22,/,32,Webinar Series,bing,,paid_search
+880522,673306,,Visit,2026-07-21,/blog/agentic-ai,711,Always-On Search,email,,email
+880523,690156,,Visit,Jul 24 2026,/,313,Newsletter,linkedin,,social
+880524,690156,,Form Submission,2026-07-25,/case-studies,609,Newsletter,bing,,paid_search
+880525,690996,,Form Submission,2026-07-21T00:00:00+08:00,/blog/agentic-ai,619,Q3 Launch,bing,,paid_search
+880526,690996,,Visit,22/07/2026,/demo,357,Newsletter,google,,paid_search
+880527,690996,,Visit,Jul 20 2026,/product,399,Newsletter,bing,,paid_search
+880528,638228,,Visit,Jul 22 2026,/contact,800,Webinar Series,direct,lumina.com,direct
+880529,638228,,Click,2026-07-24T00:00:00+08:00,/product,731,Always-On Search,linkedin,lumina.com,social
+880530,646088,,Page View,Jul 23 2026,/contact,318,Always-On Search,email,,email
+880531,646088,,Page View,21/07/2026,/pricing,253,Webinar Series,direct,,direct
+880532,673224,,Download,2026-07-20,/case-studies,108,Q3 Launch,google,,paid_search
+880533,673224,,Click,2026-07-26,/product,737,Always-On Search,google,,paid_search
+880534,678335,003cWPmsw3Xd3PvrhZ,Visit,22/07/2026,/demo,161,Webinar Series,google,andaman.com,paid_search
+880535,678335,003cWPmsw3Xd3PvrhZ,Page View,2026-07-20 00:00:00,/demo,110,Newsletter,linkedin,andaman.com,social
+880536,663472,,Page View,2026-07-20,/pricing,63,,direct,,direct
+880537,663472,,Visit,2026-07-25 00:00:00,/product,74,Q3 Launch,bing,,paid_search
+880538,698900,,Form Submission,20/07/2026,/demo,219,Always-On Search,linkedin,orion.com,social
+880539,698900,,Click,2026-07-26T00:00:00+08:00,/contact,386,Always-On Search,google,orion.com,paid_search
+880540,695493,,Visit,21/07/2026,/,622,Q3 Launch,direct,,direct
+880541,695493,,Click,2026-07-25 00:00:00,/demo,802,,linkedin,,social
+880542,628051,,Click,2026-07-25 00:00:00,/blog/agentic-ai,633,Webinar Series,email,,email
+880543,628051,,Page View,2026-07-21T00:00:00+08:00,/,393,Newsletter,email,,email
+880544,628051,,Page View,2026-07-23 00:00:00,/case-studies,145,Always-On Search,linkedin,,social
+880545,668121,,Visit,2026-07-22,/product,535,Q3 Launch,email,kirana.com,email
+880546,668121,,Form Submission,2026-07-24,/blog/agentic-ai,349,Newsletter,google,kirana.com,paid_search
+880220,676818,003tQLxEJHwBVJvwSD,Visit,2026-07-20 00:00:00,/pricing,502,Q3 Launch,direct,penang-semi.com,direct
+880230,632786,,Visit,2026-07-23T00:00:00+08:00,/pricing,855,Q3 Launch,email,penang-semi.com,email

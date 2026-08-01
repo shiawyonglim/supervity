@@ -1,0 +1,69 @@
+Id,Name,Industry,NumberOfEmployees,Type,Website,BillingCountry,OwnerId,Strategic__c
+001uOiJaJkJat7CrhI,Northgate Instruments,Chemicals,5000,Customer,northgate.com,IN,005PueZaJwPUuJdtrt,false
+001QH756sYhE3xvrqJ,Sabah Timber Components ,Manufacturing,300,Prospect,sabah.com,SG,0057et5JEE7hm0izzn,false
+001yjb50XlJAdc7p3L,Everbright Plastics,Logistics,800,Prospect,everbright.com,IN,0052zFDqfKCziLfOVD,false
+001aKq9OAkFDAazLrZ,Straits Raw Materials,Manufacturing,50,Prospect,straits.com,SG,005C5U1kSRfwgMcaXl,false
+001Pyzv6LKmJhkZV1Y,Lotus Facilities,Technology,120,Prospect,lotus.com,MY,0056G7zeVwwVS7CoMl,false
+001Y3LBbuJoB9K6hD6,Andaman Metal Works,Technology,50,Partner,andaman.com,TH,005JlZRISIH9RN8xYY,false
+001zJ1DMIY5suKOMgP,Highland Chemicals,Technology,800,Partner,highland.com,ID,005F9e1sHgsihawXpc,false
+001o1u7ckTr414cYaE,Lumina Retail,Manufacturing,120,Prospect,lumina.com,TH,005sYkImcLonK1KWwP,false
+001wjlpFhmyYbEU2tD,Lumina  Retail,Technology,5000,Partner,lumina.com,ID,005NL81atJns3AjNnr,false
+0015jZV0eISRRkleg5,Lumina Retail,Logistics,800,Partner,lumina.com,SG,005SwC33vHzjPZy4jI,false
+001BxXdFCOmhaNf0ez,Zenith Office Solutions,Retail,800,Prospect,zenith.com,TH,005tQTRkMp3CTtZXbf,false
+0017Sqr0O072IojSHD,Zenith Office Solutions,Retail,800,Partner,zenith.com,TH,005YpHNeeJSRw1pclM,false
+001ZrNDru0WnWI7C1E,Kirana Traders,Logistics,800,Prospect,kirana.com,TH,005S2GfIK3hqwLngHU,false
+001zFBTL4HjeE6O3X5,Everbright Plastics,Logistics,800,Prospect,everbright.com,ID,005C7K4alVTXvE8lZI,true
+0018pb10cLQ0vkB1eE,HIGHLAND CHEMICALS,Logistics,50,Partner,highland.com,ID,005bsyibE5mjq5E1kP,false
+001Q4zJiPXnkfvSYXw,Orion Freight,Technology,800,Customer,orion.com,IN,005Jr2VtYa6YyfGNcK,false
+001jJI14UZmcqlVw5M,Northgate Instruments,Logistics,300,Partner,northgate.com,SG,005wXG1kSKx4ht8eqO,false
+001y7oXm8Oa2wFG5HC,Bharat Industrial Supplies,Technology,120,Partner,bharat.com,MY,005rJqGntkGWnAIeRm,false
+0018wxvZFjtODPTTEA,Pacific  Rim  Textiles,Chemicals,5000,Partner,pacific.com,MY,005KdiyTirj3k2TyEk,false
+001TBInfrgtzjDX8yt,Bharat Industrial Supplies,Manufacturing,50,Partner,bharat.com,SG,005Q2o9efuBFUVEKjO,false
+001H4cP0sFYxHjnq6U,Summit Steelworks,Retail,2000,Prospect,summit.com,IN,005rUvOFJnj2m8Oc37,false
+0015Ow05Rcuo8wKeHk,Harbor Freight,Retail,120,Customer,harbor.com,ID,005UbC7u987LRX3Ojo,false
+0016ghtzFH0UgGkUkH,Lotus Facilities Bhd,Retail,2000,Customer,lotus.com,IN,0059TKWH1cdhbtrKl8,false
+001zeskKCwlSjzF33C,Zenith Office Solutions,Logistics,2000,Customer,zenith.com,IN,0051lOQwHhg7MeOo4P,false
+001sfw7845UU6khqtV,Nexus Logistics ,Retail,300,Partner,nexus.com,TH,005JpJJYVorxLxe5X2,false
+001emnneWwt2WsopvX,Andaman Metal Works,Logistics,300,Prospect,andaman.com,IN,005qPHqrXe547AGadx,false
+001XP4wFZEA5SFB2eQ,Sunrise Logistics Co.,Technology,5000,Partner,sunrise.com,MY,0051xdBILr00KqCRAW,false
+001vTpO5ZiKeUS89sO,Northgate  Instruments,Logistics,2000,Prospect,northgate.com,ID,005EC7HiCrCCxJ2Cnr,false
+001ZNYqK5cbaTTQtsq,Zenith Office Solutions,Retail,800,Customer,zenith.com,ID,005rHoLhVRSLqpGZb4,false
+001hkNKWNDARWM6kP2,Meridian Components,Manufacturing,300,Prospect,meridian.com,IN,005N5AWKvLbJYIZZr8,false
+001Ro9LKAn1aSYMmyY,Pacific Rim Textiles Pte Ltd,Chemicals,2000,Prospect,pacific.com,TH,00588lFRGODsMaJKt9,false
+001DqPOAEhtUaG5zpX,Brightwave Solutions,Manufacturing,50,Prospect,brightwave.com,IN,0056IwiBqaybvUS8Dl,false
+001KRbHQQpMxQhnrct,Delta Rubber Industries,Technology,2000,Customer,delta.com,SG,005XED7Hi1b4DqnpF4,false
+001ZhExlaEvdniIQ6j,Straits Raw Materials ,Chemicals,120,Customer,straits.com,ID,005m0j3RUB0UMuzVx4,false
+001799bPWF8ea48ie7,Mekong Fasteners,Logistics,300,Partner,mekong.com,MY,005Ao41sl5doabN0g4,false
+001qq3TNBjJ3KzyUi2,Harbor Freight,Logistics,800,Prospect,harbor.com,MY,005t0hEwolb0lMjZtq,false
+001ZMszSLB72NFP6ir,Johor Speciality Alloys ,Chemicals,120,Partner,johor.com,SG,005JgrjcbCn185SEAF,false
+001XkIYYMYi2hcBYX0,Highland Chemicals,Logistics,300,Partner,highland.com,IN,005rbKguyUuoOGwcaB,false
+001XVPrG5zoRw6R4bE,Klang Valley Packaging,Retail,300,Customer,klang.com,ID,005jQDbgqY9pUuzmXd,false
+001QHFjSNhc5jCeo0R,Cendana Print Media,Logistics,800,Prospect,cendana.com,SG,005ocOS8KJbv2o1CJd,false
+001B6ICJ1JKEWzvaOw,Coastal Chemical Traders,Technology,800,Prospect,coastal.com,IN,005SHouikz56UzsFgk,false
+001bnKtBrKYKSSBpwN,Sunrise Logistics ,Manufacturing,800,Customer,sunrise.com,ID,005NI9LzNdMYTomZ1V,false
+001nW98aLpiWzUMZtE,Northgate Instruments,Manufacturing,2000,Prospect,northgate.com,IN,005dIKcRMNU7xX1eI3,false
+001PCJEf1Lir6msChM,Andaman Metal Works ,Chemicals,5000,Customer,andaman.com,SG,005w4UJymiyh3sOOW2,false
+0014QNOMWOjv9qdb2V,Lumina Retail,Chemicals,800,Customer,lumina.com,SG,005N9dUpHlkRdiTDsz,false
+001KLFqZmwWENh8l4n,Northern Wire & Cable ,Manufacturing,300,Partner,northern.com,TH,005pmyF4fiSwM5HiS9,false
+001wlaDCnCdllvimD4,Kirana Traders,Manufacturing,120,Prospect,kirana.com,MY,005chaaXmn33vVnGaY,false
+001czRhV7L6PwXABeP,Meridian Components,Retail,120,Prospect,meridian.com,ID,005Ocgc4o8pZNokxvv,false
+0017ZpRREyu0xUNxMk,Highland Chemicals Sdn Bhd,Manufacturing,800,Prospect,highland.com,MY,005oWI7XMODCHsfKgl,false
+001JffndpEwzhlu4bS,Klang Valley Packaging ,Logistics,50,Prospect,klang.com,TH,005MB5UbiN2j0D6OS2,false
+001om06Dwt0Y3oobQm,Penang Semiconductor Works,Manufacturing,2000,Prospect,penang-semi.com,MY,005zvr3e9XrwPGzR1I,true
+001v8bh4qlL9qcgMBw,Cyberjaya Data Systems,Technology,800,Prospect,cyberjaya-data.com,MY,005UYuBMGhy5KmqcTB,false
+001aH7ZIRU8VVQmxBe,Frankfurt Industrieteile GmbH,Manufacturing,1200,Prospect,frankfurt-ind.de,EU,0058Q6vNuQ2hU5tGtQ,false
+001AuzSsJimAQ8yRV5,Mumbai Alloys Ltd,Manufacturing,900,Prospect,mumbai-alloys.com,IN,005lNKtzJ1atsnBYLM,false
+001PuDCCRnGEY59YVk,Selangor Precision Manufacturing,Manufacturing,1500,Prospect,selangor-precision.com,MY,005QfsGQONvf08WpRt,true
+001oZmjbcpEN2XeDA4,Batam Logistics Hub,Logistics,1200,Prospect,batam-log.com,ID,005OKmTSyFzpjPSa5W,false
+0013X4gXBolZ9SHDdJ,Chennai Fabrication Co,Manufacturing,600,Prospect,chennai-fab.com,IN,005p62hDiZDQHJMu8W,false
+0015CN0U5GB16JC5kV,Singapore Marine Supplies,Logistics,2000,Customer,sg-marine.com,SG,0053ECqWp1OrXXHFOp,false
+001rCeTsprvu5Ifijo,Bangkok Precision Tools,Manufacturing,700,Prospect,bkk-tools.com,TH,005ySjTneAAvIDAdn1,false
+001Ay5XL8Sb24WKyEa,Munich Automation AG,Technology,3000,Prospect,munich-auto.de,EU,0058wtWy2591AIVVIZ,true
+001M5oForBFbyvQRZz,Delhi Chemical Works,Chemicals,850,Prospect,delhi-chem.com,IN,005Uk1D6iNIb6zLKQb,false
+001fPBi3DldqyunDuv,Johor Bahru Steel,Manufacturing,1100,Prospect,jb-steel.com,MY,005W4yrW81Aq1fEbVI,false
+001d8woPeX9PcWb8pm,Surabaya Textiles,Chemicals,500,Prospect,surabaya-tex.com,ID,0051bNjpiEQhK8nDSq,false
+001XxkMM9VThX0k9tg,Penang Semiconductor Works ,Manufacturing,2000,Prospect,penang-semi.com,SG,005Lb7tKR69yz8TmeL,false
+001S1OpgSXt2RMZhYK,KL Facilities Group,Technology,400,Prospect,kl-facilities.com,MY,005YcwIBQxeGPva2A0,false
+001FgB9xO51DTjBlUH,Hanoi Components Ltd,Manufacturing,650,Prospect,hanoi-comp.com,TH,0059PrNZ6IXEDB0ULr,false
+001u2p17fr4CpWDKNQ,Adelaide Freight Systems,Logistics,550,Prospect,adelaide-freight.com,SG,005yvbF2ulFnwZqvr4,false
+001MS4rJaH8mfpUAFJ,Pune Engineering Works,Manufacturing,1300,Prospect,pune-eng.com,IN,005WpSEPTFCYbfsozS,false

@@ -1,0 +1,7 @@
+Workbook_Contents,
+Autopilot Asia - Sales Intelligence (Inbound Revenue Capture) enterprise export - ROUND 2,
+"System of origin: Salesforce CRM + Pardot (Account Engagement). 18-char Ids (001 Account, 003 Contact, 006 Opportunity)",
+"Sheets: VisitorActivity, Contact, Account, Opportunity, ICP_Scoring_Config, Enrichment_Data, Territories, Routing_Rules, SDR_Roster, Consent_Register, Sequences, Buying_Group, Field_Dictionary",
+Fully synthetic (Round 2). Suppression (HasOptedOutOfEmail/DoNotCall) and consent (Consent_Register vs Contact.region) must run before any outreach.,
+"Round 2: account-based capture with buying groups, territories, capacity-aware routing, and multi-region consent. ~2-3x Round 1.",
+Judging runs on a separate hidden set; do not hardcode.,

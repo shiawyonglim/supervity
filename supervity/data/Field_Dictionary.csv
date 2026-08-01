@@ -1,0 +1,14 @@
+Sheet,Description,Class
+VisitorActivity,"Pardot/Account Engagement export. visitor_id, prospect_id (blank=anonymous), type, url, duration_seconds, created_at, source, company_domain. R2 adds channel; same visitor_id repeats = multi-touch.",transactional
+Contact,"Salesforce Contact. HasOptedOutOfEmail=unsubscribed, DoNotCall=hard suppression, Lead_Stage__c=Opportunity means open opp, LeadSource. R2 adds consent_basis, region, duplicate_key (email-normalized, exposes cross-source dupes), confidence.",master
+Account,Salesforce Account. Strategic__c=true routes to a human.,master
+Opportunity,"Salesforce Opportunity. StageName, Amount, CloseDate, Probability (detect already-in-pipeline). R2 adds confidence.",transactional
+ICP_Scoring_Config,Ideal-customer-profile attributes and weights for intent scoring.,config
+Enrichment_Data,"Firmographics + IP-to-company reveal per company_domain (industry, employees, region, revenue_band, ip_range, hq_country). is_competitor flags competitor domains. matched_account_id resolves a domain to an Account.",reference
+Territories,"Territory + segment + owner map (region, segment, primary_owner_id).",config
+Routing_Rules,"Ordered routing rules (region, segment, industry, owner_id, priority, active). Rules can collide and must be resolved.",config
+SDR_Roster,"Reps and load (owner_id, name, territory, region, segment, current_capacity, max_capacity, active). Routing must respect capacity.",reference
+Consent_Register,"Consent basis + region per contact (contact_id, basis e.g. opt_in/consent/legitimate_interest, region, status, captured_at). Suppression is a compliance decision (GDPR/PDPA/DPDP).",reference
+Sequences,"Outreach cadences (sequence_id, name, steps, eligible_stage, channel, active).",config
+Buying_Group,"Contacts + roles forming an account's buying group (account_id, contact_id, role e.g. champion/economic_buyer/user/influencer). Group must resolve to one account play.",reference
+SEEDED TRAP TYPES,"R1: visitor already an open opp; anonymous high-fit on pricing page; unsubscribed/do-not-contact; duplicate lead from two sources; strategic account. R2 adds: buying group of 4 on one account active same week (Penang Semiconductor Works, BG-PENANG-01); consent conflict (opted in under MY, protected under EU); lead already owned by another rep / account already an open opportunity (Cyberjaya open opp + new inbound); same person as 3 near-duplicate leads across 3 sources (Mumbai Alloys, shared duplicate_key); high-fit anonymous visitor on /pricing mapping to a target account via company_domain+Enrichment_Data (penang-semi.com); competitor visitor to flag + suppress (competitor-crm.io etc); routing collision (RR-01 vs RR-02); over-capacity rep (005AE3); intentional FK mismatches (opp/consent dangling ids).",note

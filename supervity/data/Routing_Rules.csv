@@ -1,0 +1,10 @@
+rule_id,region,segment,industry,owner_id,priority,active
+RR-01,MY,Enterprise,Manufacturing,005AE1,1,true
+RR-02,MY,Enterprise,Manufacturing,005AE5,1,true
+RR-03,SG,Enterprise,,005AE3,2,true
+RR-04,IN,Mid-Market,,005AE2,2,true
+RR-05,IN,Enterprise,,005AE5,1,true
+RR-06,TH,SMB,,005AE4,3,true
+RR-07,EU,Enterprise,,005AE5,1,true
+RR-08,MY,Mid-Market,,005AE6,2,false
+RR-09,ID,SMB,Logistics,005AE4,3,true

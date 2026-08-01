@@ -1,0 +1,8 @@
+territory_id,name,region,segment,primary_owner_id
+TER-01,MY-Strategic,MY,Enterprise,005AE1
+TER-02,MY-Growth,MY,Mid-Market,005AE6
+TER-03,SG-Strategic,SG,Enterprise,005AE3
+TER-04,IN-Strategic,IN,Enterprise,005AE5
+TER-05,IN-Growth,IN,Mid-Market,005AE2
+TER-06,TH-ID-Growth,TH,SMB,005AE4
+TER-07,EU-Strategic,EU,Enterprise,005AE5

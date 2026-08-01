@@ -1,0 +1,60 @@
+Id,Name,AccountId,ContactId,StageName,Amount,Probability,CloseDate,LeadSource,Type,OwnerId,IsClosed,IsWon,CreatedDate,confidence
+0067r8VApYgyEaWyFv,Northern Wire & Cable  - Expansion,001KLFqZmwWENh8l4n,003brDwl9OJmTTZ92I,Qualification,147929,40,2026-07-16,Web,New Business,005AE2,false,false,2026-07-02T00:00:00+08:00,0.70
+006NvSViPCQjWd6SUV,Zenith Office Solutions - Expansion,001ZNYqK5cbaTTQtsq,003e9k8XA1wJ6glkhd,Negotiation,170104,80,2026-05-22,Trade Show,New Business,005AE3,false,false,2026-06-06T00:00:00+08:00,0.61
+006od6xxByIGZ4Us2r,Straits Raw Materials - Expansion,001aKq9OAkFDAazLrZ,003d6teEsgPckDX2AN,Prospecting,280890,40,2026-08-12,Web,New Business,005AE4,false,false,2026-04-19T00:00:00+08:00,
+006mTmC1ebRUtEza9V,Zenith Office Solutions - Expansion,001BxXdFCOmhaNf0ez,0034Kp57AK0Q8FTBl6,Closed Won,50877,20,2026-06-08,Web,New Business,005AE3,false,false,2026-06-29T00:00:00+08:00,0.62
+006CxQnr4It418lx6D,Sunrise Logistics  - Expansion,001bnKtBrKYKSSBpwN,0033mj4VEg9rs779TN,Qualification,190587,100,2026-07-16,Trade Show,New Business,005AE3,false,false,2026-04-02T00:00:00+08:00,0.74
+006VlHjirCpSBE3rZh,Northgate Instruments - Expansion,001nW98aLpiWzUMZtE,003U9ntar9qHDO0O2g,Proposal,122841,100,2026-06-26,Referral,Existing Business,005AE2,false,false,2026-04-13T00:00:00+08:00,0.86
+006rHpe3kORV5bRWVe,Sunrise Logistics  - Expansion,001bnKtBrKYKSSBpwN,003zxgJgL2leXYC0VW,Qualification,180417,100,2026-07-28,Referral,Existing Business,005AE1,false,false,2026-05-24T00:00:00+08:00,
+006fd7LEhtFYD7ZlD0,Coastal Chemical Traders - Expansion,001B6ICJ1JKEWzvaOw,003hj8MRa5GGQVGTED,Qualification,319044,10,2026-06-23,Web,Existing Business,005AE4,false,false,2026-05-18T00:00:00+08:00,0.60
+006pBobzTSLBrKfaPZ,Northern Wire & Cable  - Expansion,001KLFqZmwWENh8l4n,003Cz5BK79Vc8PxESN,Qualification,153446,60,2026-06-18,Web,Existing Business,005AE1,false,false,2026-05-02T00:00:00+08:00,0.97
+006Jj7i4PurkkPgsaI,Summit Steelworks - Expansion,001H4cP0sFYxHjnq6U,003nj576dfv9I9pfnz,Prospecting,409734,20,2026-07-14,Web,New Business,005AE2,false,false,2026-03-30T00:00:00+08:00,0.85
+006g6ry2odPamkBQ2a,Mekong Fasteners - Expansion,001799bPWF8ea48ie7,0034SaTsCmEY6aeBEA,Qualification,419296,100,2026-06-03,Web,New Business,005AE3,false,false,2026-06-30T00:00:00+08:00,0.62
+006IlytxSAKcWWhDAZ,Zenith Office Solutions - Expansion,001BxXdFCOmhaNf0ez,003izy5NooKvoisrui,Closed Won,201661,40,2026-08-09,Referral,Existing Business,005AE1,false,false,2026-05-16T00:00:00+08:00,0.57
+006brEznqMpSewccCA,Northern Wire & Cable  - Expansion,001KLFqZmwWENh8l4n,00339p4BY9ZPVCzAqd,Proposal,364652,10,2026-07-15,Trade Show,Existing Business,005AE2,false,false,2026-04-23T00:00:00+08:00,0.71
+006huwfmItGknA5W3a,Highland Chemicals Sdn Bhd - Expansion,0017ZpRREyu0xUNxMk,003o1KW3FT7J1Wb6gG,Prospecting,34156,40,2026-06-19,Referral,New Business,005AE3,false,false,2026-05-24T00:00:00+08:00,0.79
+006TF5VZ1daOsSSdNz,Nexus Logistics  - Expansion,001sfw7845UU6khqtV,003p7rC5YwVTNekUnZ,Closed Won,492097,100,2026-08-09,Referral,New Business,005AE3,false,false,2026-05-26T00:00:00+08:00,0.74
+006zdiMWQeaWEEwL9L,Kirana Traders - Expansion,001wlaDCnCdllvimD4,003QKxkyppoOYAXuZI,Proposal,268874,20,2026-06-16,Trade Show,New Business,005AE3,false,false,2026-06-27T00:00:00+08:00,0.57
+006B1HyNWHm58qSoWZ,Summit Steelworks - Expansion,001H4cP0sFYxHjnq6U,003csV01zyIh9dzIjt,Closed Won,263464,100,2026-07-19,Referral,Existing Business,005AE4,false,false,2026-03-30T00:00:00+08:00,0.71
+006IAHx52GaEE3CLHL,Andaman Metal Works - Expansion,001Y3LBbuJoB9K6hD6,003gybdOyBcQbgqizi,Qualification,126245,60,2026-05-17,Web,Existing Business,005AE1,false,false,2026-05-26T00:00:00+08:00,0.96
+006DHhHBIwUfsc7VS0,Zenith Office Solutions - Expansion,001BxXdFCOmhaNf0ez,003tnXMtZLCMRZ2qCM,Qualification,40380,100,2026-08-04,Referral,New Business,005AE2,false,false,2026-06-15T00:00:00+08:00,0.98
+006UcUzmD74EbtzC8r,Sunrise Logistics  - Expansion,001bnKtBrKYKSSBpwN,003KwxB8E03xN4A7DW,Prospecting,278226,60,2026-05-29,Referral,New Business,005AE2,false,false,2026-03-28T00:00:00+08:00,0.57
+006E3BdzE5lPv1g0W7,Kirana Traders - Expansion,001ZrNDru0WnWI7C1E,003HO1DgljEAXus2tS,Qualification,303898,10,2026-08-01,Web,Existing Business,005AE3,false,false,2026-06-30T00:00:00+08:00,0.71
+006gvP7KGX87yGTpzS,Meridian Components - Expansion,001hkNKWNDARWM6kP2,003jxEtAjl3KDsP3Fp,Prospecting,345922,60,2026-06-18,Web,New Business,005AE1,false,false,2026-04-19T00:00:00+08:00,0.85
+0068aF7yFZMYP79xYd,Kirana Traders - Expansion,001ZrNDru0WnWI7C1E,003j40yPUgr3U4pVAa,Qualification,299190,40,2026-05-18,Trade Show,Existing Business,005AE1,false,false,2026-06-11T00:00:00+08:00,0.84
+006GBarETwGaWFN2yI,Pacific  Rim  Textiles - Expansion,0018wxvZFjtODPTTEA,003kjiX6W2ofqEgQnM,Qualification,424758,80,2026-07-07,Referral,New Business,005AE4,false,false,2026-04-16T00:00:00+08:00,0.71
+006nY7IVPK7dR6vKRp,Kirana Traders - Expansion,001ZrNDru0WnWI7C1E,003U9ntar9qHDO0O2g,Prospecting,82283,40,2026-07-03,Web,Existing Business,005AE3,false,false,2026-05-09T00:00:00+08:00,
+006t9Ig4w9blQtUQip,Zenith Office Solutions - Expansion,0017Sqr0O072IojSHD,003MgrLIPzZwp9iL2H,Negotiation,78209,100,2026-06-08,Referral,Existing Business,005AE4,false,false,2026-05-28T00:00:00+08:00,0.93
+006WFUiM3bCVgMXcVV,Meridian Components - Expansion,001czRhV7L6PwXABeP,003aWNXPWFPn6ZfzWQ,Prospecting,484247,100,2026-06-27,Web,New Business,005AE2,false,false,2026-05-05T00:00:00+08:00,0.98
+006mK7Wv5T6hABVwoe,Pacific  Rim  Textiles - Expansion,0018wxvZFjtODPTTEA,003icpXj7VwT0AazRl,Negotiation,79990,40,2026-08-08,Referral,Existing Business,005AE4,false,false,2026-05-02T00:00:00+08:00,0.88
+006q8WTRmKxLHggDrH,Northgate  Instruments - Expansion,001vTpO5ZiKeUS89sO,003MgrLIPzZwp9iL2H,Prospecting,238303,60,2026-07-01,Web,New Business,005AE1,false,false,2026-03-28T00:00:00+08:00,0.96
+006SXeHwblB9wHeFTE,Everbright Plastics - Expansion,001yjb50XlJAdc7p3L,003dSq7BAsMzOeip2s,Qualification,451310,80,2026-07-28,Web,Existing Business,005AE2,false,false,2026-03-24T00:00:00+08:00,0.65
+006iupWZ9gQDewOYc8,Bharat Industrial Supplies - Expansion,001y7oXm8Oa2wFG5HC,003p7rC5YwVTNekUnZ,Negotiation,43866,80,2026-05-17,Web,Existing Business,005AE2,false,false,2026-04-17T00:00:00+08:00,
+006yr5439BDt9bOf46,Highland Chemicals - Expansion,001XkIYYMYi2hcBYX0,003iBqmu22ouvvmK2x,Prospecting,417611,100,2026-08-11,Trade Show,New Business,005AE3,false,false,2026-06-06T00:00:00+08:00,0.90
+006THSEkL9SXr6Re8X,Northgate Instruments - Expansion,001jJI14UZmcqlVw5M,003l9VdcB26P6bCNuN,Qualification,271984,60,2026-07-10,Referral,Existing Business,005AE4,false,false,2026-05-26T00:00:00+08:00,0.63
+006vCvU1M1KH9lXbJi,Mekong Fasteners - Expansion,001799bPWF8ea48ie7,003Cz5BK79Vc8PxESN,Negotiation,379831,80,2026-07-11,Referral,Existing Business,005AE3,false,false,2026-05-05T00:00:00+08:00,0.73
+0061h4PzhwiQSn914u,Klang Valley Packaging - Expansion,001XVPrG5zoRw6R4bE,003sNGixBTRY5NKMY9,Negotiation,415056,20,2026-08-07,Trade Show,Existing Business,005AE3,false,false,2026-03-21T00:00:00+08:00,0.63
+006zvy82IFeWR6WTAL,Everbright Plastics - Expansion,001zFBTL4HjeE6O3X5,003yDzRUt7uV8voYAZ,Proposal,440080,100,2026-06-17,Trade Show,New Business,005AE1,false,false,2026-05-13T00:00:00+08:00,0.96
+0068iku6SE3eA9V2ih,Straits Raw Materials  - Expansion,001ZhExlaEvdniIQ6j,003rH1ESExnO8SEB8M,Proposal,96029,60,2026-05-29,Trade Show,Existing Business,005AE1,false,false,2026-05-16T00:00:00+08:00,0.89
+006X4DxkdPqjJtZZqn,Zenith Office Solutions - Expansion,001zeskKCwlSjzF33C,003jwfSDUNR99bAqQO,Closed Won,61149,10,2026-07-25,Referral,Existing Business,005AE1,false,false,2026-05-19T00:00:00+08:00,0.73
+0069Poh4g2jTEuWCkA,Lotus Facilities - Expansion,001Pyzv6LKmJhkZV1Y,003qJpbc3hrClcIFuO,Prospecting,494327,40,2026-06-16,Trade Show,New Business,005AE2,false,false,2026-04-03T00:00:00+08:00,0.84
+006OKfdsU1BTQaTZqT,Brightwave Solutions - Expansion,001DqPOAEhtUaG5zpX,003NbW3VTYMpvA4aBs,Negotiation,147060,100,2026-08-07,Referral,New Business,005AE2,false,false,2026-07-05T00:00:00+08:00,0.87
+006Jzs8HtDmoh7LwMp,Zenith Office Solutions - Expansion,001ZNYqK5cbaTTQtsq,003RpNTfclJb0OUUe8,Proposal,449935,60,2026-07-15,Referral,Existing Business,005AE2,false,false,2026-05-02T00:00:00+08:00,0.66
+006cuAkI9W0bScoVCx,Highland Chemicals - Expansion,001XkIYYMYi2hcBYX0,003gRzSdAK4hk0THac,Closed Won,258056,60,2026-07-07,Trade Show,New Business,005AE4,false,false,2026-03-17T00:00:00+08:00,0.62
+0069BkaupYoTVPBr1x,Cyberjaya Data Systems - Expansion,001v8bh4qlL9qcgMBw,0036sChDStSz8rGIFC,Negotiation,285000,60,2026-08-20,Web,New Business,005AE2,false,false,2026-07-21T00:00:00+08:00,0.85
+006v4EDCwXtFJglPMf,Penang Semiconductor Works - Expansion,001om06Dwt0Y3oobQm,003tQLxEJHwBVJvwSD,Proposal,512000,40,2026-09-01,Pricing Page,New Business,005AE1,false,false,2026-07-22T00:00:00+08:00,0.93
+0062GOb0LLzXLn6cJq,Bharat Industrial Supplies - Expansion,001y7oXm8Oa2wFG5HC,003zyVcLTK0mvUToRI,Qualification,173010,40,2026-10-21,Web,New Business,005AE1,false,false,2026-07-24T00:00:00+08:00,0.94
+006DGGfzxGaQp29ZNR,Delhi Chemical Works - Expansion,001M5oForBFbyvQRZz,003j9dCgZ51vTfGPlc,Proposal,240782,60,2026-08-25,Trade Show,Existing Business,005AE2,false,false,2026-07-21T00:00:00+08:00,0.88
+0068wcoWFoeqxocQnH,Bharat Industrial Supplies - Expansion,001y7oXm8Oa2wFG5HC,003Croe8miXXLgjgkC,Qualification,128923,40,2026-10-19,Trade Show,New Business,005AE4,false,false,2026-07-22T00:00:00+08:00,0.72
+006LIKlyPyxLP51eHq,Bangkok Precision Tools - Expansion,001rCeTsprvu5Ifijo,003Xz3G0aQ3IDAdmHx,Prospecting,375013,20,2026-09-04,Trade Show,Existing Business,005AE3,false,false,2026-07-23T00:00:00+08:00,0.98
+006CkoeGPrnjlkxMT0,Zenith Office Solutions - Expansion,001ZNYqK5cbaTTQtsq,003X0urUAMPfmCn60A,Negotiation,220020,80,2026-09-16,Referral,New Business,005AE2,false,false,2026-07-20T00:00:00+08:00,0.84
+006P1AbpciKLkiOGc5,Mumbai Alloys Ltd - Expansion,001AuzSsJimAQ8yRV5,003KpK12yR5IvyWViY,Prospecting,287453,20,2026-10-16,Referral,New Business,005AE2,false,false,2026-07-24T00:00:00+08:00,0.61
+0068fnCME3Eko1AMjY,Harbor Freight - Expansion,0015Ow05Rcuo8wKeHk,003IVU27c66lA41l76,Qualification,305868,40,2026-09-20,Trade Show,New Business,005AE3,false,false,2026-07-24T00:00:00+08:00,0.91
+006MLeoyyigbmH36GR,Zenith Office Solutions - Expansion,001zeskKCwlSjzF33C,003xsn8WNHEJ0WPahQ,Closed Won,173685,100,2026-08-24,Trade Show,Existing Business,005AE4,true,true,2026-07-23T00:00:00+08:00,0.91
+006EQi5MI0a58XRPBH,Kirana Traders - Expansion,001ZrNDru0WnWI7C1E,003XspthdpAOYNDeh1,Negotiation,357305,80,2026-10-02,Trade Show,New Business,005AE1,false,false,2026-07-23T00:00:00+08:00,0.71
+006BiqEXo62fsM4IAq,Andaman Metal Works - Expansion,001Y3LBbuJoB9K6hD6,003MZaoqMZ8tT9TPrB,Negotiation,155316,80,2026-09-26,Referral,Existing Business,005AE1,false,false,2026-07-21T00:00:00+08:00,0.55
+006AxgjBPLqq2IBKxN,Northgate Instruments - Expansion,001uOiJaJkJat7CrhI,003NyXwNb3R41U5iE6,Closed Won,96776,100,2026-10-01,Referral,New Business,005AE3,true,true,2026-07-22T00:00:00+08:00,0.99
+006qtKwXTzVi23QhVo,Penang Semiconductor Works - Expansion,001om06Dwt0Y3oobQm,0035TCfZR92uQwTeJI,Negotiation,324461,80,2026-10-16,Web,Existing Business,005AE4,false,false,2026-07-23T00:00:00+08:00,0.89
+006y9OaZf0jE7MBfeq,Summit Steelworks - Expansion,001H4cP0sFYxHjnq6U,003RxI5Pwdzrm9h820,Qualification,301518,40,2026-09-26,Referral,New Business,005AE2,false,false,2026-07-21T00:00:00+08:00,0.71
+006OFCam2Q7ZHsmcYM,Lotus Facilities - Expansion,001Pyzv6LKmJhkZV1Y,003ZVLSw3TNOBkNiYn,Negotiation,356894,80,2026-10-17,Referral,New Business,005AE2,false,false,2026-07-24T00:00:00+08:00,0.78
+006oNkRcxpPakfrXzw,Batam Logistics Hub - Expansion,001oZmjbcpEN2XeDA4,003DELIBERATEMISS9X,Qualification,210000,40,2026-08-30,Web,New Business,005AE3,false,false,2026-07-25T00:00:00+08:00,0.72

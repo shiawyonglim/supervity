@@ -1,0 +1,11 @@
+attribute,target_value,weight
+Industry,Manufacturing,0.25
+Industry,Logistics,0.2
+NumberOfEmployees,>500,0.2
+url,/pricing,0.3
+url,/demo,0.25
+BillingCountry,MY,0.15
+BillingCountry,SG,0.15
+Title,Head,0.15
+Title,VP,0.2
+duration_seconds,>300,0.2
