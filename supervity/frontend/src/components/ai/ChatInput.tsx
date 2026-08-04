@@ -6,14 +6,18 @@ import { Button } from '@/components/ui/button'
 import { Icons } from '@/components/ui/icons'
 
 interface ChatInputProps {
-  onSend: (message: string) => void
+  onSend?: (message: string) => void
+  onSubmit?: (message: string) => void
   disabled?: boolean
+  isLoading?: boolean
   placeholder?: string
 }
 
-export function ChatInput({ onSend, disabled, placeholder = 'Ask anything...' }: ChatInputProps) {
+export function ChatInput({ onSend, onSubmit, disabled, isLoading, placeholder = 'Ask anything...' }: ChatInputProps) {
   const [value, setValue] = useState('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const isBusy = disabled || isLoading
+  const sendFn = onSubmit || onSend
 
   // Auto-resize textarea
   useEffect(() => {
@@ -26,15 +30,15 @@ export function ChatInput({ onSend, disabled, placeholder = 'Ask anything...' }:
 
   // Focus input on mount
   useEffect(() => {
-    if (textareaRef.current && !disabled) {
+    if (textareaRef.current && !isBusy) {
       textareaRef.current.focus()
     }
-  }, [disabled])
+  }, [isBusy])
 
   const handleSend = () => {
     const trimmed = value.trim()
-    if (trimmed && !disabled) {
-      onSend(trimmed)
+    if (trimmed && !isBusy && sendFn) {
+      sendFn(trimmed)
       setValue('')
       // Reset height
       if (textareaRef.current) {
@@ -69,14 +73,14 @@ export function ChatInput({ onSend, disabled, placeholder = 'Ask anything...' }:
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          disabled={disabled}
+          disabled={isBusy}
           rows={1}
           className={cn(
             'flex-1 resize-none bg-transparent px-4 py-3',
             'text-sm text-foreground placeholder:text-muted-foreground',
             'focus:outline-none',
             'max-h-[120px]',
-            disabled && 'opacity-50 cursor-not-allowed'
+            isBusy && 'opacity-50 cursor-not-allowed'
           )}
         />
         
@@ -90,7 +94,7 @@ export function ChatInput({ onSend, disabled, placeholder = 'Ask anything...' }:
 
       <Button
         onClick={handleSend}
-        disabled={!value.trim() || disabled}
+        disabled={!value.trim() || isBusy}
         size="icon"
         className={cn(
           'h-11 w-11 rounded-xl flex-shrink-0',
@@ -101,7 +105,7 @@ export function ChatInput({ onSend, disabled, placeholder = 'Ask anything...' }:
           'disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none'
         )}
       >
-        {disabled ? (
+        {isBusy ? (
           <Icons.loader className="h-5 w-5 animate-spin text-white" strokeWidth={1.5} />
         ) : (
           <Icons.send className="h-5 w-5 text-white" strokeWidth={1.5} />
@@ -110,3 +114,6 @@ export function ChatInput({ onSend, disabled, placeholder = 'Ask anything...' }:
     </div>
   )
 }
+
+export default ChatInput
+

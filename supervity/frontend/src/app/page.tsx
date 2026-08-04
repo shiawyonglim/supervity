@@ -9,6 +9,7 @@ import { CardWatermark } from '@/components/ui/card-watermark'
 import { Icons } from '@/components/ui/icons'
 import { ActivityChart } from '@/components/ActivityChart'
 import AccountsTable from '@/components/AccountsTable' // <-- INJECTED IMPORT
+import ChatInput from '@/components/ai/ChatInput'
 import { cn } from '@/lib/utils'
 
 // Animation variants
@@ -291,6 +292,19 @@ function DiagnosticsCard() {
 
 // Main Dashboard — no auth required, renders directly
 export default function HomePage() {
+  const [isExecuting, setIsExecuting] = useState(false)
+
+  const handleWorkflowTrigger = async (promptText: string) => {
+    if (!promptText.trim()) return;
+    
+    setIsExecuting(true)
+    // The FastAPI proxy connection goes here in the next phase
+    console.log("Intercepted command payload:", promptText)
+
+    // Artificial delay to test the UI locking mechanism
+    setTimeout(() => setIsExecuting(false), 1500)
+  }
+
   return (
     <motion.div
       className='space-y-6'
@@ -342,6 +356,24 @@ export default function HomePage() {
       {/* Activity Chart - Full Width */}
       <motion.div variants={itemVariants}>
         <ActivityChart className='col-span-12' />
+      </motion.div>
+
+      {/* Orchestrator Command Interface */}
+      <motion.div variants={itemVariants} className="col-span-12 bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-6">
+        <div className="mb-4">
+          <h2 className="text-lg font-bold text-brand-navy">
+            Supervity AI Workflow
+          </h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Deploy natural language commands to analyze the CRM data feed below.
+          </p>
+        </div>
+        
+        <ChatInput 
+          onSubmit={handleWorkflowTrigger} 
+          isLoading={isExecuting}
+          placeholder="e.g., Cross-reference active opportunities with the SDR roster..."
+        />
       </motion.div>
 
       {/* INJECTED COMPONENT: PostgreSQL Data Feed */}

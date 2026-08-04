@@ -32,7 +32,7 @@ def main():
     engine = create_engine(DB_URL)
 
     for file_name in CSV_FILES:
-        file_path = os.path.join(BASE_DIR, file_name)
+        file_path = os.path.join(BASE_DIR, "data", file_name)
 
         if not os.path.exists(file_path):
             print(f"⚠️  Skipping {file_name}: File not found at {file_path}")
