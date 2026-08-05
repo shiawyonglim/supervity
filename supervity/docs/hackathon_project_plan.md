@@ -2,11 +2,12 @@
 
 This document expands on your initial 8-point checklist to provide actionable, detailed steps for building out your Command Center.
 
-## 1. 🧠 Integrate the LLM
-*Your backend needs a brain to power Policies, Insights, and data analysis.*
-- [ ] **API Setup:** Add your chosen LLM API keys (e.g., OpenAI, Gemini, Anthropic) to your `.env` file.
-- [ ] **Base Service:** Create a core LLM service class (e.g., `app/services/llm_service.py`) that handles sending prompts, managing context windows, and parsing JSON responses.
-- [ ] **Structured Outputs:** Ensure your LLM service can force structured JSON responses (using tools like Pydantic or native JSON mode) so the backend can safely read the AI's decisions.
+## 1. 🧠 Integrate the LLMs (Dual-Model Strategy)
+*Your backend needs a brain to power Policies, Insights, and data analysis. You are using the dual-model strategy for maximum bonus points.*
+- [ ] **API Setup:** Add your `GEMINI_API_KEY` and `NVIDIA_NIM_API_KEY` to your `.env` file.
+- [ ] **Base Service:** Create a core LLM service class (e.g., `app/services/llm_service.py`) that handles sending prompts and routing requests between Gemini and Nemotron.
+- [ ] **Gemini (AI Insights & Analytics):** Use Gemini's massive context window and native JSON mode/structured outputs to analyze large batches of messy database records to generate your AI Insights (Patterns, Anomalies, Recommendations).
+- [ ] **Nemotron 550B (AI Policies):** Use NVIDIA NIM's Nemotron 550B to parse complex natural language and translate it into strict backend IF/THEN rules for your Policy Engine. This proves enterprise-scale open-source capabilities to the judges.
 
 ## 2. 💾 Seed the Data
 *The foundation of the system. (✅ You already completed this!)*
