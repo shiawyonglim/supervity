@@ -21,15 +21,22 @@ from fastapi.responses import Response, StreamingResponse
 from sqlalchemy import create_engine, text
 
 from .authz import AuthzEngine
+from .core.database import Base
 from .core.storage import GCSStorage, LocalStorage, StorageBackend
 from .middleware import AuditMiddleware
 from .routers import (
     admin_router,
     audit_router,
     auth_router,
+    dashboard_router,
+    data_manager_router,
     examples_router,
+    exceptions_router,
     health_router,
+    insights_router,
     items_router,
+    llm_router,
+    policies_router,
 )
 from .security import get_current_user, verify_access
 
@@ -59,6 +66,13 @@ app = FastAPI(
     redoc_url=f"{BASE_PATH}/api/redoc",
     openapi_url=f"{BASE_PATH}/api/openapi.json",
 )
+
+@app.on_event("startup")
+def on_startup():
+    from .core.database import engine
+    # Create all tables (does not overwrite existing ones)
+    Base.metadata.create_all(bind=engine)
+    log.info("Database tables verified/created.")
 
 # =============================================================================
 # MIDDLEWARE CONFIGURATION
@@ -121,6 +135,12 @@ api_router.include_router(admin_router)
 api_router.include_router(audit_router)
 api_router.include_router(items_router)
 api_router.include_router(examples_router)
+api_router.include_router(llm_router)
+api_router.include_router(dashboard_router)
+api_router.include_router(policies_router)
+api_router.include_router(exceptions_router)
+api_router.include_router(insights_router)
+api_router.include_router(data_manager_router)
 
 
 # =============================================================================

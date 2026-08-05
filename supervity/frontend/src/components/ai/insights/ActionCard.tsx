@@ -10,7 +10,6 @@ export interface ActionItem {
   estimated_impact: string
   action_type?: string
   action_config?: Record<string, unknown>
-  is_demo?: boolean
 }
 
 interface ActionCardProps {

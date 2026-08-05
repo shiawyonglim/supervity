@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { motion, useInView } from 'framer-motion'
-import apiClient from '@/lib/api-client'
+import { apiClient } from '@/lib/api-client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CardWatermark } from '@/components/ui/card-watermark'
@@ -203,7 +203,7 @@ function DiagnosticsCard() {
     setIsLoading(true)
     setter('Loading...')
     try {
-      const data = await apiClient(endpoint)
+      const data = await apiClient.get<any>(endpoint)
       setter(JSON.stringify(data, null, 2))
     } catch (error) {
       setter(
@@ -293,6 +293,24 @@ function DiagnosticsCard() {
 // Main Dashboard — no auth required, renders directly
 export default function HomePage() {
   const [isExecuting, setIsExecuting] = useState(false)
+  const [stats, setStats] = useState({
+    total_leads: 10400,
+    active_opportunities: 524,
+    win_rate: 98,
+    active_policies: 96,
+  })
+
+  useEffect(() => {
+    async function loadStats() {
+      try {
+        const data = await apiClient.get<any>('/api/dashboard/stats')
+        setStats(data)
+      } catch (err) {
+        console.error('Failed to load dashboard stats:', err)
+      }
+    }
+    loadStats()
+  }, [])
 
   const handleWorkflowTrigger = async (promptText: string) => {
     if (!promptText.trim()) return;
@@ -318,24 +336,24 @@ export default function HomePage() {
       {/* Stats Grid - Bento style */}
       <div className='grid grid-cols-2 gap-4 lg:grid-cols-4'>
         <StatCard
-          title='Total Users'
-          value={10400}
+          title='Total Leads'
+          value={stats.total_leads}
           icon={Icons.users}
           trend={{ value: '+12%', positive: true }}
           colorClass='bg-brand-navy'
           delay={0.1}
         />
         <StatCard
-          title='Active Sessions'
-          value={524}
+          title='Active Opportunities'
+          value={stats.active_opportunities}
           icon={Icons.activity}
           trend={{ value: '+8%', positive: true }}
           colorClass='bg-brand-cornflower'
           delay={0.2}
         />
         <StatCard
-          title='Success Rate'
-          value={98}
+          title='Win Rate'
+          value={stats.win_rate}
           suffix='%'
           icon={Icons.checkCircle}
           trend={{ value: '+2%', positive: true }}
@@ -343,9 +361,8 @@ export default function HomePage() {
           delay={0.3}
         />
         <StatCard
-          title='AI Confidence'
-          value={96}
-          suffix='%'
+          title='Active Policies'
+          value={stats.active_policies}
           icon={Icons.sparkles}
           trend={{ value: 'Stable', positive: true }}
           colorClass='bg-gradient-to-br from-brand-navy to-brand-purple'

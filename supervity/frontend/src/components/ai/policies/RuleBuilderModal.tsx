@@ -461,28 +461,15 @@ export function RuleBuilderModal({
         policy_type: formData.policyType,
         entity_name: formData.entityName,
       })
-      
+
       setAnalysis(data)
       setSelectedSuggestion(data.refined_instruction)
       setEditedRefined(data.refined_instruction)
       setStep('review')
-    } catch {
-      // Use mock analysis for demo
-      const mockAnalysis: RuleAnalysis = {
-        conflicts: [],
-        overrides: [],
-        clarifications: [],
-        suggested_instructions: [
-          formData.naturalLanguage.charAt(0).toUpperCase() + formData.naturalLanguage.slice(1) + '. If this condition is not met, flag for REVIEW.',
-          'Verify that ' + formData.naturalLanguage.toLowerCase() + '. Log results in the audit trace.',
-        ],
-        refined_instruction: formData.naturalLanguage.charAt(0).toUpperCase() + formData.naturalLanguage.slice(1) + '. If this condition is not met, flag for REVIEW.',
-        is_valid: true,
-      }
-      setAnalysis(mockAnalysis)
-      setSelectedSuggestion(mockAnalysis.refined_instruction)
-      setEditedRefined(mockAnalysis.refined_instruction)
-      setStep('review')
+    } catch (err) {
+      console.error('Analysis failed:', err)
+      setError('Analysis failed. Please try again.')
+      setStep('input')
     }
   }
   

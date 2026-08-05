@@ -1,5 +1,7 @@
 'use client'
 
+import { useState, useEffect, useCallback } from 'react'
+
 import { motion } from 'framer-motion'
 import {
   Card,
@@ -10,7 +12,23 @@ import {
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Icons } from '@/components/ui/icons'
-import { cn } from '@/lib/utils'
+import { apiClient } from '@/lib/api-client'
+import { Badge } from '@/components/ui/badge'
+
+interface Exception {
+  id: number
+  type: string
+  severity: string
+  title: string
+  description: string
+  prospect_id?: string
+  account_name?: string
+  context?: any
+  ai_recommendation?: string
+  ai_confidence?: number
+  status: string
+  created_at: string
+}
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -25,89 +43,40 @@ const itemVariants = {
   visible: { opacity: 1, y: 0 },
 }
 
-// Sample workbench tools
-const tools = [
-  {
-    id: 'ai-assistant',
-    title: 'AI Assistant',
-    description: 'Chat with your AI assistant for help with tasks',
-    icon: Icons.sparkles,
-    color: 'bg-gradient-to-br from-brand-navy to-brand-purple',
-    status: 'available',
-  },
-  {
-    id: 'automation',
-    title: 'Automation Builder',
-    description: 'Create and manage automated workflows',
-    icon: Icons.zap,
-    color: 'bg-gradient-to-br from-brand-cornflower to-brand-purple',
-    status: 'available',
-  },
-  {
-    id: 'analytics',
-    title: 'Analytics Dashboard',
-    description: 'View detailed analytics and reports',
-    icon: Icons.activity,
-    color: 'bg-gradient-to-br from-emerald-500 to-emerald-600',
-    status: 'coming-soon',
-  },
-  {
-    id: 'integrations',
-    title: 'Integrations',
-    description: 'Connect with third-party services',
-    icon: Icons.share,
-    color: 'bg-gradient-to-br from-amber-500 to-orange-500',
-    status: 'coming-soon',
-  },
-]
-
-function ToolCard({ tool }: { tool: (typeof tools)[0] }) {
-  const Icon = tool.icon
-  const isComingSoon = tool.status === 'coming-soon'
-
-  return (
-    <motion.div variants={itemVariants}>
-      <Card
-        className={cn(
-          'h-full cursor-pointer transition-all duration-300',
-          isComingSoon && 'opacity-60'
-        )}
-      >
-        <CardHeader>
-          <div className='flex items-start justify-between'>
-            <div
-              className={cn(
-                'flex h-12 w-12 items-center justify-center rounded-xl text-white',
-                tool.color
-              )}
-            >
-              <Icon className='h-6 w-6' strokeWidth={1.5} />
-            </div>
-            {isComingSoon && (
-              <span className='rounded-full bg-muted px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-brand-muted'>
-                Coming Soon
-              </span>
-            )}
-          </div>
-          <CardTitle className='mt-4'>{tool.title}</CardTitle>
-          <CardDescription>{tool.description}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button
-            variant={isComingSoon ? 'outline' : 'default'}
-            className='w-full'
-            disabled={isComingSoon}
-          >
-            {isComingSoon ? 'Notify Me' : 'Open Tool'}
-            {!isComingSoon && <Icons.arrowRight className='ml-2 h-4 w-4' />}
-          </Button>
-        </CardContent>
-      </Card>
-    </motion.div>
-  )
-}
-
 export default function WorkbenchPage() {
+  const [exceptions, setExceptions] = useState<Exception[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  const fetchExceptions = useCallback(async () => {
+    setIsLoading(true)
+    try {
+      const data = await apiClient.get<Exception[]>('/api/exceptions')
+      setExceptions(data)
+    } catch (err) {
+      console.error('Failed to load exceptions:', err)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchExceptions()
+  }, [fetchExceptions])
+
+  const handleResolve = async (id: number, action: string) => {
+    try {
+      await apiClient.post(`/api/exceptions/${id}/resolve`, {
+        resolution_action: action,
+        resolved_by: 'Admin',
+        resolution_notes: 'Resolved via Workbench'
+      })
+      // Optimistic update
+      setExceptions(prev => prev.filter(e => e.id !== id))
+    } catch (err) {
+      console.error('Failed to resolve exception:', err)
+    }
+  }
+
   return (
     <motion.div
       className='space-y-8'
@@ -125,12 +94,60 @@ export default function WorkbenchPage() {
         </p>
       </motion.div>
 
-      {/* Tools Grid */}
-      <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-4'>
-        {tools.map((tool) => (
-          <ToolCard key={tool.id} tool={tool} />
-        ))}
-      </div>
+      {/* Exception Inbox */}
+      <motion.div variants={itemVariants}>
+        <Card>
+          <CardHeader>
+            <CardTitle className='flex items-center gap-2'>
+              <Icons.alertCircle className='h-5 w-5 text-red-500' />
+              Exception Inbox
+            </CardTitle>
+            <CardDescription>
+              Review and resolve automated tasks that require human intervention
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="flex justify-center p-8"><Icons.loader className="h-8 w-8 animate-spin text-muted-foreground" /></div>
+            ) : exceptions.length === 0 ? (
+              <div className="text-center p-8 text-muted-foreground">
+                <Icons.checkCircle className="h-12 w-12 mx-auto mb-4 text-emerald-500 opacity-50" />
+                <p>No pending exceptions to resolve. Great job!</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {exceptions.map(exc => (
+                  <div key={exc.id} className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center p-4 border rounded-xl bg-white shadow-sm">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-semibold">{exc.title}</h4>
+                        <Badge variant={exc.severity === 'critical' ? 'destructive' : 'secondary'}>
+                          {exc.severity}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{exc.description}</p>
+                      {exc.ai_recommendation && (
+                        <p className="text-sm text-brand-navy font-medium mt-2">
+                          <Icons.sparkles className="inline w-3 h-3 mr-1" />
+                          AI Suggestion: {exc.ai_recommendation} ({exc.ai_confidence}% confidence)
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex gap-2 shrink-0">
+                      <Button variant="outline" size="sm" onClick={() => handleResolve(exc.id, 'rejected')}>
+                        Reject
+                      </Button>
+                      <Button variant="default" size="sm" onClick={() => handleResolve(exc.id, 'approved')}>
+                        Approve
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* Quick Actions */}
       <motion.div variants={itemVariants}>

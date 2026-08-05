@@ -25,3 +25,7 @@ python-json-logger
 sqlalchemy
 psycopg2-binary
 alembic
+
+# --- LLM Integration ---
+openai               # NVIDIA NIM (Nemotron 550B) via OpenAI-compatible API
+google-generativeai  # Google Gemini API

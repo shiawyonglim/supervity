@@ -20,7 +20,6 @@ export interface Insight {
   created_at: string
   is_dismissed?: boolean
   is_actioned?: boolean
-  is_demo?: boolean
 }
 
 interface InsightCardProps {

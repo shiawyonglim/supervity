@@ -22,33 +22,8 @@ interface Notification {
   read: boolean
 }
 
-// Mock notifications - in real app, this would come from a store/API
-const mockNotifications: Notification[] = [
-  {
-    id: '1',
-    type: 'success',
-    title: 'Diagnostics Complete',
-    message: 'All systems are running normally.',
-    timestamp: new Date(Date.now() - 5 * 60 * 1000), // 5 min ago
-    read: false,
-  },
-  {
-    id: '2',
-    type: 'info',
-    title: 'New Feature Available',
-    message: 'Check out the new workbench improvements.',
-    timestamp: new Date(Date.now() - 30 * 60 * 1000), // 30 min ago
-    read: false,
-  },
-  {
-    id: '3',
-    type: 'warning',
-    title: 'Token Expiring Soon',
-    message: 'Your access token will expire in 24 hours.',
-    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-    read: true,
-  },
-]
+// Notifications are fetched from an API in production.
+// The empty default is intentional until a real notification source is wired up.
 
 const typeConfig: Record<
   NotificationType,
@@ -140,7 +115,7 @@ function NotificationItem({
 }
 
 export function NotificationCenter() {
-  const [notifications, setNotifications] = React.useState(mockNotifications)
+  const [notifications, setNotifications] = React.useState<Notification[]>([])
 
   const unreadCount = notifications.filter((n) => !n.read).length
 
