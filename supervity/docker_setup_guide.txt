@@ -1,0 +1,73 @@
+=================================================
+SUPERVITY HACKATHON: DOCKER SETUP & COMMAND GUIDE
+=================================================
+
+This guide covers everything you need to know to run the Command Center locally using Docker on Windows.
+
+-------------------------------------------------
+PHASE 1: PREREQUISITES & INSTALLATION
+-------------------------------------------------
+1. Download and install Docker Desktop for Windows.
+   (Link: https://www.docker.com/products/docker-desktop/)
+2. Ensure WSL 2 (Windows Subsystem for Linux) is enabled.
+   - If Docker prompts you to install WSL 2, follow the prompts.
+   - Or, open PowerShell as Administrator and run: `wsl --install`
+   - Restart your computer if required.
+3. Open Docker Desktop and make sure the engine is running (look for the green icon in the bottom left of the Docker UI).
+
+-------------------------------------------------
+PHASE 2: PROJECT SETUP
+-------------------------------------------------
+1. Open your terminal (PowerShell) and navigate to the project folder:
+   cd c:\supervity\supervity
+
+2. Ensure you have your environment file ready. 
+   (You already have `.env` set up, so you are good here!)
+
+-------------------------------------------------
+PHASE 3: ESSENTIAL DOCKER COMMANDS
+-------------------------------------------------
+Run these commands from your PowerShell terminal in the `c:\supervity\supervity` directory.
+
+▶ TO START THE SYSTEM (Do this every time you start working)
+Method A (Recommended for Windows): 
+  .\scripts\start.ps1
+Method B (Manual Docker command): 
+  docker compose up --build -d
+
+*(Note: The first time you run this, it will take 2-5 minutes to download everything. Subsequent runs will take about 15 seconds).*
+
+▶ TO STOP THE SYSTEM (Do this when you are done working)
+  docker compose down
+
+▶ TO VIEW LIVE LOGS (Crucial for debugging!)
+If your frontend is blank or something is crashing, use these to see the errors:
+  - Backend logs:  docker compose logs -f backend
+  - Frontend logs: docker compose logs -f frontend
+  - Database logs: docker compose logs -f postgres
+*(Press Ctrl+C to exit the log view)*
+
+▶ TO ACCESS THE SERVICES IN YOUR BROWSER
+- Frontend UI (Dashboard):   http://localhost:3001
+- Backend API Documentation: http://localhost:8001/api/docs
+- Database Connection:       localhost:5432
+
+-------------------------------------------------
+PHASE 4: DATABASE COMMANDS
+-------------------------------------------------
+If you ever need to reset or re-seed the database with the Hackathon data:
+
+▶ TO SEED THE DATABASE (Load CSV data into Postgres)
+  docker compose exec backend python seed_db.py
+
+▶ TO RUN DATABASE MIGRATIONS (If you add new tables to models.py)
+  docker compose exec backend alembic upgrade head
+
+-------------------------------------------------
+TROUBLESHOOTING TIPS
+-------------------------------------------------
+1. "Port 3001 or 5432 is already in use": 
+   You have another app running on that port. Stop any local Postgres installations or other servers, then run `docker compose up -d` again.
+
+2. "Backend crash-looping" or "Frontend is blank": 
+   Run `docker compose logs -f backend` to see the exact python error. Usually, this means a missing environment variable in your `.env` file or a syntax error in your python code.
