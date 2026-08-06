@@ -194,6 +194,7 @@ function HeroSection({ userName }: { userName?: string }) {
 function DiagnosticsCard() {
   const [apiResponse, setApiResponse] = useState<string>('')
   const [adminResponse, setAdminResponse] = useState<string>('')
+  const [bundlerResponse, setBundlerResponse] = useState<string>('')
   const [isLoading, setIsLoading] = useState(false)
 
   const callApi = async (
@@ -204,6 +205,24 @@ function DiagnosticsCard() {
     setter('Loading...')
     try {
       const data = await apiClient.get<any>(endpoint)
+      setter(JSON.stringify(data, null, 2))
+    } catch (error) {
+      setter(
+        `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const callPostApi = async (
+    endpoint: string,
+    setter: React.Dispatch<React.SetStateAction<string>>
+  ) => {
+    setIsLoading(true)
+    setter('Running pipeline...')
+    try {
+      const data = await apiClient.post<any>(endpoint, {})
       setter(JSON.stringify(data, null, 2))
     } catch (error) {
       setter(
@@ -281,6 +300,59 @@ function DiagnosticsCard() {
             <div className='rounded-xl border border-border/50 bg-muted/30 p-4'>
               <pre className='overflow-x-auto font-mono text-xs text-muted-foreground'>
                 <code>{adminResponse}</code>
+              </pre>
+            </div>
+          )}
+        </div>
+
+        <div className='h-px bg-border/50' />
+
+        <div className='space-y-3'>
+          <div className='flex items-center justify-between'>
+            <div>
+              <p className='text-sm font-medium text-foreground'>
+                Direct Feed (Full JSON payload)
+              </p>
+              <p className='mt-0.5 font-mono text-xs text-muted-foreground'>
+                /api/bundler/run?mode=direct
+              </p>
+            </div>
+          </div>
+          <Button
+            onClick={() => callPostApi('/api/bundler/run?limit=10&mode=direct', setBundlerResponse)}
+            disabled={isLoading}
+            className='w-full bg-brand-navy hover:bg-brand-navy/90'
+          >
+            {isLoading ? 'Running Pipeline...' : 'Run Direct Feed (Current)'}
+            <Icons.arrowRight className='ml-2 h-4 w-4' />
+          </Button>
+          
+          <div className='pt-2'>
+            <div className='flex items-center justify-between'>
+              <div>
+                <p className='text-sm font-medium text-foreground'>
+                  Supabase Feed (Polling)
+                </p>
+                <p className='mt-0.5 font-mono text-xs text-muted-foreground'>
+                  /api/bundler/run?mode=supabase
+                </p>
+              </div>
+            </div>
+          </div>
+          <Button
+            onClick={() => callPostApi('/api/bundler/run?limit=10&mode=supabase', setBundlerResponse)}
+            disabled={isLoading}
+            variant="outline"
+            className='w-full'
+          >
+            {isLoading ? 'Running Pipeline...' : 'Run Supabase Feed'}
+            <Icons.activity className='ml-2 h-4 w-4' />
+          </Button>
+
+          {bundlerResponse && (
+            <div className='rounded-xl border border-border/50 bg-muted/30 p-4'>
+              <pre className='overflow-x-auto font-mono text-xs text-muted-foreground'>
+                <code>{bundlerResponse}</code>
               </pre>
             </div>
           )}

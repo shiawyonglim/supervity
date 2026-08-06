@@ -216,6 +216,66 @@ class AuditService:
             log.error(f"Failed to write audit log: {e}")
             return None
 
+    def log_sync(
+        self,
+        action: str,
+        description: str,
+        actor: Optional[dict] = None,
+        category: str = AuditCategory.ADMIN,
+        severity: str = AuditSeverity.INFO,
+        resource_type: Optional[str] = None,
+        resource_id: Optional[str] = None,
+        resource_name: Optional[str] = None,
+        metadata: Optional[dict] = None,
+        success: bool = True,
+        error_message: Optional[str] = None,
+        request: Optional[Request] = None,
+        request_id: Optional[str] = None,
+        session_id: Optional[str] = None,
+    ) -> Optional[int]:
+        """Synchronous version of log."""
+        try:
+            actor_id, actor_email = self._extract_actor_info(actor)
+            request_info = self._extract_request_info(request)
+
+            db = self._get_db()
+            try:
+                audit_log = AuditLog(
+                    actor_id=actor_id,
+                    actor_email=actor_email,
+                    actor_ip=request_info.get("ip"),
+                    actor_user_agent=request_info.get("user_agent"),
+                    action=action,
+                    category=category if isinstance(category, str) else category.value,
+                    severity=severity if isinstance(severity, str) else severity.value,
+                    resource_type=resource_type,
+                    resource_id=str(resource_id) if resource_id else None,
+                    resource_name=resource_name,
+                    description=description,
+                    extra_data=metadata,
+                    success="true" if success else "false",
+                    error_message=error_message,
+                    request_id=request_id,
+                    session_id=session_id,
+                    endpoint=request_info.get("endpoint"),
+                )
+
+                db.add(audit_log)
+                db.commit()
+                db.refresh(audit_log)
+
+                return audit_log.id
+
+            except Exception as e:
+                log.error(f"Failed to record audit log synchronously: {e}")
+                return None
+            finally:
+                db.close()
+                
+        except Exception as e:
+            log.error(f"Audit log exception synchronously: {e}")
+            return None
+
     async def log_user_action(
         self,
         action: str,

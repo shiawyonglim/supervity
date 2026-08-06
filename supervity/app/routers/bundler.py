@@ -9,13 +9,14 @@ from ..services.bundler import bundle_and_push_data
 router = APIRouter(prefix="/bundler", tags=["Data Bundler"])
 
 @router.post("/run")
-def run_bundler_job(limit: int = 10):
+def run_bundler_job(limit: int = 10, mode: str = "direct"):
     """
-    Trigger the Data Bundler to read VisitorActivity, enrich it with Contact/Account data,
-    and push the bundled JSON to the Supervity Visual Workflow platform.
+    Trigger the Data Bundler.
+    mode = 'direct' (sends full JSON payloads to orchestrator)
+    mode = 'supabase' (sends just prospect_ids to orchestrator)
     """
     try:
-        result = bundle_and_push_data(limit=limit)
+        result = bundle_and_push_data(limit=limit, mode=mode)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

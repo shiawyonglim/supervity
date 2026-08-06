@@ -44,3 +44,4 @@ d.	collision detection
 i.	detect is the person in the same company is already talking ot one of our sales rep
 e.	automation
 i.	Write a backend prompt that analyzes your Workbench exceptions. Have the AI Insight tab pop up a recommendation saying: "Human operators manually merged 'IBM' and 'Intl Business Machines' 4 times today. Would you like me to create an AI Policy to auto-merge these in the future?" Clicking "Yes" automatically writes the policy.
+f. An ai will keep track on all the data and then will recognise patterns, it will track which pattern have a higher probabilityof buying stuff

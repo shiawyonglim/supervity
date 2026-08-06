@@ -52,7 +52,7 @@ class LLMService:
         # -----------------------------------------------------------------
         # Google Gemini — via google-generativeai SDK
         # -----------------------------------------------------------------
-        self._gemini_api_key = os.getenv("GEMINI_API_KEY", "")
+        self._gemini_api_key = os.getenv("GEMINI_API_KEY", "") or os.getenv("GOOGLE_API_KEY", "")
 
         if self._gemini_api_key:
             genai.configure(api_key=self._gemini_api_key)
