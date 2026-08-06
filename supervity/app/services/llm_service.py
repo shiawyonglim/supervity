@@ -56,8 +56,8 @@ class LLMService:
 
         if self._gemini_api_key:
             genai.configure(api_key=self._gemini_api_key)
-            self._gemini_model = genai.GenerativeModel("gemini-2.0-flash")
-            log.info("Google Gemini initialized with model: gemini-2.0-flash")
+            self._gemini_model = genai.GenerativeModel("gemini-3.6-flash")
+            log.info("Google Gemini initialized with model: gemini-3.6-flash")
         else:
             self._gemini_model = None
             log.warning("GEMINI_API_KEY not set — Gemini will not be available")
@@ -226,7 +226,7 @@ class LLMService:
             },
             "gemini": {
                 "available": self._gemini_model is not None,
-                "model": "gemini-2.0-flash" if self._gemini_model else None,
+                "model": "gemini-3.6-flash" if self._gemini_model else None,
             },
         }
 

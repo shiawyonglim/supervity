@@ -171,10 +171,10 @@ export default function AIPoliciesPage() {
       if (searchQuery) {
         const query = searchQuery.toLowerCase()
         return (
-          policy.name.toLowerCase().includes(query) ||
-          policy.description.toLowerCase().includes(query) ||
-          policy.natural_language.toLowerCase().includes(query) ||
-          policy.tags.some((tag) => tag.toLowerCase().includes(query))
+          (policy.name || '').toLowerCase().includes(query) ||
+          (policy.description || '').toLowerCase().includes(query) ||
+          (policy.natural_language || '').toLowerCase().includes(query) ||
+          (policy.tags || []).some((tag) => (tag || '').toLowerCase().includes(query))
         )
       }
 

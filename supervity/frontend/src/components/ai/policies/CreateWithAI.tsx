@@ -165,8 +165,8 @@ export function CreateWithAI({ onPolicyCreate, onCancel }: CreateWithAIProps) {
     setError(null)
 
     try {
-      const result = await apiClient.post<AnalysisResult>('/api/ai/policies/analyze-input', {
-        input: input.trim(),
+      const result = await apiClient.post<AnalysisResult>('/api/policies/generate', {
+        prompt: input.trim(),
       })
       
       setAnalysis(result)
@@ -186,7 +186,7 @@ export function CreateWithAI({ onPolicyCreate, onCancel }: CreateWithAIProps) {
     setIsCheckingConflicts(true)
     setError(null)
     try {
-      const result = await apiClient.post<ConflictResult>('/api/ai/policies/check-conflicts', {
+      const result = await apiClient.post<ConflictResult>('/api/policies/check-conflicts', {
         natural_language: input.trim(),
         policy_scope: policyScope,
         entity_name: analysis?.entity_name || null,

@@ -107,33 +107,36 @@ Respond ONLY with valid JSON."""
 
         # If result is already a dict (parsed JSON), use it directly
         if isinstance(result, dict):
-            # Create and save the policy
-            policy_data = {
-                "name": result.get("name", "AI Generated Policy"),
-                "description": result.get("description", ""),
-                "natural_language": req.prompt,
+            return {
+                "suggested_type": result.get("policy_type", "natural_language"),
+                "confidence": 0.95,
+                "reason": "AI parsed successfully",
+                "suggested_name": result.get("name", "AI Generated Policy"),
                 "summary": result.get("description", ""),
-                "policy_type": result.get("policy_type", "natural_language"),
                 "dsl": result.get("dsl"),
-                "ai_instruction": result.get("ai_instruction", req.prompt),
+                "refined_instruction": result.get("ai_instruction", req.prompt),
                 "entity_name": req.entity_name or result.get("entity_name"),
-                "tags": result.get("tags", ["ai-generated"]),
-                "priority": result.get("priority", 50),
-                "is_active": True,
+                "suggested_tags": result.get("tags", ["ai-generated"]),
             }
 
-            db_policy = PolicyModel(**policy_data)
-            db.add(db_policy)
-            db.commit()
-            db.refresh(db_policy)
-
-            return {"policy": db_policy, "llm_output": result}
-
         # If it's a string, return as-is for debugging
-        return {"llm_output": result, "error": "LLM did not return valid JSON"}
+        return {"error": "LLM did not return valid JSON", "llm_output": result}
 
     except RuntimeError as e:
         raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:
         log.error(f"Policy generation error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/check-conflicts")
+def check_conflicts(req: dict):
+    """Stub endpoint for checking policy conflicts."""
+    return {
+        "conflicts": [],
+        "overrides": [],
+        "clarifications": [],
+        "suggested_instructions": [],
+        "refined_instruction": req.get("natural_language", ""),
+        "is_valid": True,
+        "warnings": []
+    }

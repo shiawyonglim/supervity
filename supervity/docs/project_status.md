@@ -59,4 +59,22 @@ This document tracks the progress of the hackathon project based on the original
    - **Deduplication Rules:** The UI and backend logic for finding and merging duplicate records is not yet implemented.
 
 ---
+
+## 🏗️ Architecture: Frontend and Backend Connection
+
+The Next.js frontend (React) and FastAPI backend (Python) are connected using a unified API client pattern:
+
+1. **The `apiClient` Utility (`frontend/src/lib/api-client.ts`)**
+   - The frontend uses a custom wrapper around the native `fetch` API.
+   - When a component calls `apiClient.get('/api/endpoint')`, it dynamically prepends the `NEXT_PUBLIC_API_URL` environment variable.
+   - Example: A call to `/api/dashboard/stats` is routed to `http://localhost:8001/api/dashboard/stats`.
+
+2. **CORS Middleware**
+   - Because the frontend and backend run on different ports (`3001` vs `8001`), the FastAPI backend in `app/main.py` is configured with `CORSMiddleware`.
+   - This ensures the browser doesn't block cross-origin requests from the React application.
+
+3. **Docker Networking**
+   - When running via Docker Compose (`run_docker.bat`), both apps run in the same internal network but are exposed to the host on their respective ports. The `apiClient` seamlessly facilitates the communication between the browser and the FastAPI server.
+
+---
 *Last Updated: August 5, 2026*

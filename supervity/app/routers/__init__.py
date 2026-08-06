@@ -17,19 +17,20 @@ from .insights import router as insights_router
 from .items import router as items_router
 from .llm import router as llm_router
 from .policies import router as policies_router
+from .bundler import router as bundler_router
 
 __all__ = [
-    "health_router",
-    "auth_router",
     "admin_router",
     "audit_router",
-    "items_router",
-    "examples_router",
-    "llm_router",
+    "auth_router",
     "dashboard_router",
-    "policies_router",
-    "exceptions_router",
-    "insights_router",
     "data_manager_router",
+    "examples_router",
+    "exceptions_router",
+    "health_router",
+    "insights_router",
+    "items_router",
+    "llm_router",
+    "policies_router",
+    "bundler_router",
 ]
-

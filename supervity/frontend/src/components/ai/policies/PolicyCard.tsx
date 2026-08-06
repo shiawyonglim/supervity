@@ -108,7 +108,7 @@ const formatActionType = (type: string): string => {
 
 export function PolicyCard({ policy, onClick }: PolicyCardProps) {
   const isLogical = policy.policy_type === 'logical'
-  const displaySummary = policy.summary || policy.description || policy.natural_language.slice(0, 100)
+  const displaySummary = policy.summary || policy.description || (policy.natural_language || '').slice(0, 100)
 
   // Get up to 2 conditions and 2 actions for chips
   const topConditions = policy.dsl?.conditions?.slice(0, 2) || []

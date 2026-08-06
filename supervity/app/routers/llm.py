@@ -60,7 +60,7 @@ def call_gemini(req: LLMRequest):
     """
     try:
         result = llm.gemini(prompt=req.prompt)
-        return LLMResponse(model="gemini-2.0-flash", response=result)
+        return LLMResponse(model="gemini-3.6-flash", response=result)
     except RuntimeError as e:
         raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:
@@ -75,8 +75,8 @@ def call_gemini_json(req: LLMRequest):
     Best for: Structured data extraction.
     """
     try:
-        result = llm.gemini_json(prompt=req.prompt)
-        return LLMResponse(model="gemini-2.0-flash (JSON mode)", response=result)
+        result_json = llm.gemini_json(prompt=req.prompt, data=req.data)
+        return LLMResponse(model="gemini-3.6-flash (JSON mode)", response=result_json)
     except RuntimeError as e:
         raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:

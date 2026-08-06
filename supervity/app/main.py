@@ -36,6 +36,7 @@ from .routers import (
     insights_router,
     items_router,
     llm_router,
+    bundler_router,
     policies_router,
 )
 from .security import get_current_user, verify_access
@@ -141,6 +142,7 @@ api_router.include_router(policies_router)
 api_router.include_router(exceptions_router)
 api_router.include_router(insights_router)
 api_router.include_router(data_manager_router)
+api_router.include_router(bundler_router)
 
 
 # =============================================================================
