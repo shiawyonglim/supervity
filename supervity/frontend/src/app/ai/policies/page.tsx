@@ -89,6 +89,16 @@ export default function AIPoliciesPage() {
     loadPolicies()
   }, [loadPolicies])
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      const tabParam = urlParams.get('tab')
+      if (tabParam === 'create-with-ai') setActiveTab('create-ai')
+      else if (tabParam === 'structured') setActiveTab('structured')
+      else if (tabParam === 'matrix') setActiveTab('matrix')
+    }
+  }, [])
+
   // ============================================================================
   // Policy Actions
   // ============================================================================

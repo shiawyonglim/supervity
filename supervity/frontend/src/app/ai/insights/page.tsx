@@ -142,7 +142,7 @@ export default function AIInsightsPage() {
         break
       case 'investigate':
       case 'review_duplicate':
-        router.push('/workbench')
+        router.push('/data-manager')
         break
       default:
         break
@@ -170,6 +170,7 @@ export default function AIInsightsPage() {
               is_active: true
             })
             alert('AI Policy created successfully!')
+            setActions(prev => prev.filter(a => a.title !== action.title))
           } catch (e) {
             console.error('Failed to create policy', e)
             alert('Failed to create policy.')
@@ -180,7 +181,7 @@ export default function AIInsightsPage() {
         break
       case 'investigate':
       case 'review_transaction':
-        router.push('/workbench')
+        router.push('/data-manager')
         break
       default:
         break
