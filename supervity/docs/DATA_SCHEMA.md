@@ -414,6 +414,31 @@ Round 2 synthetic data contains **10 specific seeded edge-case traps** designed 
 
 ---
 
+## 🚨 KNOWN DATA QUALITY ISSUES (Discovered via Analysis)
+
+Subsequent data analysis (now integrated into the Data Manager `/quality` endpoint) has surfaced several specific data anomalies that agents must be aware of when parsing the CSVs or interacting with the database:
+
+### 1. Specific Dangling Foreign Keys (Orphans)
+As mentioned in Trap #10, there are intentionally seeded orphan records:
+- **`Opportunity.csv`**: Contains `ContactId` **`003DELIBERATEMISS9X`** which does not exist in `Contact.csv`.
+- **`Consent_Register.csv`**: Contains `contact_id` **`003GHOSTNOEXIST42`** which does not exist in `Contact.csv`.
+
+### 2. Missing Values (Empty Cells)
+- `VisitorActivity`: Huge volumes of missing `prospect_id` (anonymous visitors, 66%), `company_domain` (54%), and `campaign` (17%).
+- `Consent_Register`: `expires_at` is 100% empty (null) for all records.
+- Minor missing values in `Contact.Title`, `Contact.consent_basis`, `Opportunity.confidence`, and `Routing_Rules.industry`.
+
+### 3. Duplicates
+- **`VisitorActivity`**: Contains exact duplicate rows.
+
+### 4. Format Inconsistencies
+- **Date Columns**: Highly inconsistent. E.g. `Consent_Register.captured_at` mixes `ISO/DB` (191 rows), `Slash` (57 rows), and `Text/Other` (50 rows) formats.
+
+### 5. Business Logic Anomalies
+- **`SDR_Roster`**: 1 SDR is over their maximum capacity (`current_capacity` > `max_capacity`).
+
+---
+
 ## 🛠️ Database Ingestion & Seeding
 
 The repository includes a automated database seeding script [`seed_db.py`](file:///c:/supervity/supervity/seed_db.py) that imports all Round 2 CSV files into a PostgreSQL instance.

@@ -54,15 +54,21 @@ def generate_insights(db: Session = Depends(get_db)):
             "SELECT \"StageName\", \"Amount\", \"Probability\", \"LeadSource\", \"IsClosed\", \"IsWon\" FROM opportunity LIMIT 50"
         )).mappings().all()
 
+        exceptions = db.execute(text(
+            "SELECT id, error_type, payload, resolution_action FROM exceptions WHERE status = 'resolved' ORDER BY updated_at DESC LIMIT 20"
+        )).mappings().all()
+
         # Convert to dicts for JSON serialization
         contacts_data = [dict(r) for r in contacts]
         activities_data = [dict(r) for r in activities]
         opportunities_data = [dict(r) for r in opportunities]
+        exceptions_data = [dict(r) for r in exceptions]
 
         combined_data = {
             "contacts": contacts_data,
             "visitor_activities": activities_data,
             "opportunities": opportunities_data,
+            "recent_resolved_exceptions": exceptions_data,
         }
 
         prompt = """Analyze this sales intelligence data and generate exactly 3-5 insights.
@@ -74,13 +80,11 @@ For each insight, provide:
 - confidence: a float between 0.0 and 1.0
 - suggested_action: what should be done about this
 - action_type: "create_policy", "investigate", "review_duplicate", or "optimize"
+- data: if action_type is "create_policy", include a JSON dict with "policy_type" ("natural_language"), "natural_language" (the rule), and "entity_name"
 
-Return a JSON array of insight objects. Focus on:
-1. Lead source performance patterns
-2. Regional activity anomalies
-3. Pipeline health recommendations
-4. Visitor behavior patterns
-5. Conversion rate insights
+Return a JSON array of insight objects. YOU MUST FOCUS ON:
+1. Pattern recognition for buying probability: Correlate VisitorActivities and Contact data with Opportunities where IsWon=True to identify which patterns (e.g., campaigns, specific web pages, regions) have a higher probability of buying stuff.
+2. Automation from Exceptions: Analyze the `recent_resolved_exceptions`. If human operators have manually performed the same `resolution_action` (e.g., mapping fields, merging records like 'IBM' and 'Intl Business Machines') multiple times, generate a Recommendation with action_type="create_policy" asking the user: "Human operators manually performed X recently. Would you like me to create an AI Policy to automate this in the future?". Provide the policy details in the `data` field.
 
 Be specific about the numbers you see in the data."""
 

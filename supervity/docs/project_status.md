@@ -34,6 +34,7 @@ This document tracks the progress of the hackathon project based on the original
    - Created the `/data-manager` page from scratch.
    - **Buying Group Resolution:** Implemented the backend endpoint and frontend UI to group contacts by Accounts and display their roles.
    - Implemented tabs for Routing & Territories, Consent Registry, and Integrations (showing the live status of the LLMs and databases).
+   - **Data Quality Dashboard:** Built a comprehensive data quality checker (`/api/data-manager/quality`) that scans for missing values, exact/PK duplicates, date format inconsistencies, business logic anomalies (like over-capacity SDRs), and explicitly traps dangling foreign keys (e.g., `003DELIBERATEMISS9X`). This is fully rendered in the UI under the new "Data Quality" tab.
 
 
 ---

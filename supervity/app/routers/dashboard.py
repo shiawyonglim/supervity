@@ -8,6 +8,7 @@ from sqlalchemy import func, text
 from sqlalchemy.orm import Session
 
 from ..core.database import get_db
+from ..services.llm_service import llm
 
 log = logging.getLogger(__name__)
 
@@ -76,6 +77,44 @@ def get_dashboard_stats(db: Session = Depends(get_db)):
             "win_rate": 0.0,
             "active_sdrs": 0,
             "total_activities": 0,
-            "pending_exceptions": 0,
-            "active_policies": 0,
         }
+
+@router.get("/forecast")
+def get_revenue_forecast(db: Session = Depends(get_db)):
+    """
+    Analyzes Opportunity and VisitorActivity tables to calculate win rate and predict revenue.
+    Returns an AI generated short paragraph forecast.
+    """
+    try:
+        # Calculate current metrics
+        total_closed = db.execute(text("SELECT COUNT(*) FROM opportunity WHERE \"IsClosed\" = true")).scalar() or 0
+        total_won = db.execute(text("SELECT COUNT(*) FROM opportunity WHERE \"IsWon\" = true")).scalar() or 0
+        win_rate = round((total_won / total_closed * 100), 1) if total_closed > 0 else 0
+        
+        open_pipeline = db.execute(
+            text("SELECT COALESCE(SUM(CAST(\"Amount\" AS NUMERIC)), 0) FROM opportunity WHERE \"IsClosed\" = false OR \"IsClosed\" IS NULL")
+        ).scalar() or 0
+        
+        activities_last_30 = db.execute(
+            text("SELECT COUNT(*) FROM visitoractivity")
+        ).scalar() or 0
+
+        prompt = f"""
+        You are an expert Chief Revenue Officer (CRO) AI assistant. 
+        Analyze the following sales pipeline data and provide a concise, 2-3 sentence revenue forecast for the next 30 days. 
+        Focus on the projected revenue (applying the win rate to the pipeline) and what the visitor activity implies about future pipeline.
+        
+        Data:
+        - Current Win Rate: {win_rate}%
+        - Open Pipeline Value: ${float(open_pipeline):,.2f}
+        - Total Deals Closed Won: {total_won}
+        - Recent Visitor Activities: {activities_last_30}
+        
+        Return ONLY the raw text response, no markdown, no introductions. Make it sound professional, data-driven, and insightful.
+        """
+        
+        result = llm.generate_text(prompt)
+        return {"forecast": result.strip()}
+    except Exception as e:
+        log.error(f"Failed to generate forecast: {e}")
+        return {"forecast": "Unable to generate forecast at this time due to missing data or an error."}

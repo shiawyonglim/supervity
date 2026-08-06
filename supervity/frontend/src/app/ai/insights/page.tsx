@@ -118,7 +118,27 @@ export default function AIInsightsPage() {
     // Route based on action_type
     switch (insight.action_type) {
       case 'create_policy':
-        router.push('/ai/policies?tab=create-with-ai')
+        if (insight.data && insight.data.natural_language) {
+          try {
+            await apiClient.post('/api/policies', {
+              name: insight.title || 'AI Generated Automation',
+              description: insight.description || 'Auto-generated policy from Insight',
+              policy_type: insight.data.policy_type || 'natural_language',
+              natural_language: insight.data.natural_language,
+              entity_name: insight.data.entity_name || 'contact',
+              priority: 10,
+              is_active: true
+            })
+            // Remove the insight from UI after handling
+            handleDismissInsight(insight.id)
+            alert('AI Policy created successfully!')
+          } catch (e) {
+            console.error('Failed to create policy', e)
+            alert('Failed to create policy.')
+          }
+        } else {
+          router.push('/ai/policies?tab=create-with-ai')
+        }
         break
       case 'investigate':
       case 'review_duplicate':
@@ -138,7 +158,25 @@ export default function AIInsightsPage() {
     // Route based on action type
     switch (action.action_type) {
       case 'create_policy':
-        router.push('/ai/policies?tab=create-with-ai')
+        if (action.action_config && action.action_config.natural_language) {
+          try {
+            await apiClient.post('/api/policies', {
+              name: action.title || 'AI Generated Automation',
+              description: 'Auto-generated policy from Insight',
+              policy_type: action.action_config.policy_type || 'natural_language',
+              natural_language: action.action_config.natural_language,
+              entity_name: action.action_config.entity_name || 'contact',
+              priority: 10,
+              is_active: true
+            })
+            alert('AI Policy created successfully!')
+          } catch (e) {
+            console.error('Failed to create policy', e)
+            alert('Failed to create policy.')
+          }
+        } else {
+          router.push('/ai/policies?tab=create-with-ai')
+        }
         break
       case 'investigate':
       case 'review_transaction':

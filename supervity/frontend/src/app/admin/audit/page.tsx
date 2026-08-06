@@ -731,17 +731,55 @@ export default function AuditLogsPage() {
                 </div>
 
                 {/* Extra Data (if any) */}
-                {selectedLog.extra_data && Object.keys(selectedLog.extra_data).length > 0 && (
-                  <div className='rounded-lg border border-gray-200 p-4'>
-                    <h3 className='mb-3 flex items-center gap-2 text-sm font-semibold text-gray-700'>
-                      <Icons.activity className='h-4 w-4' />
-                      Additional Data
-                    </h3>
-                    <pre className='text-xs bg-gray-50 p-3 rounded overflow-x-auto'>
-                      {JSON.stringify(selectedLog.extra_data, null, 2)}
-                    </pre>
-                  </div>
-                )}
+                <div className='space-y-6'>
+                  {selectedLog.extra_data && (
+                    <div>
+                      <h3 className='mb-2 text-sm font-semibold text-brand-navy'>Additional Metadata</h3>
+                      <div className='rounded-xl bg-gray-50 p-4'>
+                        <pre className='overflow-x-auto font-mono text-xs text-gray-700'>
+                          {JSON.stringify(selectedLog.extra_data, null, 2)}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* AI Thought Process Timeline */}
+                  {selectedLog.action === 'policy.triggered' && selectedLog.extra_data && (
+                    <div className='mt-8 pt-6 border-t border-gray-200'>
+                      <h3 className='mb-4 text-lg font-bold text-brand-navy flex items-center gap-2'>
+                        <Icons.sparkles className="h-5 w-5 text-brand-cornflower" />
+                        AI Thought Process
+                      </h3>
+                      <div className='relative pl-6 border-l-2 border-brand-cornflower/30 space-y-6'>
+                        
+                        <div className='relative'>
+                          <div className='absolute -left-[31px] top-1 h-4 w-4 rounded-full bg-blue-100 border-2 border-brand-cornflower flex items-center justify-center'>
+                            <div className='h-1.5 w-1.5 rounded-full bg-brand-cornflower'></div>
+                          </div>
+                          <p className='text-sm font-bold text-brand-navy mb-1'>1. Analyzed Payload</p>
+                          <p className='text-xs text-gray-500 mb-2'>The AI engine evaluated the following live data context:</p>
+                          <div className='rounded-lg bg-slate-900 p-3'>
+                            <pre className='overflow-x-auto font-mono text-xs text-green-400'>
+                              {selectedLog.extra_data.payload ? JSON.stringify(selectedLog.extra_data.payload, null, 2) : 'No payload recorded.'}
+                            </pre>
+                          </div>
+                        </div>
+
+                        <div className='relative'>
+                          <div className='absolute -left-[31px] top-1 h-4 w-4 rounded-full bg-purple-100 border-2 border-brand-purple flex items-center justify-center'>
+                            <div className='h-1.5 w-1.5 rounded-full bg-brand-purple'></div>
+                          </div>
+                          <p className='text-sm font-bold text-brand-navy mb-1'>2. Reasoning & Decision</p>
+                          <p className='text-xs text-gray-500 mb-2'>The AI generated the following reasoning for triggering the policy:</p>
+                          <div className='rounded-lg bg-brand-purple/10 border border-brand-purple/20 p-4 text-sm text-brand-navy italic'>
+                            {String(selectedLog.extra_data.reason || selectedLog.extra_data.reasoning || 'Structured policy triggered (deterministic logic).')}
+                          </div>
+                        </div>
+
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 {/* Technical Details */}
                 <div className='rounded-lg border border-gray-100 bg-gray-50 p-4'>

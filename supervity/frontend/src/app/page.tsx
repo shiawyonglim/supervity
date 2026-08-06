@@ -365,6 +365,7 @@ function DiagnosticsCard() {
 // Main Dashboard — no auth required, renders directly
 export default function HomePage() {
   const [isExecuting, setIsExecuting] = useState(false)
+  const [forecast, setForecast] = useState<string | null>(null)
   const [stats, setStats] = useState({
     total_leads: 10400,
     active_opportunities: 524,
@@ -377,6 +378,8 @@ export default function HomePage() {
       try {
         const data = await apiClient.get<any>('/api/dashboard/stats')
         setStats(data)
+        const f = await apiClient.get<{forecast: string}>('/api/dashboard/forecast')
+        if (f && f.forecast) setForecast(f.forecast)
       } catch (err) {
         console.error('Failed to load dashboard stats:', err)
       }
@@ -441,6 +444,25 @@ export default function HomePage() {
           delay={0.4}
         />
       </div>
+
+      {forecast && (
+        <motion.div variants={itemVariants} className="col-span-12">
+          <Card className="relative overflow-hidden border-border/50 bg-gradient-to-br from-brand-navy to-[#2a3c5a] text-white">
+            <CardWatermark opacity={5} scale={1.2} />
+            <CardHeader className="relative z-10 pb-2">
+              <CardTitle className="flex items-center gap-2 text-white">
+                <Icons.sparkles className="h-5 w-5 text-brand-cornflower" />
+                AI Revenue Forecast
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="relative z-10">
+              <p className="text-sm leading-relaxed text-slate-200">
+                {forecast}
+              </p>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
 
       {/* Activity Chart - Full Width */}
       <motion.div variants={itemVariants}>
