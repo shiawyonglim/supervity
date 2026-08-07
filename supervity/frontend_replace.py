@@ -1,4 +1,6 @@
-'use client'
+import os
+
+new_page = """'use client'
 
 import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
@@ -152,7 +154,7 @@ export default function DataManagerPage() {
                       <div>
                         <p className="font-semibold text-sm flex items-center gap-2">
                           {sdr.name} ({sdr.owner_id})
-                          {(String(sdr.active).toLowerCase() === 'false' || sdr.active === false) && <Badge variant="destructive">Inactive</Badge>}
+                          {!sdr.active && <Badge variant="destructive">Inactive</Badge>}
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">Region: {sdr.region} • Segment: {sdr.segment}</p>
                         {sdr.coverage_rules && sdr.coverage_rules.length > 0 && (
@@ -379,3 +381,9 @@ export default function DataManagerPage() {
     </motion.div>
   )
 }
+"""
+
+with open('frontend/src/app/data-manager/page.tsx', 'w') as f:
+    f.write(new_page)
+
+print("Successfully replaced frontend page!")
