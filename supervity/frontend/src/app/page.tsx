@@ -408,6 +408,30 @@ export default function HomePage() {
       {/* Hero Section */}
       <HeroSection userName='Developer' />
 
+      {/* Completed Features Banner */}
+      <motion.div variants={itemVariants}>
+        <Card className="border-l-4 border-l-emerald-500">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-brand-navy">
+              <Icons.checkCircle className="h-5 w-5 text-emerald-500" />
+              What's Live
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-3">
+              The following major components are built and wired end-to-end:
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {['LLM Integration', 'Data Seeding', '5 Operators', 'AI Manager', 'Workbench', 'AI Policies', 'Permission Matrix', 'AI Insights', 'Data Manager', 'Revenue Forecast', 'Collision Detection', 'Self-Learning', 'Deep Auditability'].map(f => (
+                <span key={f} className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
+                  {f}
+                </span>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
       {/* Stats Grid - Bento style */}
       <div className='grid grid-cols-2 gap-4 lg:grid-cols-4'>
         <StatCard

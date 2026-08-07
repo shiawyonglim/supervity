@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Icons } from '@/components/ui/icons'
@@ -37,6 +37,126 @@ const tabs = [
   { id: 'quality' as TabType, label: 'Data Quality', icon: Icons.shield },
   { id: 'database' as TabType, label: 'Database Viewer', icon: Icons.table },
 ]
+function RecordInspector({ title, record }: { title: string, record: {id: string, table: string} }) {
+  const [data, setData] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [edits, setEdits] = useState<any>({})
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const res = await apiClient.get<any>(`/api/data-manager/quality/inspect?table=${record.table}&id=${record.id}`)
+        setData(res)
+      } catch (e) {
+        console.error(e)
+      } finally {
+        setLoading(false)
+      }
+    }
+    if (record.table && record.id) load()
+  }, [record.id, record.table])
+
+  const generateFix = () => {
+    const newEdits: any = { ...edits }
+    if (title.includes("closedate < opportunity.createddate") || title.includes("lastmodifieddate < contact.createddate")) {
+      newEdits[record.table === 'opportunity' ? 'CloseDate' : 'LastModifiedDate'] = new Date().toISOString()
+    } else if (title.includes("Pipeline desync")) {
+      newEdits['Probability'] = '100'
+    } else if (title.includes("future close date")) {
+      newEdits['CloseDate'] = new Date().toISOString()
+    } else if (title.includes("desync") && title.includes("StageName")) {
+      newEdits['IsWon'] = 'True'
+      newEdits['IsClosed'] = 'True'
+    } else if (title.includes("Negative Revenue")) {
+      newEdits['Amount'] = '0'
+    } else if (title.includes("Expired Consent")) {
+      newEdits['status'] = 'expired'
+    } else if (title.includes("max_capacity")) {
+      newEdits['current_capacity'] = data?.main?.max_capacity || '0'
+    } else if (title.includes("Inactive SDR")) {
+      if (record.table === 'routing_rules') newEdits['active'] = 'false'
+      else if (record.table === 'sdr_roster') newEdits['active'] = 'true'
+    } else if (title.includes("Lazy Rep") || title.includes("Phantom Customer") || title.includes("Ghost Deal")) {
+       newEdits['lead_stage__c'] = 'Opportunity'
+    }
+    setEdits(newEdits)
+  }
+
+  const save = async () => {
+    if (Object.keys(edits).length === 0) return
+    setSaving(true)
+    try {
+      await apiClient.post<any>('/api/data-manager/quality/update-record', {
+        table: record.table,
+        id: record.id,
+        fields: edits
+      })
+      alert("Saved successfully!")
+      setData((prev: any) => ({...prev, main: {...prev.main, ...edits}}))
+      setEdits({})
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (loading) return <div className="p-4 border rounded bg-slate-50 flex justify-center"><Icons.loader className="animate-spin w-5 h-5 text-slate-400"/></div>
+  if (!data) return <div className="p-4 border rounded text-red-500 text-sm">Failed to load record details. Ensure table name is provided in the examples payload.</div>
+
+  return (
+    <div className="p-4 border rounded-xl bg-white space-y-4">
+      <div className="flex justify-between items-center">
+        <div>
+          <Badge>{record.table || 'Unknown'}</Badge>
+          <span className="font-mono text-xs ml-2 text-slate-500">{record.id}</span>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={generateFix}>
+            <Icons.sparkles className="w-4 h-4 mr-1 text-brand-purple" /> Algorithmic Fix
+          </Button>
+          <Button size="sm" onClick={save} disabled={saving || Object.keys(edits).length === 0} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+            {saving ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <h4 className="text-xs font-bold text-slate-500 uppercase mb-2">Record Fields</h4>
+          <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
+            {Object.entries(data.main).map(([k, v]) => (
+              <div key={k} className="flex flex-col">
+                <label className="text-[10px] font-medium text-slate-400">{k}</label>
+                <input 
+                  type="text" 
+                  value={edits[k] !== undefined ? edits[k] : (v as string || '')} 
+                  onChange={e => setEdits({...edits, [k]: e.target.value})}
+                  className={cn("border rounded px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-brand-purple", edits[k] !== undefined && "border-amber-400 bg-amber-50")}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {Object.keys(data.relations || {}).length > 0 && (
+          <div>
+            <h4 className="text-xs font-bold text-slate-500 uppercase mb-2">Related Data</h4>
+            <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
+              {Object.entries(data.relations).map(([relKey, relData]: [string, any]) => (
+                <div key={relKey} className="border rounded bg-slate-50 p-2">
+                  <Badge variant="outline" className="mb-2">{relKey}</Badge>
+                  <pre className="text-[10px] overflow-x-auto whitespace-pre-wrap">{JSON.stringify(relData, null, 2)}</pre>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
 
 export default function DataManagerPage() {
   const [activeTab, setActiveTab] = useState<TabType>('buying-groups')
@@ -44,6 +164,9 @@ export default function DataManagerPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [inspectorOpen, setInspectorOpen] = useState(false)
   const [inspectorData, setInspectorData] = useState<{title: string, records: any[], errorField?: string} | null>(null)
+  const [advisorOpen, setAdvisorOpen] = useState(false)
+  const [advisorContent, setAdvisorContent] = useState<{issue: string, explanation: string, steps: string[]} | null>(null)
+  const [advisorLoading, setAdvisorLoading] = useState(false)
   
   const [dedupResult, setDedupResult] = useState<{merged: number, exceptions: number} | null>(null)
   const [routingResult, setRoutingResult] = useState<any>(null)
@@ -54,15 +177,64 @@ export default function DataManagerPage() {
   const [dedupSaving, setDedupSaving] = useState(false)
   const [dedupRunning, setDedupRunning] = useState(false)
   const [routingRunning, setRoutingRunning] = useState(false)
+  const [qualityFixing, setQualityFixing] = useState(false)
 
   // Database Viewer state
   const [dbTables, setDbTables] = useState<string[]>([])
   const [activeTable, setActiveTable] = useState<string | null>(null)
   const [tableData, setTableData] = useState<any[]>([])
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const openInspector = (title: string, records: any[], errorField?: string) => {
     setInspectorData({ title, records, errorField })
     setInspectorOpen(true)
+  }
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !activeTable) return
+    setUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      await apiClient.post(`/api/data-manager/database/upload?table=${activeTable}`, formData)
+      alert(`CSV uploaded successfully into ${activeTable}`)
+      fetchTableData(activeTable)
+    } catch (err) {
+      console.error('CSV upload failed:', err)
+      alert('CSV upload failed. Check console for details.')
+    } finally {
+      setUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  const askQualityAI = async (category: string, item: any) => {
+    setAdvisorLoading(true)
+    setAdvisorOpen(true)
+    try {
+      const res = await apiClient.post<any>('/api/data-manager/quality/advise', {
+        category,
+        issue: item.issue,
+        count: item.count,
+        examples: item.examples || []
+      })
+      const advice = res.advice || res
+      setAdvisorContent({
+        issue: item.issue,
+        explanation: advice.explanation || 'No explanation generated.',
+        steps: advice.steps || []
+      })
+    } catch (err) {
+      setAdvisorContent({
+        issue: item.issue,
+        explanation: 'Could not get AI advice at this time.',
+        steps: ['Run the quality fix', 'Inspect the affected rows', 'Re-run the scan']
+      })
+    } finally {
+      setAdvisorLoading(false)
+    }
   }
 
   const fetchData = useCallback(async (tab: TabType) => {
@@ -149,6 +321,18 @@ export default function DataManagerPage() {
     }
   }
 
+  const runQualityFix = async () => {
+    setQualityFixing(true)
+    try {
+      await apiClient.post<any>('/api/data-manager/quality/fix', {})
+      await fetchData('quality')
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setQualityFixing(false)
+    }
+  }
+
   const renderContent = () => {
     if (isLoading) {
       return <div className="flex justify-center p-12"><Icons.loader className="h-8 w-8 animate-spin text-muted-foreground" /></div>
@@ -164,7 +348,7 @@ export default function DataManagerPage() {
               <CardHeader>
                 <CardTitle className="text-lg">Tables</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-1">
+              <CardContent className="space-y-2">
                 {dbTables.map(t => (
                   <Button 
                     key={t} 
@@ -176,6 +360,22 @@ export default function DataManagerPage() {
                     {t}
                   </Button>
                 ))}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".csv"
+                  className="hidden"
+                  onChange={handleFileUpload}
+                />
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  disabled={!activeTable || uploading}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {uploading ? <Icons.loader className="w-3 h-3 mr-2 animate-spin" /> : <Icons.upload className="w-3 h-3 mr-2" />}
+                  {activeTable ? `Upload CSV to ${activeTable}` : 'Select a table first'}
+                </Button>
               </CardContent>
             </Card>
             <Card className="md:w-3/4 flex-1">
@@ -628,11 +828,16 @@ export default function DataManagerPage() {
                           <span className="text-xs text-slate-600 font-mono bg-white/50 px-2 py-1 rounded">{item.count} rows affected</span>
                         </div>
                       </div>
-                      {item.examples?.length > 0 && (
-                        <Button variant="outline" size="sm" onClick={() => openInspector(`Issue: ${item.issue}`, item.examples)} className="h-7 text-xs bg-white/50 ml-3 shrink-0">
-                          <Icons.search className="w-3 h-3 mr-1" /> Inspect
+                      <div className="flex items-center gap-2 ml-3 shrink-0">
+                        <Button variant="ghost" size="sm" onClick={() => askQualityAI(title, item)} className="h-7 text-xs text-brand-navy hover:bg-brand-navy/10">
+                          <Icons.brain className="w-3 h-3 mr-1" /> Ask AI
                         </Button>
-                      )}
+                        {item.examples?.length > 0 && (
+                          <Button variant="outline" size="sm" onClick={() => openInspector(`Issue: ${item.issue}`, item.examples)} className="h-7 text-xs bg-white/50">
+                            <Icons.search className="w-3 h-3 mr-1" /> Inspect
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -643,6 +848,7 @@ export default function DataManagerPage() {
 
         return (
           <div className="space-y-6">
+
              {renderQualitySection("Chronological Anomalies", rpt.chronological, <Icons.clock className="w-5 h-5 text-purple-500" />, "bg-purple-50/50 border-purple-100")}
              {renderQualitySection("Relational Mismatches", rpt.relational, <Icons.network className="w-5 h-5 text-blue-500" />, "bg-blue-50/50 border-blue-100")}
              {renderQualitySection("State & Logic Errors", rpt.state_logic, <Icons.alertTriangle className="w-5 h-5 text-amber-500" />, "bg-amber-50/50 border-amber-100")}
@@ -701,15 +907,42 @@ export default function DataManagerPage() {
               </DialogDescription>
             </DialogHeader>
           </div>
-          <div className="flex-1 overflow-y-auto p-6 pt-2 space-y-6">
-            <div className="p-4 grid grid-cols-2 md:grid-cols-4 gap-3 bg-slate-50 border rounded-lg">
+          <div className="flex-1 overflow-y-auto p-6 pt-2 space-y-6 bg-slate-50">
+            <div className="space-y-6">
                {inspectorData?.records?.map((record, i) => (
-                  <div key={i} className="font-mono text-xs bg-white border p-2 rounded">
-                     {record.id || JSON.stringify(record)}
-                  </div>
+                  <RecordInspector key={i} title={inspectorData.title} record={record} />
                ))}
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={advisorOpen} onOpenChange={setAdvisorOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-brand-navy">
+              <Icons.brain className="w-5 h-5 text-brand-cornflower" />
+              {advisorContent?.issue || 'AI Advice'}
+            </DialogTitle>
+          </DialogHeader>
+          {advisorLoading ? (
+            <div className="py-8 text-center text-muted-foreground">
+              <Icons.loader className="w-8 h-8 animate-spin mx-auto mb-3" />
+              <p>Asking the AI advisor...</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <p className="text-sm text-slate-700 leading-relaxed">{advisorContent?.explanation}</p>
+              <div className="space-y-2">
+                <h4 className="text-sm font-semibold text-brand-navy">Suggested remediation steps</h4>
+                <ol className="list-decimal list-inside space-y-1 text-sm text-slate-700">
+                  {advisorContent?.steps?.map((step, i) => (
+                    <li key={i}>{step}</li>
+                  ))}
+                </ol>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </motion.div>

@@ -58,14 +58,17 @@ export const apiClient = {
    * Perform a POST request.
    */
   post: <T = unknown>(endpoint: string, data?: unknown, options?: RequestInit): Promise<T> => {
+    const isFormData = data instanceof FormData
     return apiClientFetch<T>(endpoint, {
       ...options,
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers,
-      },
-      body: data ? JSON.stringify(data) : undefined,
+      headers: isFormData
+        ? { ...options?.headers }
+        : {
+            'Content-Type': 'application/json',
+            ...options?.headers,
+          },
+      body: isFormData ? data : data ? JSON.stringify(data) : undefined,
     })
   },
 

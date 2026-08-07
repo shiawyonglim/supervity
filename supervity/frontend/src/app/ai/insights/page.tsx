@@ -30,6 +30,7 @@ const tabs: Tab[] = [
   { id: 'summary', label: 'Summary', icon: Icons.activity },
   { id: 'patterns', label: 'Patterns', icon: Icons.layers },
   { id: 'actions', label: 'Actions', icon: Icons.zap },
+  { id: 'forecast', label: 'Forecasting', icon: Icons.trendingUp },
 ]
 
 const containerVariants = {
@@ -50,6 +51,7 @@ export default function AIInsightsPage() {
   const [insights, setInsights] = useState<Insight[]>([])
   const [patterns, setPatterns] = useState<Pattern[]>([])
   const [actions, setActions] = useState<ActionItem[]>([])
+  const [forecast, setForecast] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const router = useRouter()
@@ -87,6 +89,8 @@ export default function AIInsightsPage() {
     try {
       const data = await apiClient.get<Insight[]>('/api/insights')
       processInsights(data)
+      const forecastData = await apiClient.get<any>('/api/insights/forecast')
+      setForecast(forecastData)
     } catch (err) {
       console.error('Failed to load insights:', err)
     } finally {
@@ -142,9 +146,11 @@ export default function AIInsightsPage() {
         break
       case 'investigate':
       case 'review_duplicate':
+      case 'optimize':
         router.push('/data-manager')
         break
       default:
+        alert(`Insight action "${insight.action_type}" is not yet wired.`)
         break
     }
   }, [router])
@@ -181,9 +187,12 @@ export default function AIInsightsPage() {
         break
       case 'investigate':
       case 'review_transaction':
+      case 'review_duplicate':
+      case 'optimize':
         router.push('/data-manager')
         break
       default:
+        alert(`Action "${action.action_type}" is not yet wired.`)
         break
     }
   }, [router])
@@ -421,6 +430,36 @@ export default function AIInsightsPage() {
                         />
                       ))
                     )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {activeTab === 'forecast' && forecast && (
+                <Card className="relative overflow-hidden">
+                  <CardWatermark opacity={2} scale={1} />
+                  <CardHeader className="relative z-10">
+                    <CardTitle>Revenue Forecasting (Wow Factor)</CardTitle>
+                    <CardDescription>
+                      AI analysis of open pipeline and current win rates to predict revenue.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="relative z-10">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="bg-brand-navy/5 p-6 rounded-xl border border-brand-navy/10">
+                        <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">Current Win Rate</h4>
+                        <div className="text-4xl font-bold text-brand-navy">
+                          {(forecast.win_rate * 100).toFixed(1)}%
+                        </div>
+                        <p className="text-sm text-slate-600 mt-2">Based on {forecast.won_deals} won and {forecast.lost_deals} lost deals.</p>
+                      </div>
+                      <div className="bg-emerald-50 p-6 rounded-xl border border-emerald-100">
+                        <h4 className="text-sm font-semibold text-emerald-800 uppercase tracking-wider mb-2">Predicted Revenue</h4>
+                        <div className="text-4xl font-bold text-emerald-600">
+                          ${forecast.predicted_revenue?.toLocaleString()}
+                        </div>
+                        <p className="text-sm text-emerald-700 mt-2">Calculated from ${forecast.open_pipeline?.toLocaleString()} open pipeline.</p>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               )}

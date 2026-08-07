@@ -19,7 +19,11 @@ from .insights import router as insights_router
 from .items import router as items_router
 from .llm import router as llm_router
 from .policies import router as policies_router
+from .permissions import router as permissions_router, settings_router as settings_router
 from .ai_policies import router as ai_policies_router
+from .ai_chat import router as ai_chat_router
+from .operators import router as operators_router
+from .workbench import router as workbench_router
 
 __all__ = [
     "admin_router",
@@ -37,4 +41,9 @@ __all__ = [
     "llm_router",
     "policies_router",
     "ai_policies_router",
+    "ai_chat_router",
+    "permissions_router",
+    "settings_router",
+    "operators_router",
+    "workbench_router",
 ]

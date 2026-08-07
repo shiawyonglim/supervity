@@ -39,7 +39,12 @@ from .routers import (
     bundler_router,
     policies_router,
     ai_policies_router,
+    ai_chat_router,
+    permissions_router,
+    settings_router,
+    operators_router,
     contacts_router,
+    workbench_router,
 )
 from .security import get_current_user, verify_access
 
@@ -146,7 +151,12 @@ api_router.include_router(insights_router)
 api_router.include_router(data_manager_router)
 api_router.include_router(bundler_router)
 api_router.include_router(ai_policies_router)
+api_router.include_router(ai_chat_router)
+api_router.include_router(permissions_router)
+api_router.include_router(settings_router)
+api_router.include_router(operators_router)
 api_router.include_router(contacts_router)
+api_router.include_router(workbench_router)
 
 
 # =============================================================================

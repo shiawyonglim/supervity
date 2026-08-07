@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { Icons } from '@/components/ui/icons'
 import { Button } from '@/components/ui/button'
@@ -107,9 +108,12 @@ const typeConfig: Record<InsightType, { label: string; icon: typeof Icons.activi
 }
 
 export function InsightCard({ insight, onAction, onDismiss }: InsightCardProps) {
+  const [showTrace, setShowTrace] = useState(false)
   const severity = getSeverityConfig(insight.severity)
   const type = typeConfig[insight.type] || typeConfig.recommendation
   const SeverityIcon = severity.icon
+  const trace = insight.data?.ai_trace as { step?: number; action: string; detail: string }[] | undefined
+  const auditKeys = ['ai_trace', 'model_used', 'llm_notice']
 
   return (
     <div className={cn(
@@ -172,20 +176,48 @@ export function InsightCard({ insight, onAction, onDismiss }: InsightCardProps) 
           </p>
 
           {/* Data preview */}
-          {insight.data && Object.keys(insight.data).length > 0 && (
+          {insight.data && Object.keys(insight.data).filter(k => !auditKeys.includes(k)).length > 0 && (
             <div className="mt-3 flex flex-wrap gap-2">
-              {Object.entries(insight.data).slice(0, 3).map(([key, value]) => (
-                <span
-                  key={key}
-                  className={cn(
-                    'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1',
-                    'bg-white/50 text-xs font-medium text-foreground'
-                  )}
-                >
-                  <span className="text-muted-foreground">{key.replace(/_/g, ' ')}:</span>
-                  <span className="font-semibold">{String(value)}</span>
-                </span>
-              ))}
+              {Object.entries(insight.data)
+                .filter(([key]) => !auditKeys.includes(key))
+                .slice(0, 3)
+                .map(([key, value]) => (
+                  <span
+                    key={key}
+                    className={cn(
+                      'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1',
+                      'bg-white/50 text-xs font-medium text-foreground'
+                    )}
+                  >
+                    <span className="text-muted-foreground">{key.replace(/_/g, ' ')}:</span>
+                    <span className="font-semibold">{String(value)}</span>
+                  </span>
+                ))}
+            </div>
+          )}
+
+          {/* Deep auditability: AI reasoning trace */}
+          {trace && trace.length > 0 && (
+            <div className="mt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowTrace(!showTrace)}
+              >
+                <Icons.brain className="mr-1.5 h-3.5 w-3.5" strokeWidth={1.5} />
+                {showTrace ? 'Hide AI Trace' : 'View AI Trace'}
+              </Button>
+              {showTrace && (
+                <div className="mt-3 p-3 bg-slate-900 rounded-md text-xs text-slate-50 font-mono overflow-x-auto">
+                  <ol className="list-decimal pl-4 space-y-2">
+                    {trace.map((step, i) => (
+                      <li key={i}>
+                        <strong>{step.action}</strong>: {step.detail}
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              )}
             </div>
           )}
 

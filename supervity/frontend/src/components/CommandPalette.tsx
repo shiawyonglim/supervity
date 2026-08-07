@@ -6,6 +6,7 @@ import { Command } from 'cmdk'
 import { cn } from '@/lib/utils'
 import { Icons } from '@/components/ui/icons'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { apiClient } from '@/lib/api-client'
 
 interface CommandPaletteProps {
   open?: boolean
@@ -117,11 +118,26 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   const [isOpen, setIsOpen] = React.useState(false)
   const [search, setSearch] = React.useState('')
   const debouncedSearch = useDebounce(search, 150)
+  const [searchResults, setSearchResults] = React.useState<any[]>([])
+  const [searching, setSearching] = React.useState(false)
   const router = useRouter()
   const inputRef = React.useRef<HTMLInputElement>(null)
 
   const controlledOpen = open !== undefined ? open : isOpen
   const setControlledOpen = onOpenChange || setIsOpen
+
+  // Live data search
+  React.useEffect(() => {
+    if (!debouncedSearch || debouncedSearch.length < 2) {
+      setSearchResults([])
+      return
+    }
+    setSearching(true)
+    apiClient.get<any>(`/api/data-manager/search?q=${encodeURIComponent(debouncedSearch)}`)
+      .then(data => setSearchResults(data.results || []))
+      .catch(() => setSearchResults([]))
+      .finally(() => setSearching(false))
+  }, [debouncedSearch])
 
   // Keyboard shortcut handler
   React.useEffect(() => {
@@ -132,9 +148,14 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         setControlledOpen(!controlledOpen)
       }
     }
+    const openPalette = () => setControlledOpen(true)
 
     document.addEventListener('keydown', down)
-    return () => document.removeEventListener('keydown', down)
+    document.addEventListener('open-command-palette', openPalette)
+    return () => {
+      document.removeEventListener('keydown', down)
+      document.removeEventListener('open-command-palette', openPalette)
+    }
   }, [controlledOpen, setControlledOpen])
 
   // Focus input when opened and clear search when closed
@@ -162,10 +183,13 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
           window.location.reload()
           break
         case 'diagnostics':
-          // TODO: Implement diagnostics action
+          router.push('/admin/audit')
           break
         case 'help':
-          // TODO: Implement help action
+          router.push('/settings')
+          break
+        case 'new-task':
+          router.push('/workbench')
           break
       }
     }
@@ -237,6 +261,57 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                     <span>{item.label}</span>
                   </Command.Item>
                 ))}
+              </Command.Group>
+            )}
+
+            {/* Live search results */}
+            {debouncedSearch.length >= 2 && (
+              <Command.Group
+                heading={searching ? 'Searching...' : 'CRM Results'}
+                className='px-2 py-1.5 text-xs font-semibold text-muted-foreground'
+              >
+                {searching ? (
+                  <Command.Item
+                    value='searching'
+                    disabled
+                    className='flex cursor-default items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground'
+                  >
+                    <Icons.loader className='h-4 w-4 animate-spin' />
+                    Searching CRM data...
+                  </Command.Item>
+                ) : searchResults.length > 0 ? (
+                  searchResults.map((item) => (
+                    <Command.Item
+                      key={`${item.type}-${item.id}`}
+                      value={`${item.title} ${item.subtitle}`}
+                      onSelect={() => {
+                        if (item.href) router.push(item.href)
+                        setControlledOpen(false)
+                        setSearch('')
+                      }}
+                      className={cn(
+                        'flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5',
+                        'text-sm text-foreground',
+                        'aria-selected:bg-brand-navy aria-selected:text-white',
+                        'transition-colors'
+                      )}
+                    >
+                      <Icons.search className='h-4 w-4 text-muted-foreground' strokeWidth={1.5} />
+                      <div className='flex flex-col'>
+                        <span>{item.title}</span>
+                        <span className='text-xs text-muted-foreground'>{item.type} — {item.subtitle}</span>
+                      </div>
+                    </Command.Item>
+                  ))
+                ) : (
+                  <Command.Item
+                    value='no-results'
+                    disabled
+                    className='flex cursor-default items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground'
+                  >
+                    No CRM matches found.
+                  </Command.Item>
+                )}
               </Command.Group>
             )}
 

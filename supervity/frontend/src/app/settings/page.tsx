@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { motion } from 'framer-motion'
 import {
@@ -15,6 +15,7 @@ import { Avatar } from '@/components/ui/avatar'
 import { Icons } from '@/components/ui/icons'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
+import { apiClient } from '@/lib/api-client'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -61,15 +62,15 @@ function SettingToggle({
   id,
   label,
   description,
-  defaultChecked = false,
+  checked,
+  onCheckedChange,
 }: {
   id: string
   label: string
   description: string
-  defaultChecked?: boolean
+  checked: boolean
+  onCheckedChange: (checked: boolean) => void
 }) {
-  const [checked, setChecked] = useState(defaultChecked)
-
   return (
     <div className='flex items-center justify-between py-3'>
       <div className='space-y-0.5'>
@@ -81,7 +82,7 @@ function SettingToggle({
       <Switch
         id={id}
         checked={checked}
-        onCheckedChange={setChecked}
+        onCheckedChange={onCheckedChange}
       />
     </div>
   )
@@ -89,6 +90,41 @@ function SettingToggle({
 
 export default function SettingsPage() {
   const { data: session } = useSession()
+  const [settings, setSettings] = useState<Record<string, boolean>>({
+    'email-notifications': true,
+    'desktop-notifications': true,
+    'weekly-digest': false,
+    'marketing-emails': false,
+  })
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    apiClient.get<Record<string, any>>('/api/settings')
+      .then(data => {
+        const next: Record<string, boolean> = { ...settings }
+        Object.keys(settings).forEach(key => {
+          if (typeof data[key] === 'boolean') next[key] = data[key]
+          if (typeof data[key] === 'string') next[key] = data[key] === 'true'
+        })
+        setSettings(next)
+      })
+      .catch(() => {
+        // leave defaults if backend is unavailable
+      })
+  }, [])
+
+  const handleChange = useCallback(async (key: string, checked: boolean) => {
+    const next = { ...settings, [key]: checked }
+    setSettings(next)
+    setSaving(true)
+    try {
+      await apiClient.put('/api/settings', { values: next })
+    } catch (err) {
+      console.error('Failed to save settings:', err)
+    } finally {
+      setSaving(false)
+    }
+  }, [settings])
 
   return (
     <motion.div
@@ -189,29 +225,38 @@ export default function SettingsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className='divide-y divide-border'>
+            <div className='flex items-center justify-end py-1'>
+              <span className='text-xs text-muted-foreground'>
+                {saving ? 'Saving...' : 'Saved'}
+              </span>
+            </div>
             <SettingToggle
               id='email-notifications'
               label='Email Notifications'
               description='Receive email notifications for important updates'
-              defaultChecked={true}
+              checked={settings['email-notifications']}
+              onCheckedChange={(v) => handleChange('email-notifications', v)}
             />
             <SettingToggle
               id='desktop-notifications'
               label='Desktop Notifications'
               description='Show desktop notifications when the app is open'
-              defaultChecked={true}
+              checked={settings['desktop-notifications']}
+              onCheckedChange={(v) => handleChange('desktop-notifications', v)}
             />
             <SettingToggle
               id='weekly-digest'
               label='Weekly Digest'
               description='Receive a weekly summary of your activity'
-              defaultChecked={false}
+              checked={settings['weekly-digest']}
+              onCheckedChange={(v) => handleChange('weekly-digest', v)}
             />
             <SettingToggle
               id='marketing-emails'
               label='Marketing Emails'
               description='Receive product updates and announcements'
-              defaultChecked={false}
+              checked={settings['marketing-emails']}
+              onCheckedChange={(v) => handleChange('marketing-emails', v)}
             />
           </CardContent>
         </Card>

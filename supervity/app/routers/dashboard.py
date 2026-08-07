@@ -113,7 +113,7 @@ def get_revenue_forecast(db: Session = Depends(get_db)):
         Return ONLY the raw text response, no markdown, no introductions. Make it sound professional, data-driven, and insightful.
         """
         
-        result = llm.generate_text(prompt)
+        result = llm.gemini(prompt)
         return {"forecast": result.strip()}
     except Exception as e:
         log.error(f"Failed to generate forecast: {e}")

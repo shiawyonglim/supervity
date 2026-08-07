@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
+import { apiClient } from '@/lib/api-client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { CardWatermark } from '@/components/ui/card-watermark'
@@ -43,7 +44,25 @@ const defaultMatrix: Record<string, string[]> = {
 
 export function PermissionMatrixTab() {
   const [matrix, setMatrix] = useState<Record<string, string[]>>(defaultMatrix)
+  const [originalMatrix, setOriginalMatrix] = useState<Record<string, string[]>>(defaultMatrix)
   const [hasChanges, setHasChanges] = useState(false)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    apiClient.get<{ matrix: Record<string, string[]>, is_default?: boolean }>('/api/permissions/matrix')
+      .then((res) => {
+        if (cancelled) return
+        const loaded = res.matrix || defaultMatrix
+        setMatrix(loaded)
+        setOriginalMatrix(loaded)
+        setHasChanges(false)
+      })
+      .catch((err) => {
+        console.error('Failed to load permission matrix:', err)
+      })
+    return () => { cancelled = true }
+  }, [])
 
   const togglePermission = (roleId: string, permissionId: string) => {
     setMatrix(prev => {
@@ -61,15 +80,21 @@ export function PermissionMatrixTab() {
     return matrix[roleId]?.includes(permissionId) || false
   }
 
-  const handleSave = () => {
-    // TODO: Call API to save permission matrix
-    // await savePermissionMatrix(matrix)
-    void matrix // Suppress unused variable warning
-    setHasChanges(false)
+  const handleSave = async () => {
+    setSaving(true)
+    try {
+      await apiClient.post('/api/permissions/matrix', { matrix })
+      setOriginalMatrix(matrix)
+      setHasChanges(false)
+    } catch (err) {
+      console.error('Failed to save permission matrix:', err)
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleReset = () => {
-    setMatrix(defaultMatrix)
+    setMatrix(originalMatrix)
     setHasChanges(false)
   }
 
@@ -110,10 +135,14 @@ export function PermissionMatrixTab() {
               <Button
                 size="sm"
                 onClick={handleSave}
-                disabled={!hasChanges}
+                disabled={!hasChanges || saving}
               >
-                <Icons.check className="mr-1 h-4 w-4" />
-                Save
+                {saving ? (
+                  <Icons.loader className="mr-1 h-4 w-4 animate-spin" />
+                ) : (
+                  <Icons.check className="mr-1 h-4 w-4" />
+                )}
+                {saving ? 'Saving...' : 'Save'}
               </Button>
             </div>
           </div>

@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Avatar } from '@/components/ui/avatar'
@@ -132,6 +132,7 @@ function AIManagerTrigger() {
 // User menu with dropdown
 function UserMenu() {
   const user = { name: 'Dev User', email: 'dev@autopilot.local' }
+  const router = useRouter()
 
   return (
     <DropdownMenu>
@@ -190,7 +191,7 @@ function UserMenu() {
             <Icons.user className='h-4 w-4 text-muted-foreground' strokeWidth={1.5} />
             <span>Profile</span>
           </DropdownMenuItem>
-          <DropdownMenuItem className='gap-3 rounded-lg px-3 py-2.5'>
+          <DropdownMenuItem className='gap-3 rounded-lg px-3 py-2.5 cursor-pointer' onClick={() => router.push('/settings')}>
             <Icons.settings className='h-4 w-4 text-muted-foreground' strokeWidth={1.5} />
             <span>Settings</span>
           </DropdownMenuItem>
@@ -207,6 +208,10 @@ interface HeaderProps {
 export function Header({ onOpenMobileMenu }: HeaderProps) {
   const pathname = usePathname()
   const breadcrumbs = getBreadcrumbs(pathname)
+
+  const openCommandPalette = () => {
+    document.dispatchEvent(new Event('open-command-palette'))
+  }
 
   return (
     <header
@@ -279,7 +284,7 @@ export function Header({ onOpenMobileMenu }: HeaderProps) {
       <div className='flex items-center gap-1 sm:gap-2'>
         {/* Search */}
         <div className='hidden lg:block'>
-          <SearchInput />
+          <SearchInput onOpenCommandPalette={openCommandPalette} />
         </div>
 
         {/* Mobile/tablet search button */}
@@ -288,6 +293,7 @@ export function Header({ onOpenMobileMenu }: HeaderProps) {
           size='icon-sm'
           className='text-muted-foreground hover:text-foreground lg:hidden'
           aria-label='Search'
+          onClick={openCommandPalette}
         >
           <Icons.search className='h-5 w-5' strokeWidth={1.5} />
         </Button>
