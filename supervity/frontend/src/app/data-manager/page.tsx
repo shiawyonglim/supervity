@@ -48,6 +48,13 @@ export default function DataManagerPage() {
   const [dedupResult, setDedupResult] = useState<{merged: number, exceptions: number} | null>(null)
   const [routingResult, setRoutingResult] = useState<any>(null)
 
+  // Dedup config state
+  const [dedupThreshold, setDedupThreshold] = useState(80)
+  const [dedupStrategy, setDedupStrategy] = useState('Exact Email Match')
+  const [dedupSaving, setDedupSaving] = useState(false)
+  const [dedupRunning, setDedupRunning] = useState(false)
+  const [routingRunning, setRoutingRunning] = useState(false)
+
   // Database Viewer state
   const [dbTables, setDbTables] = useState<string[]>([])
   const [activeTable, setActiveTable] = useState<string | null>(null)
@@ -67,12 +74,17 @@ export default function DataManagerPage() {
       if (tab === 'database') {
         const response = await apiClient.get<any>('/api/data-manager/database/tables')
         setDbTables(response.tables || [])
-        setData(true) // Just to bypass the !data check
+        setData(true)
       } else {
         let endpoint = `/api/data-manager/${tab}`
         if (tab === 'dedup') endpoint = `/api/data-manager/dedup/config`
         const response = await apiClient.get<any>(endpoint)
         setData(response)
+        // Sync dedup config state
+        if (tab === 'dedup' && response) {
+          setDedupThreshold(response.confidence_threshold ?? 80)
+          setDedupStrategy(response.match_strategy ?? 'Exact Email Match')
+        }
       }
     } catch (err) {
       console.error(`Failed to load ${tab}:`, err)
@@ -93,6 +105,47 @@ export default function DataManagerPage() {
       setTableData(res.rows || [])
     } catch (e) {
       console.error(e)
+    }
+  }
+
+  const saveDedupConfig = async () => {
+    setDedupSaving(true)
+    try {
+      const res = await apiClient.post<any>('/api/data-manager/dedup/config', {
+        confidence_threshold: dedupThreshold,
+        match_strategy: dedupStrategy,
+      })
+      setData(res)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setDedupSaving(false)
+    }
+  }
+
+  const runDedup = async () => {
+    setDedupRunning(true)
+    setDedupResult(null)
+    try {
+      const res = await apiClient.post<any>('/api/data-manager/dedup/run', {})
+      if (res?.results) setDedupResult(res.results)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setDedupRunning(false)
+    }
+  }
+
+  const runRouting = async () => {
+    setRoutingRunning(true)
+    setRoutingResult(null)
+    try {
+      const res = await apiClient.post<any>('/api/data-manager/routing/run', { contact_ids: [] })
+      if (res?.results) setRoutingResult(res.results)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setRoutingRunning(false)
     }
   }
 
@@ -166,19 +219,44 @@ export default function DataManagerPage() {
 
       case 'buying-groups':
         return (
-          <div className="space-y-4">
+          <div className="space-y-6">
+            {/* Summary stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card className="bg-brand-navy text-white">
+                <CardContent className="p-4">
+                  <p className="text-sm text-brand-cloud">Total Groups</p>
+                  <p className="text-3xl font-display font-bold">{data.count ?? 0}</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <p className="text-sm text-muted-foreground">Existing (Confirmed)</p>
+                  <p className="text-3xl font-display font-bold text-brand-cornflower">{data.existing_count ?? 0}</p>
+                </CardContent>
+              </Card>
+              <Card className="border-amber-200 bg-amber-50/30">
+                <CardContent className="p-4">
+                  <p className="text-sm text-amber-700">Proposed (Needs Review)</p>
+                  <p className="text-3xl font-display font-bold text-amber-600">{data.proposed_count ?? 0}</p>
+                </CardContent>
+              </Card>
+            </div>
+
             {data.buying_groups?.map((bg: any) => (
-              <Card key={bg.group_id} className={cn("bg-white border-l-4", bg.is_proposed ? "border-l-amber-400" : "border-l-brand-cornflower")}>
+              <Card key={bg.group_id} className={cn("border-l-4", bg.is_proposed ? "border-l-amber-400" : "border-l-brand-cornflower")}>
                 <CardHeader className="pb-2 flex flex-row items-center justify-between">
                   <div>
                     <CardTitle className="text-lg flex items-center gap-2">
                       {bg.account_name} 
                       {bg.is_proposed && <Badge variant="secondary" className="bg-amber-100 text-amber-800 hover:bg-amber-100">Proposed</Badge>}
+                      {!bg.is_proposed && <Badge variant="secondary" className="bg-blue-100 text-blue-800 hover:bg-blue-100">Confirmed</Badge>}
                     </CardTitle>
-                    <CardDescription>{bg.account_industry}</CardDescription>
+                    <CardDescription>{bg.account_industry} • {bg.contacts?.length} member(s)</CardDescription>
                   </div>
                   {bg.is_proposed && (
-                    <Button variant="outline" size="sm" onClick={() => {}} className="h-8">Review in Workbench</Button>
+                    <Button variant="outline" size="sm" className="h-8">
+                      <Icons.alertTriangle className="w-3 h-3 mr-1" /> Review in Workbench
+                    </Button>
                   )}
                 </CardHeader>
                 <CardContent>
@@ -186,10 +264,23 @@ export default function DataManagerPage() {
                     {bg.contacts?.map((c: any) => (
                       <div key={c.contact_id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg border">
                         <div>
-                          <p className="font-medium text-sm text-brand-navy">{c.name} {c.is_primary && <Badge variant="default" className="ml-2 text-[10px]">Primary</Badge>}</p>
+                          <p className="font-medium text-sm text-brand-navy">
+                            {c.name}
+                            {c.is_primary && <Badge variant="default" className="ml-2 text-[10px]">Primary</Badge>}
+                          </p>
                           <p className="text-xs text-muted-foreground">{c.title} • {c.email}</p>
+                          {c.activity_count && (
+                            <p className="text-xs text-amber-600 mt-1">
+                              <Icons.zap className="w-3 h-3 inline mr-1" />
+                              {c.activity_count} high-intent activities
+                            </p>
+                          )}
                         </div>
-                        <Badge variant="outline">{c.role}</Badge>
+                        {c.role ? (
+                          <Badge variant="outline">{c.role}</Badge>
+                        ) : (
+                          <Badge variant="outline" className="border-amber-300 text-amber-600 bg-amber-50">Unresolved</Badge>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -204,22 +295,64 @@ export default function DataManagerPage() {
           <div className="space-y-6">
              <Card>
               <CardHeader>
-                <CardTitle>Deduplication Settings</CardTitle>
-                <CardDescription>Configure auto-merge thresholds and strategies.</CardDescription>
+                <CardTitle className="font-display">Deduplication Settings</CardTitle>
+                <CardDescription>Configure auto-merge thresholds and match strategies. Changes are saved to the database.</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex flex-col gap-1">
-                  <label className="text-sm font-medium">Confidence Threshold ({data.confidence_threshold}%)</label>
-                  <input type="range" min="0" max="100" value={data.confidence_threshold || 80} className="w-full max-w-md" readOnly />
+              <CardContent className="space-y-6">
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium">
+                    Confidence Threshold: <span className="text-brand-cornflower font-bold">{dedupThreshold}%</span>
+                  </label>
+                  <p className="text-xs text-muted-foreground">
+                    Contacts with confidence ≥ {dedupThreshold}% are auto-merged. Below this, they&apos;re routed to Workbench.
+                  </p>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value={dedupThreshold}
+                    onChange={(e) => setDedupThreshold(Number(e.target.value))}
+                    className="w-full max-w-md accent-brand-cornflower"
+                  />
+                  <div className="flex justify-between text-[10px] text-muted-foreground max-w-md">
+                    <span>0% (merge everything)</span>
+                    <span>100% (manual only)</span>
+                  </div>
                 </div>
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-2">
                   <label className="text-sm font-medium">Match Strategy</label>
-                  <p className="text-sm text-muted-foreground">{data.match_strategy}</p>
+                  <select
+                    value={dedupStrategy}
+                    onChange={(e) => setDedupStrategy(e.target.value)}
+                    className="w-full max-w-md h-10 px-3 rounded-lg border border-border bg-muted/20 text-sm focus:border-primary/50 outline-none"
+                  >
+                    <option value="Exact Email Match">Exact Email Match</option>
+                    <option value="Fuzzy Name + Company Match">Fuzzy Name + Company Match</option>
+                  </select>
+                  <p className="text-xs text-muted-foreground">
+                    &ldquo;Fuzzy Name + Company Match&rdquo; is reserved for future extension — currently only Exact Email Match runs.
+                  </p>
                 </div>
-                <Button onClick={async () => {
-                    const res = await apiClient.post<any>('/api/data-manager/dedup/run', {})
-                    if(res?.results) setDedupResult(res.results)
-                }}>Run Deduplication Now</Button>
+
+                <div className="flex gap-3 pt-2">
+                  <Button
+                    variant="outline"
+                    onClick={saveDedupConfig}
+                    disabled={dedupSaving}
+                  >
+                    {dedupSaving ? <Icons.loader className="w-4 h-4 animate-spin mr-2" /> : <Icons.checkCircle className="w-4 h-4 mr-2" />}
+                    Save Settings
+                  </Button>
+                  <Button
+                    variant="gradient"
+                    onClick={runDedup}
+                    disabled={dedupRunning}
+                  >
+                    {dedupRunning ? <Icons.loader className="w-4 h-4 animate-spin mr-2" /> : <Icons.zap className="w-4 h-4 mr-2" />}
+                    Run Deduplication Now
+                  </Button>
+                </div>
 
                 {dedupResult && (
                   <div className="mt-4 p-4 bg-emerald-50 text-emerald-800 rounded-lg border border-emerald-200">
@@ -238,15 +371,16 @@ export default function DataManagerPage() {
       case 'routing':
         return (
           <div className="grid md:grid-cols-2 gap-6">
+            {/* Header card with routing engine */}
             <Card className="md:col-span-2 flex flex-col md:flex-row justify-between items-start md:items-center bg-brand-navy text-white p-6 rounded-xl">
                <div>
-                  <h3 className="text-lg font-bold">Routing Engine</h3>
-                  <p className="text-sm text-brand-cloud mt-1">Assign unowned contacts to SDRs based on territory, segment, and availability.</p>
+                 <h3 className="text-lg font-display font-bold">Routing Engine</h3>
+                 <p className="text-sm text-brand-cloud mt-1">Assign unowned contacts to SDRs based on territory, segment, and availability.</p>
                </div>
-               <Button variant="secondary" onClick={async () => {
-                  const res = await apiClient.post<any>('/api/data-manager/routing/run', { contact_ids: [] })
-                  if(res?.results) setRoutingResult(res.results)
-               }} className="mt-4 md:mt-0">Run Routing Engine <Icons.zap className="w-4 h-4 ml-2" /></Button>
+               <Button variant="secondary" onClick={runRouting} disabled={routingRunning} className="mt-4 md:mt-0">
+                 {routingRunning ? <Icons.loader className="w-4 h-4 animate-spin mr-2" /> : null}
+                 Run Routing Engine <Icons.zap className="w-4 h-4 ml-2" />
+               </Button>
             </Card>
 
             {routingResult && (
@@ -261,33 +395,90 @@ export default function DataManagerPage() {
               </Card>
             )}
 
+            {/* Collisions & Warnings */}
+            {(data.collisions?.length > 0 || data.warnings?.length > 0) && (
+              <Card className="md:col-span-2 border-amber-200 bg-amber-50/30">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-amber-800">
+                    <Icons.alertTriangle className="w-5 h-5 text-amber-500" />
+                    Routing Health — Collisions & Warnings
+                  </CardTitle>
+                  <CardDescription className="text-amber-700">
+                    {data.collisions?.length ?? 0} collision(s), {data.warnings?.length ?? 0} warning(s) detected
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {data.collisions?.map((col: any, idx: number) => (
+                    <div key={`col-${idx}`} className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge variant="destructive" className="text-[10px]">Collision</Badge>
+                        <span className="text-sm font-medium text-red-800">
+                          Rules {col.rules?.join(', ')} (Priority {col.priority})
+                        </span>
+                      </div>
+                      <p className="text-xs text-red-700">{col.description}</p>
+                    </div>
+                  ))}
+                  {data.warnings?.map((warn: any, idx: number) => (
+                    <div key={`warn-${idx}`} className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge variant="secondary" className="bg-amber-100 text-amber-800 text-[10px]">
+                          {warn.type === 'capacity_overflow' ? 'Over Capacity' : 'Inactive SDR'}
+                        </Badge>
+                        <span className="text-sm font-medium text-amber-800">{warn.name} ({warn.owner_id})</span>
+                      </div>
+                      <p className="text-xs text-amber-700">{warn.description}</p>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* SDR Roster */}
             <Card className="md:col-span-2">
               <CardHeader>
                 <CardTitle>SDR Roster & Coverage</CardTitle>
+                <CardDescription>Rep coverage is computed from all routing_rules where owner_id matches — not just sdr_roster.region.</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {data.sdr_roster?.map((sdr: any) => {
-                    const capacityRatio = (sdr.current_capacity || 0) / (sdr.max_capacity || 1);
+                    const currentCap = parseFloat(sdr.current_capacity || '0')
+                    const maxCap = parseFloat(sdr.max_capacity || '1')
+                    const capacityRatio = currentCap / (maxCap || 1);
+                    const isInactive = String(sdr.active).toLowerCase() === 'false' || sdr.active === false
                     return (
-                    <div key={sdr.owner_id} className="p-4 border rounded-lg flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                    <div key={sdr.owner_id} className={cn(
+                      "p-4 border rounded-lg flex flex-col md:flex-row gap-4 items-start md:items-center justify-between",
+                      isInactive && "border-red-200 bg-red-50/30",
+                      capacityRatio >= 1 && !isInactive && "border-amber-200 bg-amber-50/30",
+                    )}>
                       <div>
                         <p className="font-semibold text-sm flex items-center gap-2">
-                          {sdr.name} ({sdr.owner_id})
-                          {(String(sdr.active).toLowerCase() === 'false' || sdr.active === false) && <Badge variant="destructive">Inactive</Badge>}
+                          {sdr.name} <span className="text-muted-foreground font-mono text-xs">({sdr.owner_id})</span>
+                          {isInactive && <Badge variant="destructive">Inactive</Badge>}
+                          {capacityRatio >= 1 && !isInactive && <Badge className="bg-amber-500 hover:bg-amber-600">Over Capacity</Badge>}
                         </p>
-                        <p className="text-xs text-muted-foreground mt-1">Region: {sdr.region} • Segment: {sdr.segment}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Roster Region: {sdr.region} • Segment: {sdr.segment}
+                        </p>
                         {sdr.coverage_rules && sdr.coverage_rules.length > 0 && (
                            <div className="flex flex-wrap gap-1 mt-2">
+                              <span className="text-[10px] text-muted-foreground mr-1">Coverage:</span>
                               {sdr.coverage_rules.map((cr: any) => (
-                                <Badge key={cr.rule_id} variant="secondary" className="text-[10px]">{cr.rule_name}</Badge>
+                                <Badge key={cr.rule_id} variant="secondary" className={cn(
+                                  "text-[10px]",
+                                  (String(cr.active).toLowerCase() === 'false') && "opacity-50 line-through"
+                                )}>
+                                  {cr.rule_id}: {cr.rule_name}
+                                </Badge>
                               ))}
                            </div>
                         )}
                       </div>
                       <div className="flex flex-col items-end">
                          <span className={cn("text-sm font-medium", capacityRatio >= 1 ? "text-red-500" : "text-green-600")}>
-                           {sdr.current_capacity || 0} / {sdr.max_capacity || 0} Capacity
+                           {currentCap} / {maxCap} Capacity
                          </span>
                          <div className="w-32 h-2 bg-gray-200 rounded-full mt-1 overflow-hidden">
                            <div 
@@ -301,23 +492,33 @@ export default function DataManagerPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Routing Rules */}
             <Card>
               <CardHeader>
                 <CardTitle>Routing Rules</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  {data.routing_rules?.map((rule: any) => (
-                    <div key={rule.rule_id} className="p-3 border rounded-lg">
-                      <p className="font-semibold text-sm">{rule.rule_name} <span className="text-muted-foreground font-normal text-xs">(Priority {rule.priority})</span></p>
+                  {data.routing_rules?.map((rule: any) => {
+                    const isActive = String(rule.active).toLowerCase() === 'true'
+                    return (
+                    <div key={rule.rule_id} className={cn("p-3 border rounded-lg", !isActive && "opacity-50")}>
+                      <p className="font-semibold text-sm flex items-center gap-2">
+                        {rule.rule_id}
+                        <span className="text-muted-foreground font-normal text-xs">(Priority {rule.priority})</span>
+                        {!isActive && <Badge variant="secondary" className="text-[10px]">Inactive</Badge>}
+                      </p>
                       <p className="text-xs text-muted-foreground mt-1 font-mono bg-gray-50 p-1 rounded">
                         {rule.region || '*'} / {rule.segment || '*'} / {rule.industry || '*'} ➔ {rule.owner_id}
                       </p>
                     </div>
-                  ))}
+                  )})}
                 </div>
               </CardContent>
             </Card>
+
+            {/* Territories */}
             <Card>
               <CardHeader>
                 <CardTitle>Territories</CardTitle>
@@ -325,9 +526,12 @@ export default function DataManagerPage() {
               <CardContent>
                 <div className="space-y-2">
                   {data.territories?.map((t: any) => (
-                    <div key={t.territory_id} className="flex justify-between p-3 border rounded-lg">
-                      <span className="font-medium text-sm">{t.territory_name}</span>
-                      <span className="text-xs text-muted-foreground">{t.region}</span>
+                    <div key={t.territory_id} className="flex justify-between items-center p-3 border rounded-lg">
+                      <div>
+                        <span className="font-medium text-sm">{t.name || t.territory_name}</span>
+                        <p className="text-xs text-muted-foreground">Owner: {t.primary_owner_id}</p>
+                      </div>
+                      <Badge variant="outline">{t.region} / {t.segment}</Badge>
                     </div>
                   ))}
                 </div>
@@ -403,6 +607,9 @@ export default function DataManagerPage() {
               <CardTitle className="flex items-center gap-2">
                 {icon}
                 {title}
+                {items?.length > 0 && (
+                  <Badge variant="secondary" className="ml-auto">{items.length} issue{items.length !== 1 ? 's' : ''}</Badge>
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -410,14 +617,20 @@ export default function DataManagerPage() {
                 <div className="space-y-2">
                   {items.map((item: any, idx: number) => (
                     <div key={idx} className={`flex justify-between items-center p-3 border rounded-lg ${color}`}>
-                      <div>
+                      <div className="flex-1 min-w-0">
                         <span className="font-medium text-sm text-slate-800">{item.issue}</span>
-                        <Badge variant="outline" className="ml-2 bg-white/50">{item.severity}</Badge>
-                        <span className="text-xs text-slate-600 font-mono bg-white/50 px-2 py-1 rounded ml-2">{item.count} rows affected</span>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="outline" className={cn(
+                            "bg-white/50",
+                            item.severity === 'high' && "border-red-300 text-red-700",
+                            item.severity === 'warning' && "border-amber-300 text-amber-700",
+                          )}>{item.severity}</Badge>
+                          <span className="text-xs text-slate-600 font-mono bg-white/50 px-2 py-1 rounded">{item.count} rows affected</span>
+                        </div>
                       </div>
                       {item.examples?.length > 0 && (
-                        <Button variant="outline" size="sm" onClick={() => openInspector(`Issue: ${item.issue}`, item.examples)} className="h-7 text-xs bg-white/50">
-                          <Icons.search className="w-3 h-3 mr-1" /> Inspect Examples
+                        <Button variant="outline" size="sm" onClick={() => openInspector(`Issue: ${item.issue}`, item.examples)} className="h-7 text-xs bg-white/50 ml-3 shrink-0">
+                          <Icons.search className="w-3 h-3 mr-1" /> Inspect
                         </Button>
                       )}
                     </div>
@@ -445,11 +658,11 @@ export default function DataManagerPage() {
   return (
     <motion.div className="space-y-8" variants={containerVariants} initial="hidden" animate="visible">
       <motion.div variants={itemVariants}>
-        <h1 className="text-display-3 font-bold tracking-tight text-brand-navy">Data Manager</h1>
-        <p className="mt-2 text-lg text-muted-foreground">Manage your centralized master data, routing, and integrations.</p>
+        <h1 className="text-display-3 font-bold tracking-tight text-brand-navy font-display">Data Manager</h1>
+        <p className="mt-2 text-lg text-muted-foreground font-sans">Manage your centralized master data, routing, and integrations.</p>
       </motion.div>
 
-      <motion.div variants={itemVariants} className="flex space-x-1 border-b">
+      <motion.div variants={itemVariants} className="flex space-x-1 border-b overflow-x-auto">
         {tabs.map((tab) => {
           const Icon = tab.icon
           const isActive = activeTab === tab.id
@@ -458,7 +671,7 @@ export default function DataManagerPage() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                'flex items-center space-x-2 px-4 py-2 text-sm font-medium transition-colors border-b-2',
+                'flex items-center space-x-2 px-4 py-2 text-sm font-medium transition-colors border-b-2 whitespace-nowrap',
                 isActive
                   ? 'border-brand-cornflower text-brand-navy'
                   : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
