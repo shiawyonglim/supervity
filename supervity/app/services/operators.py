@@ -10,15 +10,17 @@ log = logging.getLogger(__name__)
 
 # Core context that is passed between operators
 class LeadContext:
-    def __init__(self, raw_data: Dict[str, Any], external_score: float, external_privacy: bool):
+    def __init__(self, raw_data: Dict[str, Any]):
         self.raw_data = raw_data
-        self.lead_id: str = raw_data.get("lead_id", "")
-        self.name: str = raw_data.get("name", "")
-        self.email: str = raw_data.get("email", "")
+        self.lead_id: str = raw_data.get("prospect_id", "")
         
-        # External inputs
-        self.external_intent_score: float = external_score
-        self.external_privacy_flag: bool = external_privacy
+        contact = raw_data.get("contact", {})
+        self.name: str = contact.get("name", "")
+        self.email: str = contact.get("email", "")
+        
+        # External inputs parsed directly from the single payload
+        self.external_intent_score: float = raw_data.get("external_intent_score", 0.0)
+        self.external_privacy_flag: bool = raw_data.get("external_privacy_flag", False)
         
         # Operator state
         self.missing_fields: List[str] = []
@@ -43,9 +45,9 @@ def operator_1_intake(ctx: LeadContext) -> LeadContext:
     """Operator 1: Intake & Verification Operator"""
     log.info(f"[Op1] Validating payload for lead {ctx.lead_id}")
     
-    required = ["email", "inquiry_text"]
+    required = ["email"]
     for req in required:
-        if not ctx.raw_data.get(req):
+        if not getattr(ctx, req, None):
             ctx.missing_fields.append(req)
             
     if ctx.missing_fields:
@@ -141,11 +143,11 @@ class MasterOrchestrator:
     """
     
     @staticmethod
-    def process_lead(raw_payload: Dict[str, Any], external_score: float, external_privacy: bool) -> Dict[str, Any]:
-        log.info(f"--- Master Orchestrator starting for {raw_payload.get('lead_id')} ---")
+    def process_lead(payload: Dict[str, Any]) -> Dict[str, Any]:
+        log.info(f"--- Master Orchestrator starting for {payload.get('prospect_id')} ---")
         
-        # Initialize Context
-        ctx = LeadContext(raw_payload, external_score, external_privacy)
+        # Initialize Context (extracts everything from the single payload)
+        ctx = LeadContext(payload)
         
         # Run Pipeline Sequentially
         ctx = operator_1_intake(ctx)
@@ -170,12 +172,7 @@ class MasterOrchestrator:
 def run_operator_pipeline_batch(batch_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """Legacy wrapper for batch processing using the new MasterOrchestrator"""
     results = []
-    for data in batch_data:
-        # Mock extracting the external scores that would theoretically come from the API payload
-        payload = data.get("payload", data)
-        ext_score = data.get("external_intent_score", 0.90)
-        ext_privacy = data.get("external_privacy_flag", True)
-        
-        res = MasterOrchestrator.process_lead(payload, ext_score, ext_privacy)
+    for payload in batch_data:
+        res = MasterOrchestrator.process_lead(payload)
         results.append(res)
     return results

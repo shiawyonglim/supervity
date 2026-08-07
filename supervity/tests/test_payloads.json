@@ -1,0 +1,38 @@
+{
+  "prospect_id": "003P_TEST_SEND",
+  "contact": {
+    "name": "Alex Carter",
+    "email": "shiawyonglim@gmail.com",
+    "title": "VP of Engineering"
+  },
+  "account": {
+    "Name": "Apex Technologies",
+    "Industry": "Software",
+    "BillingCountry": "Singapore"
+  },
+  "opportunities": [
+    {
+      "Name": "Apex - Q4 Enterprise Rollout",
+      "StageName": "SQL",
+      "Amount": 250000.00
+    }
+  ],
+  "activities": [
+    {
+      "activity_id": "990001",
+      "type": "Form Submission",
+      "url": "/contact-sales",
+      "duration_seconds": 120,
+      "campaign": "Inbound"
+    },
+    {
+      "activity_id": "990002",
+      "type": "Page View",
+      "url": "/pricing",
+      "duration_seconds": 605,
+      "campaign": "Organic"
+    }
+  ],
+  "external_intent_score": 0.88,
+  "external_privacy_flag": false 
+}
