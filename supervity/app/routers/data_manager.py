@@ -211,10 +211,10 @@ def run_dedup(db: Session = Depends(get_db)):
         )
         SELECT 
             c."Id", c."FirstName", c."LastName", c."Email", c."AccountId", 
-            c.duplicate_key, c.confidence, c.lead_stage__c
+            c."duplicate_key", c."confidence", c."Lead_Stage__c"
         FROM contact c
-        JOIN dupes d ON c.duplicate_key = d.duplicate_key
-        ORDER BY c.duplicate_key, c.confidence DESC
+        JOIN dupes d ON c."duplicate_key" = d.duplicate_key
+        ORDER BY c."duplicate_key", c."confidence" DESC
     """)
     rows = db.execute(query).mappings().all()
     
@@ -271,6 +271,8 @@ def get_routing_config(db: Session = Depends(get_db)):
     """Get routing rules, territories, and SDR roster for configuration."""
     try:
         routing_rules = db.execute(text("SELECT * FROM routing_rules ORDER BY priority")).mappings().all()
+        territories = db.execute(text("SELECT * FROM territories")).mappings().all()
+        sdr_roster = db.execute(text("SELECT * FROM sdr_roster")).mappings().all()
         sdr_list = []
         for sdr in sdr_roster:
             s = dict(sdr)
@@ -526,8 +528,16 @@ def get_data_quality(db: Session = Depends(get_db)):
     res = db.execute(text('SELECT "Id" FROM opportunity WHERE CAST("CloseDate" AS DATE) < CAST("CreatedDate" AS DATE)')).fetchall()
     add_to_report("chronological", "opportunity.closedate < opportunity.createddate", len(res), "warning", [r[0] for r in res[:5]])
     
-    res = db.execute(text('SELECT "Id" FROM contact WHERE CAST("LastModifiedDate" AS DATE) < CAST("CreatedDate" AS DATE)')).fetchall()
-    add_to_report("chronological", "contact.lastmodifieddate < contact.createddate", len(res), "warning", [r[0] for r in res[:5]])
+    # 2. contact.lastmodifieddate < contact.createddate
+    res = db.execute(text('SELECT "Id", "CreatedDate", "LastModifiedDate" FROM contact')).fetchall()
+    anomalies = []
+    for r in res:
+        try:
+            if pd.to_datetime(r[2], dayfirst=True) < pd.to_datetime(r[1], dayfirst=True):
+                anomalies.append(r[0])
+        except:
+            pass
+    add_to_report("chronological", "contact.lastmodifieddate < contact.createddate", len(anomalies), "warning", anomalies[:5])
     
     res = db.execute(text('SELECT "Id" FROM opportunity WHERE ("IsClosed" = \'True\' OR "IsClosed" = \'true\') AND CAST("CloseDate" AS DATE) > CURRENT_DATE')).fetchall()
     add_to_report("chronological", "closed opportunity with future close date", len(res), "warning", [r[0] for r in res[:5]])
@@ -565,21 +575,21 @@ def get_data_quality(db: Session = Depends(get_db)):
     res = db.execute(text("""
         SELECT c."Id" FROM contact c 
         LEFT JOIN opportunity o ON c."AccountId" = o."AccountId" 
-        WHERE c.lead_stage__c = 'Opportunity' AND o."Id" IS NULL
+        WHERE c."Lead_Stage__c" = 'Opportunity' AND o."Id" IS NULL
     """)).fetchall()
     add_to_report("state_logic", "Ghost Deal (lead_stage=Opportunity but no opps)", len(res), "high", [r[0] for r in res[:5]])
     
     res = db.execute(text("""
         SELECT c."Id" FROM contact c 
         LEFT JOIN opportunity o ON c."AccountId" = o."AccountId" 
-        WHERE c.lead_stage__c = 'Customer' AND o."Id" IS NULL
+        WHERE c."Lead_Stage__c" = 'Customer' AND o."Id" IS NULL
     """)).fetchall()
     add_to_report("state_logic", "Phantom Customer (No opps at all)", len(res), "warning", [r[0] for r in res[:5]])
 
     res = db.execute(text("""
         SELECT c."Id" FROM contact c 
         JOIN opportunity o ON c."AccountId" = o."AccountId" 
-        WHERE c.lead_stage__c = 'Customer' 
+        WHERE c."Lead_Stage__c" = 'Customer' 
         GROUP BY c."Id" 
         HAVING SUM(CASE WHEN ("IsClosed"='True' OR "IsClosed"='true') AND ("IsWon"='True' OR "IsWon"='true') THEN 1 ELSE 0 END) = 0
     """)).fetchall()
@@ -588,16 +598,27 @@ def get_data_quality(db: Session = Depends(get_db)):
     res = db.execute(text("""
         SELECT c."Id" FROM contact c
         JOIN opportunity o ON c."AccountId" = o."AccountId"
-        WHERE c.lead_stage__c IN ('Open','MQL','SQL') AND ("IsClosed" = 'False' OR "IsClosed" = 'false')
+        WHERE c."Lead_Stage__c" IN ('Open','MQL','SQL') AND ("IsClosed" = 'False' OR "IsClosed" = 'false')
     """)).fetchall()
     add_to_report("state_logic", "Lazy Rep (Lead open but active opp exists)", len(res), "warning", [r[0] for r in res[:5]])
     
-    res = db.execute(text("""
-        SELECT "Id" FROM opportunity
-        WHERE CAST(NULLIF("Probability", '') AS INT) > 0 AND CAST(NULLIF("Probability", '') AS INT) < 100 
-          AND ("StageName" IN ('Closed Won', 'Closed Lost') OR ("IsClosed" = 'True' OR "IsClosed" = 'true'))
-    """)).fetchall()
-    add_to_report("state_logic", "Pipeline desync (Prob > 0 and < 100 but closed)", len(res), "warning", [r[0] for r in res[:5]])
+    res = db.execute(text('SELECT "Id", "Probability", "StageName", "IsClosed" FROM opportunity')).fetchall()
+    desync = []
+    for r in res:
+        try:
+            prob = r[1]
+            if prob is not None:
+                if isinstance(prob, str):
+                    prob = prob.replace('%', '').strip()
+                if prob == '': continue
+                p = int(float(prob))
+                stage = str(r[2]).lower()
+                is_closed = str(r[3]).lower() == 'true'
+                if 0 < p < 100 and (stage in ['closed won', 'closed lost'] or is_closed):
+                    desync.append(r[0])
+        except Exception:
+            pass
+    add_to_report("state_logic", "Pipeline desync (Prob > 0 and < 100 but closed)", len(desync), "warning", desync[:5])
     
     # Format/business logic
     res = db.execute(text('SELECT created_at FROM visitoractivity WHERE created_at IS NOT NULL')).fetchall()
@@ -622,3 +643,21 @@ def get_data_quality(db: Session = Depends(get_db)):
     db.commit()
     return report
 
+
+from sqlalchemy import inspect as sqla_inspect
+
+@router.get("/database/tables")
+def get_db_tables(db: Session = Depends(get_db)):
+    engine = db.get_bind()
+    tables = sqla_inspect(engine).get_table_names()
+    return {"tables": tables}
+
+@router.get("/database/table/{table_name}")
+def get_db_table_data(table_name: str, db: Session = Depends(get_db)):
+    engine = db.get_bind()
+    tables = sqla_inspect(engine).get_table_names()
+    if table_name not in tables:
+        raise HTTPException(status_code=404, detail="Table not found")
+    
+    rows = db.execute(text(f'SELECT * FROM {table_name} LIMIT 100')).mappings().all()
+    return {"table": table_name, "rows": [dict(r) for r in rows]}
