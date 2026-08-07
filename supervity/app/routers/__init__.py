@@ -8,6 +8,8 @@ Note: File endpoints are defined in main.py to maintain proper path ordering.
 from .admin import router as admin_router
 from .audit import router as audit_router
 from .auth import router as auth_router
+from .bundler import router as bundler_router
+from .contacts import router as contacts_router
 from .dashboard import router as dashboard_router
 from .data_manager import router as data_manager_router
 from .examples import router as examples_router
@@ -17,14 +19,14 @@ from .insights import router as insights_router
 from .items import router as items_router
 from .llm import router as llm_router
 from .policies import router as policies_router
-from .bundler import router as bundler_router
 from .ai_policies import router as ai_policies_router
-from .contacts import router as contacts_router
 
 __all__ = [
     "admin_router",
     "audit_router",
     "auth_router",
+    "bundler_router",
+    "contacts_router",
     "dashboard_router",
     "data_manager_router",
     "examples_router",
@@ -34,7 +36,5 @@ __all__ = [
     "items_router",
     "llm_router",
     "policies_router",
-    "bundler_router",
     "ai_policies_router",
-    "contacts_router",
 ]

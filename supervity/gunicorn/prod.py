@@ -11,7 +11,7 @@ import multiprocessing
 import os
 
 # FastAPI ASGI application path
-wsgi_app = "app.main:app"
+app = "app.main:app"
 
 # Logging
 loglevel = os.getenv("GUNICORN_LOG_LEVEL", "info")
@@ -59,7 +59,7 @@ def on_starting(server):
 
 
 def pre_fork(server, worker):
-    """Called just before a worker is forked."""
+    """Called just after a worker has been forked."""
     pass
 
 

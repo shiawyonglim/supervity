@@ -10,24 +10,23 @@ log = logging.getLogger(__name__)
 
 # Core context that is passed between operators
 class LeadContext:
-    def __init__(self, raw_data: Dict[str, Any]):
+    def __init__(self, raw_data: Dict[str, Any], external_score: float, external_privacy: bool):
+        self.raw_data = raw_data
         self.lead_id: str = raw_data.get("lead_id", "")
         self.name: str = raw_data.get("name", "")
         self.email: str = raw_data.get("email", "")
-        self.company: str = raw_data.get("company", "")
-        self.inquiry_text: str = raw_data.get("inquiry_text", "")
-        self.source: str = raw_data.get("source", "")
         
-        # State populated by operators
-        self.is_valid: bool = False
+        # External inputs
+        self.external_intent_score: float = external_score
+        self.external_privacy_flag: bool = external_privacy
+        
+        # Operator state
         self.missing_fields: List[str] = []
+        self.internal_intent_score: float = 0.0
+        self.requires_human_review: bool = False
         
-        self.intent_score: float = 0.0
-        self.intent_category: str = ""
-        self.urgency: str = ""
-        
+        self.internal_privacy_flag: bool = False
         self.is_compliant: bool = False
-        self.privacy_flags: List[str] = []
         
         self.email_subject: str = ""
         self.email_body: str = ""
@@ -35,104 +34,148 @@ class LeadContext:
         
         self.slack_report: str = ""
 
-def operator_a_validate(raw_payload: Dict[str, Any]) -> LeadContext:
-    """Operator A: Data Reader & Validator"""
-    log.info(f"Operator A: Validating payload for lead {raw_payload.get('lead_id')}")
-    ctx = LeadContext(raw_payload)
+
+# ==========================================
+# THE 5 OPERATORS
+# ==========================================
+
+def operator_1_intake(ctx: LeadContext) -> LeadContext:
+    """Operator 1: Intake & Verification Operator"""
+    log.info(f"[Op1] Validating payload for lead {ctx.lead_id}")
     
-    # Check for missing required fields
     required = ["email", "inquiry_text"]
     for req in required:
-        if not raw_payload.get(req):
+        if not ctx.raw_data.get(req):
             ctx.missing_fields.append(req)
             
     if ctx.missing_fields:
-        ctx.is_valid = False
-        log.warning(f"Operator A: Missing fields {ctx.missing_fields}. Pinging Slack.")
-        # TODO: Ping Slack here
+        log.warning(f"[Op1] Missing fields {ctx.missing_fields}. Asking user via Slack.")
+        # TODO: Trigger Slack integration to ask user for missing info
+        
+    return ctx
+
+def operator_2_intent_scoring(ctx: LeadContext) -> LeadContext:
+    """Operator 2: Intent Scoring Operator"""
+    if ctx.missing_fields:
+        return ctx
+        
+    log.info(f"[Op2] Double-checking intent score for {ctx.lead_id}")
+    
+    # Mocking internal calculation. In reality, this would be an LLM call.
+    ctx.internal_intent_score = 0.85 
+    
+    # Double check if internal calculation matches external calculation (within threshold)
+    delta = abs(ctx.internal_intent_score - ctx.external_intent_score)
+    if delta > 0.1:
+        log.warning(f"[Op2] Score mismatch! Internal: {ctx.internal_intent_score}, External: {ctx.external_intent_score}")
+        ctx.requires_human_review = True
+        # TODO: Trigger Slack integration to ask human to review the score
     else:
-        ctx.is_valid = True
+        log.info("[Op2] Intent score verified successfully.")
         
     return ctx
 
-def operator_b_score_intent(ctx: LeadContext) -> LeadContext:
-    """Operator B: Intent Scorer"""
-    if not ctx.is_valid:
+def operator_3_privacy_compliance(ctx: LeadContext) -> LeadContext:
+    """Operator 3: Privacy Compliance Operator"""
+    if ctx.missing_fields:
         return ctx
         
-    log.info(f"Operator B: Scoring intent for {ctx.lead_id}")
-    # TODO: Implement LLM call here (e.g., llm.gemini_json)
+    log.info(f"[Op3] Double-checking privacy compliance for {ctx.lead_id}")
     
-    # Mocking response for now
-    ctx.intent_score = 0.95
-    ctx.intent_category = "Purchase Ready"
-    ctx.urgency = "High"
+    # Mocking internal privacy check
+    ctx.internal_privacy_flag = True
+    
+    if ctx.internal_privacy_flag == ctx.external_privacy_flag:
+        ctx.is_compliant = ctx.internal_privacy_flag
+        log.info(f"[Op3] Privacy compliance verified: {ctx.is_compliant}")
+    else:
+        log.error(f"[Op3] Privacy mismatch! Internal: {ctx.internal_privacy_flag}, External: {ctx.external_privacy_flag}")
+        ctx.is_compliant = False
+        ctx.requires_human_review = True
+        
     return ctx
 
-def operator_c_check_privacy(ctx: LeadContext) -> LeadContext:
-    """Operator C: Privacy Law Checker"""
-    if not ctx.is_valid:
+def operator_4_communication(ctx: LeadContext) -> LeadContext:
+    """Operator 4: Communication Operator"""
+    if ctx.missing_fields or ctx.requires_human_review or not ctx.is_compliant:
+        log.info("[Op4] Skipping communication draft due to failed preconditions or pending human review.")
         return ctx
         
-    log.info(f"Operator C: Checking privacy for {ctx.lead_id}")
-    # TODO: Implement LLM/Rule check for GDPR and PII
+    log.info(f"[Op4] Drafting and sending email for {ctx.lead_id}")
     
-    ctx.is_compliant = True
-    ctx.privacy_flags = ["GDPR Region Detected (EU)"]
-    return ctx
-
-def operator_d_draft_email(ctx: LeadContext) -> LeadContext:
-    """Operator D: Email Drafter & Sender"""
-    if not ctx.is_valid or not ctx.is_compliant:
-        return ctx
-        
-    log.info(f"Operator D: Drafting email for {ctx.lead_id}")
-    # TODO: Implement LLM draft generation and SMTP send
-    
-    ctx.email_subject = f"Enterprise Hosting in the EU for {ctx.company}"
-    ctx.email_body = "Hello, ..."
+    # Mocking email generation using the validated scores
+    ctx.email_subject = f"Hello {ctx.name}, regarding your inquiry"
+    ctx.email_body = f"Based on your high intent score ({ctx.external_intent_score}), we would like to offer..."
     ctx.sent_status = True
+    
     return ctx
 
-def operator_e_report(ctx: LeadContext) -> LeadContext:
-    """Operator E: Reporting & Slack Notification"""
-    if not ctx.is_valid:
-        ctx.slack_report = f"Failed to process lead {ctx.lead_id}. Missing fields: {ctx.missing_fields}"
+def operator_5_reporting(ctx: LeadContext) -> LeadContext:
+    """Operator 5: Reporting Operator"""
+    log.info(f"[Op5] Generating summary report for {ctx.lead_id}")
+    
+    if ctx.missing_fields:
+        ctx.slack_report = f"⚠️ Halted processing for {ctx.lead_id}. Missing fields: {ctx.missing_fields}"
+    elif ctx.requires_human_review:
+        ctx.slack_report = f"⚠️ Halted processing for {ctx.lead_id}. Awaiting human review due to data discrepancies."
+    elif not ctx.is_compliant:
+        ctx.slack_report = f"🛑 Halted processing for {ctx.lead_id}. Failed privacy compliance."
     else:
-        ctx.slack_report = f"✅ High-intent lead {ctx.name} processed. Privacy checks passed. Welcome email sent."
+        ctx.slack_report = f"✅ Success for {ctx.lead_id}. Verified external score ({ctx.external_intent_score}) and privacy flag. Email sent."
         
-    log.info(f"Operator E: Sending report to Slack -> {ctx.slack_report}")
+    log.info(f"[Op5] Sending Slack Report: {ctx.slack_report}")
     # TODO: Send slack webhook
     return ctx
 
-def push_to_supervity(prospect_data: Dict[str, Any]) -> None:
-    """Mock pushing the final data to the external Supervity platform."""
-    log.info(f"Pushing data to Supervity API for {prospect_data.get('prospect_id')}")
-    # TODO: requests.post("https://api.supervity.com/update-lead", json=prospect_data)
 
-def run_operator_pipeline_batch(raw_payloads: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """Runs all 5 operators sequentially across a batch of prospects."""
-    results = []
+# ==========================================
+# MASTER ORCHESTRATOR
+# ==========================================
+
+class MasterOrchestrator:
+    """
+    Coordinates the entire workflow since Supervity cannot handle complex comparisons or 
+    simple variable passing natively. 
+    It receives the initial data AND the pre-calculated metrics from external systems,
+    and passes them down the operator pipeline.
+    """
     
-    for raw_payload in raw_payloads:
-        log.info(f"--- Processing Prospect {raw_payload.get('lead_id')} ---")
-        ctx = operator_a_validate(raw_payload)
-        ctx = operator_b_score_intent(ctx)
-        ctx = operator_c_check_privacy(ctx)
-        ctx = operator_d_draft_email(ctx)
-        ctx = operator_e_report(ctx)
+    @staticmethod
+    def process_lead(raw_payload: Dict[str, Any], external_score: float, external_privacy: bool) -> Dict[str, Any]:
+        log.info(f"--- Master Orchestrator starting for {raw_payload.get('lead_id')} ---")
         
+        # Initialize Context
+        ctx = LeadContext(raw_payload, external_score, external_privacy)
+        
+        # Run Pipeline Sequentially
+        ctx = operator_1_intake(ctx)
+        ctx = operator_2_intent_scoring(ctx)
+        ctx = operator_3_privacy_compliance(ctx)
+        ctx = operator_4_communication(ctx)
+        ctx = operator_5_reporting(ctx)
+        
+        # Compile final results
         final_data = {
             "prospect_id": ctx.lead_id,
-            "ai_processed": True,
-            "intent_score_assigned": ctx.intent_score,
+            "missing_fields": ctx.missing_fields,
+            "human_review_required": ctx.requires_human_review,
             "privacy_cleared": ctx.is_compliant,
             "action_taken": "Email Sent" if ctx.sent_status else "Pipeline Halted",
             "summary": ctx.slack_report
         }
-        results.append(final_data)
         
-        # Push to Supervity immediately
-        push_to_supervity(final_data)
+        log.info("--- Master Orchestrator finished ---")
+        return final_data
+
+def run_operator_pipeline_batch(batch_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Legacy wrapper for batch processing using the new MasterOrchestrator"""
+    results = []
+    for data in batch_data:
+        # Mock extracting the external scores that would theoretically come from the API payload
+        payload = data.get("payload", data)
+        ext_score = data.get("external_intent_score", 0.90)
+        ext_privacy = data.get("external_privacy_flag", True)
         
+        res = MasterOrchestrator.process_lead(payload, ext_score, ext_privacy)
+        results.append(res)
     return results

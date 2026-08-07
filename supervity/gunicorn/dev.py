@@ -10,7 +10,7 @@ Development settings optimized for local development:
 import os
 
 # FastAPI ASGI application path
-wsgi_app = "app.main:app"
+app = "app.main:app"
 
 # Logging
 loglevel = "info"
