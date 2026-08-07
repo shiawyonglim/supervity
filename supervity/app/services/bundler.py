@@ -279,9 +279,10 @@ def trigger_supervity_orchestrator(bundle: dict = None, prospect_ids: List[str] 
         audit_meta = {"mode": mode, "prospect_ids": prospect_ids}
 
     # Send the full bundle payload which contains 'contact', 'account', 'activities', etc.
+    payload_str = json.dumps(payload_to_send)
     files = {
         "workflowId": (None, "019fd5dd-4f56-7000-8641-9bfdd6c1e3e1"),
-        "inputs[json_payload]": (None, json.dumps(payload_to_send))
+        "inputs[lead_payload]": (None, payload_str)
     }
     
     try:

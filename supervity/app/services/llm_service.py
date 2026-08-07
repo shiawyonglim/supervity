@@ -285,10 +285,15 @@ class LLMService:
                 # Try to salvage JSON from a fenced code block
                 cleaned = result.strip()
                 if cleaned.startswith("```"):
-                    cleaned = cleaned.strip("`")
-                    if cleaned.startswith("json"):
-                        cleaned = cleaned[4:]
-                result = json.loads(cleaned)
+                    # Split by lines and remove the first and last line (which are the backticks)
+                    lines = cleaned.split("\n")
+                    if len(lines) >= 2 and lines[0].startswith("```") and lines[-1].startswith("```"):
+                        cleaned = "\n".join(lines[1:-1])
+                try:
+                    result = json.loads(cleaned.strip())
+                except json.JSONDecodeError as e:
+                    log.error(f"Failed to parse Nemotron JSON: {e}. Raw response: {result}")
+                    result = []
             return result, {"model_used": "nemotron", "llm_notice": self._fallback_notice(gemini_err)}
 
     # =====================================================================

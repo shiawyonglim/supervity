@@ -51,17 +51,29 @@ class MasterOrchestrator:
         }
         
         # Supervity expects multipart/form-data for inputs
+        # To guarantee it receives the payload, we'll send it in multiple formats
+        payload_json = json.dumps(payload)
+        payload_str = str(payload)
+        
         files = {
-            "workflowId": (None, workflow_id),
-            "inputs[lead_payload]": (None, json.dumps(payload))
+            "workflowId": (None, workflow_id, 'text/plain'),
+            "inputs[lead_payload]": (None, payload_json, 'application/json'),      # Documented format (JSON string)
+            "inputs": (None, json.dumps({"lead_payload": payload}), 'application/json'), # Alternate nested format
+            "lead_payload": (None, payload_json, 'application/json'),              # Direct field
+            "payload": (None, payload_json, 'application/json'),                   # Generic field
+            "text": (None, payload_json, 'text/plain')                       # Some generic fallback
         }
         
         try:
+            # We also send data instead of files just in case it wants urlencoded, but we'll stick to multipart as per docs
             response = requests.post(url, headers=headers, files=files)
             response.raise_for_status()
             
             log.info("--- Supervity Auto triggered successfully ---")
-            return response.json()
+            
+            # Read response
+            resp_data = response.json() if response.text else {}
+            return resp_data
             
         except Exception as e:
             log.error(f"Failed to trigger Supervity Auto workflow: {e}")
