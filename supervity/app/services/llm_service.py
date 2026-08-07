@@ -21,10 +21,14 @@ Usage:
 import json
 import logging
 import os
+import warnings
 from typing import Any, Optional
 
 import google.generativeai as genai
 from openai import OpenAI
+
+# Suppress FutureWarning from google-generativeai
+warnings.filterwarnings('ignore', category=FutureWarning, module='google.generativeai')
 
 log = logging.getLogger(__name__)
 

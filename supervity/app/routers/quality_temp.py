@@ -34,12 +34,7 @@ def get_data_quality(db: Session = Depends(get_db)):
                 ))
 
     # Chronological checks
-    res = db.execute(text('SELECT "Id" FROM opportunity WHERE CAST("CloseDate" AS DATE) < CAST("CreatedDate" AS DATE)')).fetchall()
-    add_to_report("chronological", "opportunity.closedate < opportunity.createddate", len(res), "warning", [r[0] for r in res[:5]])
-    
-    res = db.execute(text('SELECT "Id" FROM contact WHERE CAST("LastModifiedDate" AS DATE) < CAST("CreatedDate" AS DATE)')).fetchall()
-    add_to_report("chronological", "contact.lastmodifieddate < contact.createddate", len(res), "warning", [r[0] for r in res[:5]])
-    
+    # Chronological checks (removed queries for missing columns CreatedDate, LastModifiedDate)
     res = db.execute(text('SELECT "Id" FROM opportunity WHERE ("IsClosed" = \'True\' OR "IsClosed" = \'true\') AND CAST("CloseDate" AS DATE) > CURRENT_DATE')).fetchall()
     add_to_report("chronological", "closed opportunity with future close date", len(res), "warning", [r[0] for r in res[:5]])
     

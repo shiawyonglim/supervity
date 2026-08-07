@@ -293,7 +293,7 @@ export default function DataManagerPage() {
                         <span className="text-xs text-slate-600 font-mono bg-white/50 px-2 py-1 rounded ml-2">{item.count} rows affected</span>
                       </div>
                       {item.examples?.length > 0 && (
-                        <Button variant="outline" size="sm" onClick={() => openInspector(`Issue: ${item.issue}`, item.examples.map((id:any) => ({ id })))} className="h-7 text-xs bg-white/50">
+                        <Button variant="outline" size="sm" onClick={() => openInspector(`Issue: ${item.issue}`, item.examples)} className="h-7 text-xs bg-white/50">
                           <Icons.search className="w-3 h-3 mr-1" /> Inspect Examples
                         </Button>
                       )}
@@ -366,13 +366,29 @@ export default function DataManagerPage() {
             </DialogHeader>
           </div>
           <div className="flex-1 overflow-y-auto p-6 pt-2 space-y-6">
-            <div className="p-4 grid grid-cols-2 md:grid-cols-4 gap-3 bg-slate-50 border rounded-lg">
-               {inspectorData?.records?.map((record, i) => (
-                  <div key={i} className="font-mono text-xs bg-white border p-2 rounded">
-                     {record.id || JSON.stringify(record)}
-                  </div>
-               ))}
-            </div>
+             {inspectorData?.records?.map((record, i) => (
+                <Card key={i} className="overflow-hidden">
+                   <CardHeader className="bg-slate-50 py-2 px-4 border-b">
+                      <CardTitle className="text-sm font-medium">Record #{i + 1}</CardTitle>
+                   </CardHeader>
+                   <CardContent className="p-0">
+                      <div className="overflow-x-auto">
+                         <table className="w-full text-xs text-left">
+                            <tbody className="divide-y">
+                               {typeof record === 'object' && record !== null ? Object.entries(record).map(([key, value], idx) => (
+                                  <tr key={idx} className="hover:bg-slate-50">
+                                     <td className="px-4 py-2 font-medium text-slate-700 bg-slate-50/50 w-1/3 border-r">{key}</td>
+                                     <td className="px-4 py-2 font-mono text-slate-600 break-all">{String(value)}</td>
+                                  </tr>
+                               )) : (
+                                  <tr><td className="px-4 py-2 font-mono text-slate-600">{String(record)}</td></tr>
+                               )}
+                            </tbody>
+                         </table>
+                      </div>
+                   </CardContent>
+                </Card>
+             ))}
           </div>
         </DialogContent>
       </Dialog>

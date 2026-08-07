@@ -55,7 +55,7 @@ def generate_insights(db: Session = Depends(get_db)):
         )).mappings().all()
 
         exceptions = db.execute(text(
-            "SELECT id, error_type, payload, resolution_action FROM exceptions WHERE status = 'resolved' ORDER BY updated_at DESC LIMIT 20"
+            "SELECT id, type as error_type, context as payload, resolution_action FROM exceptions WHERE status = 'resolved' ORDER BY resolved_at DESC LIMIT 20"
         )).mappings().all()
 
         # Convert to dicts for JSON serialization

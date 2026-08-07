@@ -98,7 +98,10 @@ def get_buying_groups(db: Session = Depends(get_db)):
 
         if max_date_query:
             max_date = parse_mixed_date(max_date_query)
-            cutoff_date = max_date - timedelta(days=7)
+            if pd.isna(max_date):
+                cutoff_date = pd.to_datetime('1900-01-01', utc=True)
+            else:
+                cutoff_date = max_date - timedelta(days=7)
         else:
             cutoff_date = pd.to_datetime('1900-01-01', utc=True)
 
@@ -198,79 +201,85 @@ def update_dedup_config(update: DedupConfigUpdate, db: Session = Depends(get_db)
 
 @router.post("/dedup/run")
 def run_dedup(db: Session = Depends(get_db)):
-    config = db.query(DedupConfig).first()
-    threshold = config.confidence_threshold if config else 80.0
-
-    query = text("""
-        WITH dupes AS (
-            SELECT duplicate_key
-            FROM contact
-            WHERE duplicate_key IS NOT NULL
-            GROUP BY duplicate_key
-            HAVING COUNT(1) >= 2
-        )
-        SELECT 
-            c."Id", c."FirstName", c."LastName", c."Email", c."AccountId", 
-            c.duplicate_key, c.confidence, c.lead_stage__c
-        FROM contact c
-        JOIN dupes d ON c.duplicate_key = d.duplicate_key
-        ORDER BY c.duplicate_key, c.confidence DESC
-    """)
-    rows = db.execute(query).mappings().all()
+    try:
+        config = db.query(DedupConfig).first()
+        threshold = config.confidence_threshold if config else 80.0
     
-    candidates = {}
-    for r in rows:
-        dk = r['duplicate_key']
-        if dk not in candidates:
-            candidates[dk] = []
-        candidates[dk].append(dict(r))
+        query = text("""
+            WITH dupes AS (
+                SELECT duplicate_key
+                FROM contact
+                WHERE duplicate_key IS NOT NULL
+                GROUP BY duplicate_key
+                HAVING COUNT(1) >= 2
+            )
+            SELECT 
+                c."Id", c."FirstName", c."LastName", c."Email", c."AccountId", 
+                c.duplicate_key, c.confidence, c."Lead_Stage__c"
+            FROM contact c
+            JOIN dupes d ON c.duplicate_key = d.duplicate_key
+            ORDER BY c.duplicate_key, c.confidence DESC
+        """)
+        rows = db.execute(query).mappings().all()
         
-    results = {"merged": 0, "exceptions": 0}
-    
-    for dk, group in candidates.items():
-        survivor = group[0]
-        surv_conf = float(survivor.get('confidence') or 0)
-        
-        if surv_conf >= threshold:
-            for dupe in group[1:]:
-                audit.log_sync(
-                    action="contact.dedup_merge",
-                    actor={"id": "System", "email": "system@autopilot.com"},
-                    category="data_management",
-                    resource_type="contact",
-                    resource_id=dupe["Id"],
-                    resource_name=dupe["Email"],
-                    description=f"Merged {dupe['Id']} into {survivor['Id']} (Confidence: {surv_conf})",
-                    metadata={"survivor_id": survivor["Id"], "deleted_contact": dupe, "confidence": surv_conf},
-                )
-                db.execute(text('DELETE FROM contact WHERE "Id" = :id'), {"id": dupe["Id"]})
-            results["merged"] += len(group) - 1
+        candidates = {}
+        for r in rows:
+            dk = r['duplicate_key']
+            if dk not in candidates:
+                candidates[dk] = []
+            candidates[dk].append(dict(r))
             
-        else:
-            exc_exists = db.query(ExceptionModel).filter(
-                ExceptionModel.type == "dedup_review",
-                ExceptionModel.description.like(f"%{dk}%")
-            ).first()
-            if not exc_exists:
-                new_exc = ExceptionModel(
-                    type="dedup_review",
-                    title=f"Duplicate Contacts found for {dk}",
-                    description=f"Duplicate group below confidence threshold {threshold} for key {dk}",
-                    context={"candidates": group, "confidence": surv_conf},
-                    severity="warning"
-                )
-                db.add(new_exc)
-                results["exceptions"] += 1
+        results = {"merged": 0, "exceptions": 0}
+        
+        for dk, group in candidates.items():
+            survivor = group[0]
+            surv_conf = float(survivor.get('confidence') or 0)
+            
+            if surv_conf >= threshold:
+                for dupe in group[1:]:
+                    audit.log_sync(
+                        action="contact.dedup_merge",
+                        actor={"id": "System", "email": "system@autopilot.com"},
+                        category="data_management",
+                        resource_type="contact",
+                        resource_id=dupe["Id"],
+                        resource_name=dupe["Email"],
+                        description=f"Merged {dupe['Id']} into {survivor['Id']} (Confidence: {surv_conf})",
+                        metadata={"survivor_id": survivor["Id"], "deleted_contact": dupe, "confidence": surv_conf},
+                    )
+                    db.execute(text('DELETE FROM contact WHERE "Id" = :id'), {"id": dupe["Id"]})
+                results["merged"] += len(group) - 1
                 
-    db.commit()
-    return {"status": "success", "results": results}
-
+            else:
+                exc_exists = db.query(ExceptionModel).filter(
+                    ExceptionModel.type == "dedup_review",
+                    ExceptionModel.description.like(f"%{dk}%")
+                ).first()
+                if not exc_exists:
+                    new_exc = ExceptionModel(
+                        type="dedup_review",
+                        title=f"Duplicate Contacts found for {dk}",
+                        description=f"Duplicate group below confidence threshold {threshold} for key {dk}",
+                        context={"candidates": group, "confidence": surv_conf},
+                        severity="warning"
+                    )
+                    db.add(new_exc)
+                    results["exceptions"] += 1
+                    
+        db.commit()
+        return {"status": "success", "results": results}
+    except Exception as e:
+        log.error(f"Dedup run error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/routing")
 def get_routing_config(db: Session = Depends(get_db)):
     """Get routing rules, territories, and SDR roster for configuration."""
     try:
         routing_rules = db.execute(text("SELECT * FROM routing_rules ORDER BY priority")).mappings().all()
+        territories = db.execute(text("SELECT * FROM territories")).mappings().all()
+        sdr_roster = db.execute(text("SELECT * FROM sdr_roster")).mappings().all()
+        
         sdr_list = []
         for sdr in sdr_roster:
             s = dict(sdr)
@@ -293,118 +302,121 @@ class RoutingRequest(BaseModel):
 
 @router.post("/routing/run")
 def run_routing(req: RoutingRequest, db: Session = Depends(get_db)):
-    rules = db.execute(text("SELECT * FROM routing_rules WHERE active=true OR active='true' OR active='True' ORDER BY priority ASC")).mappings().all()
-    roster_raw = db.execute(text("SELECT * FROM sdr_roster")).mappings().all()
-    
-    sdr_map = {r['owner_id']: dict(r) for r in roster_raw}
-    
-    where_clause = 'c."OwnerId" IS NULL'
-    params = {}
-    if req.contact_ids:
-        where_clause = 'c."Id" = ANY(:ids)'
-        params = {"ids": req.contact_ids}
+    try:
+        rules = db.execute(text("SELECT * FROM routing_rules WHERE active=true OR active='true' OR active='True' ORDER BY priority ASC")).mappings().all()
+        roster_raw = db.execute(text("SELECT * FROM sdr_roster")).mappings().all()
+        sdr_map = {r['owner_id']: dict(r) for r in roster_raw}
         
-    query = text(f"""
-        SELECT 
-            c."Id" as contact_id,
-            c.region,
-            c."Email",
-            a."Industry" as industry,
-            a."NumberOfEmployees" as employees
-        FROM contact c
-        LEFT JOIN account a ON c."AccountId" = a."Id"
-        WHERE {where_clause}
-    """)
-    contacts = db.execute(query, params).mappings().all()
-    
-    results = {"assigned": 0, "exceptions": 0}
-    
-    def get_segment(emp):
-        try:
-            emp = int(float(emp))
-            if emp >= 1000: return 'Enterprise'
-            if emp >= 100: return 'Mid-Market'
-            return 'SMB'
-        except:
-            return 'Unknown'
-
-    for contact in contacts:
-        region = contact['region']
-        industry = contact['industry']
-        segment = get_segment(contact['employees'])
-        cid = contact['contact_id']
+        where_clause = 'c."OwnerId" IS NULL'
+        params = {}
+        if req.contact_ids:
+            where_clause = 'c."Id" = ANY(:ids)'
+            params = {"ids": req.contact_ids}
+            
+        query = text(f"""
+            SELECT 
+                c."Id" as contact_id,
+                c.region,
+                c."Email",
+                a."Industry" as industry,
+                a."NumberOfEmployees" as employees
+            FROM contact c
+            LEFT JOIN account a ON c."AccountId" = a."Id"
+            WHERE {where_clause}
+        """)
+        contacts = db.execute(query, params).mappings().all()
         
-        # Find matching rules
-        matches = []
-        for r in rules:
-            if (not r['region'] or r['region'] == region) and \
-               (not r['segment'] or r['segment'] == segment) and \
-               (not r['industry'] or str(r['industry']).lower() == 'nan' or r['industry'] == industry):
-                matches.append(r)
-                
-        # Handle matches
-        assigned = False
-        if matches:
-            # Group by priority, pick highest priority (lowest number)
-            matches.sort(key=lambda x: x['priority'] or 999)
-            best_priority = matches[0]['priority']
-            top_candidates = [m for m in matches if m['priority'] == best_priority]
-            
-            # Resolve collisions by capacity
-            def util_ratio(owner_id):
-                sdr = sdr_map.get(owner_id)
-                if not sdr or str(sdr['active']).lower() not in ('true', '1', 't'):
-                    return 999.0
-                curr = float(sdr['current_capacity'] or 0)
-                max_c = float(sdr['max_capacity'] or 1)
-                if curr >= max_c:
-                    return 999.0
-                return curr / max_c
+        results = {"assigned": 0, "exceptions": 0}
+        
+        def get_segment(emp):
+            try:
+                emp = int(float(emp))
+                if emp >= 1000: return 'Enterprise'
+                if emp >= 100: return 'Mid-Market'
+                return 'SMB'
+            except:
+                return 'Unknown'
 
-            top_candidates.sort(key=lambda x: util_ratio(x['owner_id']))
-            best_rule = top_candidates[0]
-            best_sdr_id = best_rule['owner_id']
+        for contact in contacts:
+            region = contact['region']
+            industry = contact['industry']
+            segment = get_segment(contact['employees'])
+            cid = contact['contact_id']
             
-            if util_ratio(best_sdr_id) < 999.0:
-                # Assign
-                db.execute(text('UPDATE contact SET "OwnerId" = :oid WHERE "Id" = :cid'), {"oid": best_sdr_id, "cid": cid})
+            # Find matching rules
+            matches = []
+            for r in rules:
+                if (not r['region'] or r['region'] == region) and \
+                   (not r['segment'] or r['segment'] == segment) and \
+                   (not r['industry'] or str(r['industry']).lower() == 'nan' or r['industry'] == industry):
+                    matches.append(r)
+                    
+            # Handle matches
+            assigned = False
+            if matches:
+                # Group by priority, pick highest priority (lowest number)
+                matches.sort(key=lambda x: x['priority'] or 999)
+                best_priority = matches[0]['priority']
+                top_candidates = [m for m in matches if m['priority'] == best_priority]
                 
-                # Log audit
-                audit.log_sync(
-                    action="routing.collision_resolved" if len(top_candidates) > 1 else "routing.assign",
-                    actor={"id": "System", "email": "system@autopilot.com"},
-                    category="data_management",
-                    resource_type="contact",
-                    resource_id=cid,
-                    resource_name=contact['Email'],
-                    description=f"Assigned contact to {best_sdr_id} via rule {best_rule['rule_id']}",
-                    metadata={"rule_id": best_rule['rule_id'], "sdr_id": best_sdr_id, "collision": len(top_candidates) > 1}
-                )
-                # Update local map capacity
-                sdr_map[best_sdr_id]['current_capacity'] = float(sdr_map[best_sdr_id]['current_capacity'] or 0) + 1
-                assigned = True
-                results["assigned"] += 1
-                
-        if not assigned:
-            # Route to exceptions
-            exc_exists = db.query(ExceptionModel).filter(
-                ExceptionModel.type == "routing_failure",
-                ExceptionModel.prospect_id == cid
-            ).first()
-            if not exc_exists:
-                new_exc = ExceptionModel(
-                    type="routing_failure",
-                    title=f"Routing Failed for Contact {cid}",
-                    description=f"No active SDR with capacity found for Region:{region} Segment:{segment} Industry:{industry}",
-                    prospect_id=cid,
-                    context={"region": region, "segment": segment, "industry": industry},
-                    severity="warning"
-                )
-                db.add(new_exc)
-                results["exceptions"] += 1
+                # Resolve collisions by capacity
+                def util_ratio(owner_id):
+                    sdr = sdr_map.get(owner_id)
+                    if not sdr or str(sdr['active']).lower() not in ('true', '1', 't'):
+                        return 999.0
+                    curr = float(sdr['current_capacity'] or 0)
+                    max_c = float(sdr['max_capacity'] or 1)
+                    if curr >= max_c:
+                        return 999.0
+                    return curr / max_c
 
-    db.commit()
-    return {"status": "success", "results": results}
+                top_candidates.sort(key=lambda x: util_ratio(x['owner_id']))
+                best_rule = top_candidates[0]
+                best_sdr_id = best_rule['owner_id']
+                
+                if util_ratio(best_sdr_id) < 999.0:
+                    # Assign
+                    db.execute(text('UPDATE contact SET "OwnerId" = :oid WHERE "Id" = :cid'), {"oid": best_sdr_id, "cid": cid})
+                    
+                    # Log audit
+                    audit.log_sync(
+                        action="routing.collision_resolved" if len(top_candidates) > 1 else "routing.assign",
+                        actor={"id": "System", "email": "system@autopilot.com"},
+                        category="data_management",
+                        resource_type="contact",
+                        resource_id=cid,
+                        resource_name=contact['Email'],
+                        description=f"Assigned contact to {best_sdr_id} via rule {best_rule['rule_id']}",
+                        metadata={"rule_id": best_rule['rule_id'], "sdr_id": best_sdr_id, "collision": len(top_candidates) > 1}
+                    )
+                    # Update local map capacity
+                    sdr_map[best_sdr_id]['current_capacity'] = float(sdr_map[best_sdr_id]['current_capacity'] or 0) + 1
+                    assigned = True
+                    results["assigned"] += 1
+                    
+            if not assigned:
+                # Route to exceptions
+                exc_exists = db.query(ExceptionModel).filter(
+                    ExceptionModel.type == "routing_failure",
+                    ExceptionModel.prospect_id == cid
+                ).first()
+                if not exc_exists:
+                    new_exc = ExceptionModel(
+                        type="routing_failure",
+                        title=f"Routing Failed for Contact {cid}",
+                        description=f"No active SDR with capacity found for Region:{region} Segment:{segment} Industry:{industry}",
+                        prospect_id=cid,
+                        context={"region": region, "segment": segment, "industry": industry},
+                        severity="warning"
+                    )
+                    db.add(new_exc)
+                    results["exceptions"] += 1
+
+        db.commit()
+        return {"status": "success", "results": results}
+    except Exception as e:
+        log.error(f"Routing run error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/consent")
@@ -493,132 +505,133 @@ def get_data_quality(db: Session = Depends(get_db)):
     from app.models.exception import Exception as ExceptionModel
     import pandas as pd
     
-    report = {
-        "chronological": [],
-        "relational": [],
-        "state_logic": [],
-        "format": []
-    }
+    try:
+        report = {
+            "chronological": [],
+            "relational": [],
+            "state_logic": [],
+            "format": []
+        }
 
-    def add_to_report(category, issue, count, severity, examples=None):
-        if count > 0:
-            report[category].append({
-                "issue": issue,
-                "count": count,
-                "severity": severity,
-                "examples": examples or []
-            })
-            
-            exc_exists = db.query(ExceptionModel).filter(
-                ExceptionModel.type == "data_quality_anomaly",
-                ExceptionModel.title == issue
-            ).first()
-            if not exc_exists:
-                db.add(ExceptionModel(
-                    type="data_quality_anomaly",
-                    title=issue,
-                    description=f"Data quality check found {count} affected rows. Check examples.",
-                    context={"examples": examples or []},
-                    severity=severity
-                ))
+        def add_to_report(category, issue, count, severity, examples=None):
+            if count > 0:
+                report[category].append({
+                    "issue": issue,
+                    "count": count,
+                    "severity": severity,
+                    "examples": examples or []
+                })
+                
+                exc_exists = db.query(ExceptionModel).filter(
+                    ExceptionModel.type == "data_quality_anomaly",
+                    ExceptionModel.title == issue
+                ).first()
+                if not exc_exists:
+                    db.add(ExceptionModel(
+                        type="data_quality_anomaly",
+                        title=issue,
+                        description=f"Data quality check found {count} affected rows. Check examples.",
+                        context={"examples": examples or []},
+                        severity=severity
+                    ))
 
-    # Chronological checks
-    res = db.execute(text('SELECT "Id" FROM opportunity WHERE CAST("CloseDate" AS DATE) < CAST("CreatedDate" AS DATE)')).fetchall()
-    add_to_report("chronological", "opportunity.closedate < opportunity.createddate", len(res), "warning", [r[0] for r in res[:5]])
-    
-    res = db.execute(text('SELECT "Id" FROM contact WHERE CAST("LastModifiedDate" AS DATE) < CAST("CreatedDate" AS DATE)')).fetchall()
-    add_to_report("chronological", "contact.lastmodifieddate < contact.createddate", len(res), "warning", [r[0] for r in res[:5]])
-    
-    res = db.execute(text('SELECT "Id" FROM opportunity WHERE ("IsClosed" = \'True\' OR "IsClosed" = \'true\') AND CAST("CloseDate" AS DATE) > CURRENT_DATE')).fetchall()
-    add_to_report("chronological", "closed opportunity with future close date", len(res), "warning", [r[0] for r in res[:5]])
-    
-    res = db.execute(text("""
-        SELECT "Id" FROM opportunity 
-        WHERE ("StageName" IN ('Closed Won', 'Closed Lost') AND ("IsClosed" = 'False' OR "IsClosed" = 'false'))
-           OR ("StageName" = 'Closed Won' AND ("IsWon" = 'False' OR "IsWon" = 'false'))
-           OR ("StageName" = 'Closed Lost' AND ("IsWon" = 'True' OR "IsWon" = 'true'))
-    """)).fetchall()
-    add_to_report("chronological", "stagename desync with isclosed/iswon flags", len(res), "high", [r[0] for r in res[:5]])
-    
-    # Relational checks
-    res = db.execute(text('SELECT o."Id" FROM opportunity o LEFT JOIN contact c ON o."ContactId" = c."Id" WHERE c."Id" IS NULL AND o."ContactId" IS NOT NULL')).fetchall()
-    add_to_report("relational", "opportunity.contactid missing in contact", len(res), "high", [r[0] for r in res[:5]])
-    
-    res = db.execute(text('SELECT o."Id" FROM opportunity o LEFT JOIN account a ON o."AccountId" = a."Id" WHERE a."Id" IS NULL AND o."AccountId" IS NOT NULL')).fetchall()
-    add_to_report("relational", "opportunity.accountid missing in account", len(res), "high", [r[0] for r in res[:5]])
-    
-    res = db.execute(text('SELECT cr.consent_id FROM consent_register cr LEFT JOIN contact c ON cr.contact_id = c."Id" WHERE c."Id" IS NULL')).fetchall()
-    add_to_report("relational", "consent_register.contact_id missing in contact", len(res), "high", [r[0] for r in res[:5]])
+        # Chronological checks (removed queries for missing columns CreatedDate, LastModifiedDate)
+        
+        res = db.execute(text('SELECT * FROM opportunity WHERE ("IsClosed" = \'True\' OR "IsClosed" = \'true\') AND CAST("CloseDate" AS DATE) > CURRENT_DATE')).mappings().fetchall()
+        add_to_report("chronological", "closed opportunity with future close date", len(res), "warning", [dict(r) for r in res[:5]])
+        
+        res = db.execute(text("""
+            SELECT * FROM opportunity 
+            WHERE ("StageName" IN ('Closed Won', 'Closed Lost') AND ("IsClosed" = 'False' OR "IsClosed" = 'false'))
+               OR ("StageName" = 'Closed Won' AND ("IsWon" = 'False' OR "IsWon" = 'false'))
+               OR ("StageName" = 'Closed Lost' AND ("IsWon" = 'True' OR "IsWon" = 'true'))
+        """)).mappings().fetchall()
+        add_to_report("chronological", "stagename desync with isclosed/iswon flags", len(res), "high", [dict(r) for r in res[:5]])
+        
+        # Relational checks
+        res = db.execute(text('SELECT o.* FROM opportunity o LEFT JOIN contact c ON o."ContactId" = c."Id" WHERE c."Id" IS NULL AND o."ContactId" IS NOT NULL')).mappings().fetchall()
+        add_to_report("relational", "opportunity.contactid missing in contact", len(res), "high", [dict(r) for r in res[:5]])
+        
+        res = db.execute(text('SELECT o.* FROM opportunity o LEFT JOIN account a ON o."AccountId" = a."Id" WHERE a."Id" IS NULL AND o."AccountId" IS NOT NULL')).mappings().fetchall()
+        add_to_report("relational", "opportunity.accountid missing in account", len(res), "high", [dict(r) for r in res[:5]])
+        
+        res = db.execute(text('SELECT cr.* FROM consent_register cr LEFT JOIN contact c ON cr.contact_id = c."Id" WHERE c."Id" IS NULL')).mappings().fetchall()
+        add_to_report("relational", "consent_register.contact_id missing in contact", len(res), "high", [dict(r) for r in res[:5]])
 
-    total_opps = db.execute(text('SELECT COUNT(*) FROM opportunity WHERE "ContactId" IS NOT NULL AND "AccountId" IS NOT NULL')).scalar() or 1
-    res = db.execute(text("""
-        SELECT o."Id" 
-        FROM opportunity o 
-        JOIN contact c ON o."ContactId" = c."Id" 
-        WHERE o."AccountId" != c."AccountId"
-    """)).fetchall()
-    rate = round(len(res) / total_opps * 100, 2)
-    if len(res) > 0:
-        add_to_report("relational", f"contact.accountid != opp.accountid ({rate}% rate)", len(res), "warning", [r[0] for r in res[:5]])
-    
-    # State/logic checks
-    res = db.execute(text("""
-        SELECT c."Id" FROM contact c 
-        LEFT JOIN opportunity o ON c."AccountId" = o."AccountId" 
-        WHERE c.lead_stage__c = 'Opportunity' AND o."Id" IS NULL
-    """)).fetchall()
-    add_to_report("state_logic", "Ghost Deal (lead_stage=Opportunity but no opps)", len(res), "high", [r[0] for r in res[:5]])
-    
-    res = db.execute(text("""
-        SELECT c."Id" FROM contact c 
-        LEFT JOIN opportunity o ON c."AccountId" = o."AccountId" 
-        WHERE c.lead_stage__c = 'Customer' AND o."Id" IS NULL
-    """)).fetchall()
-    add_to_report("state_logic", "Phantom Customer (No opps at all)", len(res), "warning", [r[0] for r in res[:5]])
+        total_opps = db.execute(text('SELECT COUNT(*) FROM opportunity WHERE "ContactId" IS NOT NULL AND "AccountId" IS NOT NULL')).scalar() or 1
+        res = db.execute(text("""
+            SELECT o.* 
+            FROM opportunity o 
+            JOIN contact c ON o."ContactId" = c."Id" 
+            WHERE o."AccountId" != c."AccountId"
+        """)).mappings().fetchall()
+        rate = round(len(res) / total_opps * 100, 2)
+        if len(res) > 0:
+            add_to_report("relational", f"contact.accountid != opp.accountid ({rate}% rate)", len(res), "warning", [dict(r) for r in res[:5]])
+        
+        # State/logic checks
+        res = db.execute(text("""
+            SELECT c.* FROM contact c 
+            LEFT JOIN opportunity o ON c."AccountId" = o."AccountId" 
+            WHERE c."Lead_Stage__c" = 'Opportunity' AND o."Id" IS NULL
+        """)).mappings().fetchall()
+        add_to_report("state_logic", "Ghost Deal (lead_stage=Opportunity but no opps)", len(res), "high", [dict(r) for r in res[:5]])
+        
+        res = db.execute(text("""
+            SELECT c.* FROM contact c 
+            LEFT JOIN opportunity o ON c."AccountId" = o."AccountId" 
+            WHERE c."Lead_Stage__c" = 'Customer' AND o."Id" IS NULL
+        """)).mappings().fetchall()
+        add_to_report("state_logic", "Phantom Customer (No opps at all)", len(res), "warning", [dict(r) for r in res[:5]])
 
-    res = db.execute(text("""
-        SELECT c."Id" FROM contact c 
-        JOIN opportunity o ON c."AccountId" = o."AccountId" 
-        WHERE c.lead_stage__c = 'Customer' 
-        GROUP BY c."Id" 
-        HAVING SUM(CASE WHEN ("IsClosed"='True' OR "IsClosed"='true') AND ("IsWon"='True' OR "IsWon"='true') THEN 1 ELSE 0 END) = 0
-    """)).fetchall()
-    add_to_report("state_logic", "Phantom Customer (Opps exist but none won)", len(res), "high", [r[0] for r in res[:5]])
+        res = db.execute(text("""
+            SELECT c.* FROM contact c WHERE c."Id" IN (
+                SELECT c2."Id" FROM contact c2 
+                JOIN opportunity o2 ON c2."AccountId" = o2."AccountId" 
+                WHERE c2."Lead_Stage__c" = 'Customer' 
+                GROUP BY c2."Id" 
+                HAVING SUM(CASE WHEN (o2."IsClosed"='True' OR o2."IsClosed"='true') AND (o2."IsWon"='True' OR o2."IsWon"='true') THEN 1 ELSE 0 END) = 0
+            )
+        """)).mappings().fetchall()
+        add_to_report("state_logic", "Phantom Customer (Opps exist but none won)", len(res), "high", [dict(r) for r in res[:5]])
 
-    res = db.execute(text("""
-        SELECT c."Id" FROM contact c
-        JOIN opportunity o ON c."AccountId" = o."AccountId"
-        WHERE c.lead_stage__c IN ('Open','MQL','SQL') AND ("IsClosed" = 'False' OR "IsClosed" = 'false')
-    """)).fetchall()
-    add_to_report("state_logic", "Lazy Rep (Lead open but active opp exists)", len(res), "warning", [r[0] for r in res[:5]])
-    
-    res = db.execute(text("""
-        SELECT "Id" FROM opportunity
-        WHERE CAST(NULLIF("Probability", '') AS INT) > 0 AND CAST(NULLIF("Probability", '') AS INT) < 100 
-          AND ("StageName" IN ('Closed Won', 'Closed Lost') OR ("IsClosed" = 'True' OR "IsClosed" = 'true'))
-    """)).fetchall()
-    add_to_report("state_logic", "Pipeline desync (Prob > 0 and < 100 but closed)", len(res), "warning", [r[0] for r in res[:5]])
-    
-    # Format/business logic
-    res = db.execute(text('SELECT created_at FROM visitoractivity WHERE created_at IS NOT NULL')).fetchall()
-    if res:
-        dates = pd.Series([r[0] for r in res])
-        formats = dates.apply(lambda x: 'ISO/DB' if '-' in x else ('Slash' if '/' in x else 'Text/Other')).value_counts()
-        if len(formats) > 1:
-            add_to_report("format", f"Multiple date formats in visitoractivity: {formats.to_dict()}", len(dates), "warning")
+        res = db.execute(text("""
+            SELECT c.* FROM contact c
+            JOIN opportunity o ON c."AccountId" = o."AccountId"
+            WHERE c."Lead_Stage__c" IN ('Open','MQL','SQL') AND (o."IsClosed" = 'False' OR o."IsClosed" = 'false')
+        """)).mappings().fetchall()
+        add_to_report("state_logic", "Lazy Rep (Lead open but active opp exists)", len(res), "warning", [dict(r) for r in res[:5]])
+        
+        res = db.execute(text("""
+            SELECT * FROM opportunity
+            WHERE CAST(NULLIF(TRIM(CAST("Probability" AS TEXT)), '') AS FLOAT) > 0 AND CAST(NULLIF(TRIM(CAST("Probability" AS TEXT)), '') AS FLOAT) < 100 
+              AND ("StageName" IN ('Closed Won', 'Closed Lost') OR ("IsClosed" = 'True' OR "IsClosed" = 'true'))
+        """)).mappings().fetchall()
+        add_to_report("state_logic", "Pipeline desync (Prob > 0 and < 100 but closed)", len(res), "warning", [dict(r) for r in res[:5]])
+        
+        # Format/business logic
+        res = db.execute(text('SELECT created_at FROM visitoractivity WHERE created_at IS NOT NULL')).fetchall()
+        if res:
+            dates = pd.Series([r[0] for r in res])
+            formats = dates.apply(lambda x: 'ISO/DB' if '-' in x else ('Slash' if '/' in x else 'Text/Other')).value_counts()
+            if len(formats) > 1:
+                add_to_report("format", f"Multiple date formats in visitoractivity: {formats.to_dict()}", len(dates), "warning")
 
-    res = db.execute(text("SELECT owner_id FROM sdr_roster WHERE CAST(current_capacity AS FLOAT) > CAST(max_capacity AS FLOAT)")).fetchall()
-    add_to_report("format", "sdr_roster current_capacity > max_capacity", len(res), "high", [r[0] for r in res[:5]])
+        res = db.execute(text("SELECT * FROM sdr_roster WHERE CAST(NULLIF(TRIM(CAST(current_capacity AS TEXT)), '') AS FLOAT) > CAST(NULLIF(TRIM(CAST(max_capacity AS TEXT)), '') AS FLOAT)")).mappings().fetchall()
+        add_to_report("format", "sdr_roster current_capacity > max_capacity", len(res), "high", [dict(r) for r in res[:5]])
 
-    res = db.execute(text("""
-        SELECT s.owner_id FROM sdr_roster s
-        WHERE (s.active = 'false' OR s.active = 'False') AND (
-            s.owner_id IN (SELECT primary_owner_id FROM territories) OR
-            s.owner_id IN (SELECT owner_id FROM routing_rules WHERE active = 'true' OR active = 'True')
-        )
-    """)).fetchall()
-    add_to_report("format", "Inactive SDR still referenced in active rules or territories", len(res), "high", [r[0] for r in res[:5]])
+        res = db.execute(text("""
+            SELECT s.* FROM sdr_roster s
+            WHERE (s.active = 'false' OR s.active = 'False') AND (
+                s.owner_id IN (SELECT primary_owner_id FROM territories) OR
+                s.owner_id IN (SELECT owner_id FROM routing_rules WHERE active = 'true' OR active = 'True')
+            )
+        """)).mappings().fetchall()
+        add_to_report("format", "Inactive SDR still referenced in active rules or territories", len(res), "high", [dict(r) for r in res[:5]])
 
-    db.commit()
-    return report
+        db.commit()
+        return report
+    except Exception as e:
+        log.error(f"Quality run error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 

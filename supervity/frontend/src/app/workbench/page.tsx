@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-
 import { motion } from 'framer-motion'
 import {
   Card,
@@ -14,6 +13,8 @@ import { Button } from '@/components/ui/button'
 import { Icons } from '@/components/ui/icons'
 import { apiClient } from '@/lib/api-client'
 import { Badge } from '@/components/ui/badge'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet'
+import { Label } from '@/components/ui/label'
 
 interface Exception {
   id: number
@@ -46,6 +47,9 @@ const itemVariants = {
 export default function WorkbenchPage() {
   const [exceptions, setExceptions] = useState<Exception[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [selectedException, setSelectedException] = useState<Exception | null>(null)
+  const [resolutionNotes, setResolutionNotes] = useState('')
+  const [isResolving, setIsResolving] = useState(false)
 
   const fetchExceptions = useCallback(async () => {
     setIsLoading(true)
@@ -63,17 +67,21 @@ export default function WorkbenchPage() {
     fetchExceptions()
   }, [fetchExceptions])
 
-  const handleResolve = async (id: number, action: string) => {
+  const handleResolve = async (id: number, action: string, notes: string = 'Resolved via Workbench') => {
+    setIsResolving(true)
     try {
       await apiClient.post(`/api/exceptions/${id}/resolve`, {
         resolution_action: action,
         resolved_by: 'Admin',
-        resolution_notes: 'Resolved via Workbench'
+        resolution_notes: notes
       })
-      // Optimistic update
       setExceptions(prev => prev.filter(e => e.id !== id))
+      setSelectedException(null)
+      setResolutionNotes('')
     } catch (err) {
       console.error('Failed to resolve exception:', err)
+    } finally {
+      setIsResolving(false)
     }
   }
 
@@ -84,16 +92,6 @@ export default function WorkbenchPage() {
       initial='hidden'
       animate='visible'
     >
-      {/* Header */}
-      <motion.div variants={itemVariants}>
-        <h1 className='text-display-3 font-bold tracking-tight text-brand-navy'>
-          Workbench
-        </h1>
-        <p className='mt-2 text-lg text-muted-foreground'>
-          Access your AI tools and automation workflows.
-        </p>
-      </motion.div>
-
       {/* Exception Inbox */}
       <motion.div variants={itemVariants}>
         <Card>
@@ -117,7 +115,14 @@ export default function WorkbenchPage() {
             ) : (
               <div className="space-y-4">
                 {exceptions.map(exc => (
-                  <div key={exc.id} className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center p-4 border rounded-xl bg-white shadow-sm">
+                  <div 
+                    key={exc.id} 
+                    className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center p-4 border rounded-xl bg-white shadow-sm cursor-pointer hover:bg-slate-50 transition-colors"
+                    onClick={() => {
+                      setSelectedException(exc)
+                      setResolutionNotes('')
+                    }}
+                  >
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <h4 className="font-semibold">{exc.title}</h4>
@@ -134,10 +139,10 @@ export default function WorkbenchPage() {
                       )}
                     </div>
                     <div className="flex gap-2 shrink-0">
-                      <Button variant="outline" size="sm" onClick={() => handleResolve(exc.id, 'rejected')}>
+                      <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleResolve(exc.id, 'rejected') }}>
                         Reject
                       </Button>
-                      <Button variant="default" size="sm" onClick={() => handleResolve(exc.id, 'approved')}>
+                      <Button variant="default" size="sm" onClick={(e) => { e.stopPropagation(); handleResolve(exc.id, 'approved') }}>
                         Approve
                       </Button>
                     </div>
@@ -148,6 +153,87 @@ export default function WorkbenchPage() {
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* Exception Detail Sheet */}
+      <Sheet open={!!selectedException} onOpenChange={(open) => !open && setSelectedException(null)}>
+        <SheetContent className="sm:max-w-xl overflow-y-auto">
+          {selectedException && (
+            <>
+              <SheetHeader className="mb-6">
+                <div className="flex items-center gap-2">
+                  <Badge variant={selectedException.severity === 'critical' ? 'destructive' : 'secondary'}>
+                    {selectedException.severity}
+                  </Badge>
+                  <span className="text-sm text-muted-foreground uppercase tracking-wider">{selectedException.type}</span>
+                </div>
+                <SheetTitle className="text-2xl mt-2">{selectedException.title}</SheetTitle>
+                <SheetDescription className="text-base text-foreground mt-2">
+                  {selectedException.description}
+                </SheetDescription>
+              </SheetHeader>
+
+              <div className="space-y-6">
+                {/* Context Data payload */}
+                <div>
+                  <h4 className="font-semibold mb-2 flex items-center gap-2">
+                    <Icons.layers className="w-4 h-4 text-brand-primary" />
+                    Data Context payload
+                  </h4>
+                  <div className="bg-slate-900 rounded-md p-4 overflow-x-auto">
+                    <pre className="text-xs text-slate-50 font-mono">
+                      {JSON.stringify(selectedException.context, null, 2)}
+                    </pre>
+                  </div>
+                </div>
+
+                {/* AI Assistant Section (Placeholder) */}
+                <div className="bg-brand-cornflower/10 rounded-lg p-4 border border-brand-cornflower/30">
+                  <h4 className="font-semibold mb-2 flex items-center gap-2 text-brand-navy">
+                    <Icons.sparkles className="w-4 h-4 text-brand-cornflower" />
+                    AI Assistant
+                  </h4>
+                  <p className="text-sm text-slate-700 mb-3">
+                    The AI Orchestrator flagged this item for review. 
+                    {selectedException.ai_recommendation ? ` Recommendation: ${selectedException.ai_recommendation}` : ' Need help deciding?'}
+                  </p>
+                  <Button variant="outline" size="sm" className="bg-white">Ask AI for context</Button>
+                </div>
+
+                {/* Resolution Form */}
+                <div className="space-y-3">
+                  <Label htmlFor="notes">Resolution Notes</Label>
+                  <textarea 
+                    id="notes"
+                    className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    placeholder="Why did you approve/reject this?"
+                    value={resolutionNotes}
+                    onChange={e => setResolutionNotes(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <SheetFooter className="mt-8 flex gap-3 sm:justify-start">
+                <Button 
+                  variant="outline" 
+                  className="w-full sm:w-auto"
+                  onClick={() => handleResolve(selectedException.id, 'rejected', resolutionNotes || 'Rejected manually')}
+                  disabled={isResolving}
+                >
+                  Reject
+                </Button>
+                <Button 
+                  className="w-full sm:w-auto"
+                  onClick={() => handleResolve(selectedException.id, 'approved', resolutionNotes || 'Approved manually')}
+                  disabled={isResolving}
+                >
+                  {isResolving && <Icons.loader className="mr-2 h-4 w-4 animate-spin" />}
+                  Approve Exception
+                </Button>
+              </SheetFooter>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
 
       {/* Quick Actions */}
       <motion.div variants={itemVariants}>
