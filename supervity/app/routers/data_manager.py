@@ -201,85 +201,79 @@ def update_dedup_config(update: DedupConfigUpdate, db: Session = Depends(get_db)
 
 @router.post("/dedup/run")
 def run_dedup(db: Session = Depends(get_db)):
-    try:
-        config = db.query(DedupConfig).first()
-        threshold = config.confidence_threshold if config else 80.0
+    config = db.query(DedupConfig).first()
+    threshold = config.confidence_threshold if config else 80.0
+
+    query = text("""
+        WITH dupes AS (
+            SELECT duplicate_key
+            FROM contact
+            WHERE duplicate_key IS NOT NULL
+            GROUP BY duplicate_key
+            HAVING COUNT(1) >= 2
+        )
+        SELECT 
+            c."Id", c."FirstName", c."LastName", c."Email", c."AccountId", 
+            c.duplicate_key, c.confidence, c.lead_stage__c
+        FROM contact c
+        JOIN dupes d ON c.duplicate_key = d.duplicate_key
+        ORDER BY c.duplicate_key, c.confidence DESC
+    """)
+    rows = db.execute(query).mappings().all()
     
-        query = text("""
-            WITH dupes AS (
-                SELECT duplicate_key
-                FROM contact
-                WHERE duplicate_key IS NOT NULL
-                GROUP BY duplicate_key
-                HAVING COUNT(1) >= 2
-            )
-            SELECT 
-                c."Id", c."FirstName", c."LastName", c."Email", c."AccountId", 
-                c.duplicate_key, c.confidence, c."Lead_Stage__c"
-            FROM contact c
-            JOIN dupes d ON c.duplicate_key = d.duplicate_key
-            ORDER BY c.duplicate_key, c.confidence DESC
-        """)
-        rows = db.execute(query).mappings().all()
+    candidates = {}
+    for r in rows:
+        dk = r['duplicate_key']
+        if dk not in candidates:
+            candidates[dk] = []
+        candidates[dk].append(dict(r))
         
-        candidates = {}
-        for r in rows:
-            dk = r['duplicate_key']
-            if dk not in candidates:
-                candidates[dk] = []
-            candidates[dk].append(dict(r))
-            
-        results = {"merged": 0, "exceptions": 0}
+    results = {"merged": 0, "exceptions": 0}
+    
+    for dk, group in candidates.items():
+        survivor = group[0]
+        surv_conf = float(survivor.get('confidence') or 0)
         
-        for dk, group in candidates.items():
-            survivor = group[0]
-            surv_conf = float(survivor.get('confidence') or 0)
+        if surv_conf >= threshold:
+            for dupe in group[1:]:
+                audit.log_sync(
+                    action="contact.dedup_merge",
+                    actor={"id": "System", "email": "system@autopilot.com"},
+                    category="data_management",
+                    resource_type="contact",
+                    resource_id=dupe["Id"],
+                    resource_name=dupe["Email"],
+                    description=f"Merged {dupe['Id']} into {survivor['Id']} (Confidence: {surv_conf})",
+                    metadata={"survivor_id": survivor["Id"], "deleted_contact": dupe, "confidence": surv_conf},
+                )
+                db.execute(text('DELETE FROM contact WHERE "Id" = :id'), {"id": dupe["Id"]})
+            results["merged"] += len(group) - 1
             
-            if surv_conf >= threshold:
-                for dupe in group[1:]:
-                    audit.log_sync(
-                        action="contact.dedup_merge",
-                        actor={"id": "System", "email": "system@autopilot.com"},
-                        category="data_management",
-                        resource_type="contact",
-                        resource_id=dupe["Id"],
-                        resource_name=dupe["Email"],
-                        description=f"Merged {dupe['Id']} into {survivor['Id']} (Confidence: {surv_conf})",
-                        metadata={"survivor_id": survivor["Id"], "deleted_contact": dupe, "confidence": surv_conf},
-                    )
-                    db.execute(text('DELETE FROM contact WHERE "Id" = :id'), {"id": dupe["Id"]})
-                results["merged"] += len(group) - 1
+        else:
+            exc_exists = db.query(ExceptionModel).filter(
+                ExceptionModel.type == "dedup_review",
+                ExceptionModel.description.like(f"%{dk}%")
+            ).first()
+            if not exc_exists:
+                new_exc = ExceptionModel(
+                    type="dedup_review",
+                    title=f"Duplicate Contacts found for {dk}",
+                    description=f"Duplicate group below confidence threshold {threshold} for key {dk}",
+                    context={"candidates": group, "confidence": surv_conf},
+                    severity="warning"
+                )
+                db.add(new_exc)
+                results["exceptions"] += 1
                 
-            else:
-                exc_exists = db.query(ExceptionModel).filter(
-                    ExceptionModel.type == "dedup_review",
-                    ExceptionModel.description.like(f"%{dk}%")
-                ).first()
-                if not exc_exists:
-                    new_exc = ExceptionModel(
-                        type="dedup_review",
-                        title=f"Duplicate Contacts found for {dk}",
-                        description=f"Duplicate group below confidence threshold {threshold} for key {dk}",
-                        context={"candidates": group, "confidence": surv_conf},
-                        severity="warning"
-                    )
-                    db.add(new_exc)
-                    results["exceptions"] += 1
-                    
-        db.commit()
-        return {"status": "success", "results": results}
-    except Exception as e:
-        log.error(f"Dedup run error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    db.commit()
+    return {"status": "success", "results": results}
+
 
 @router.get("/routing")
 def get_routing_config(db: Session = Depends(get_db)):
     """Get routing rules, territories, and SDR roster for configuration."""
     try:
         routing_rules = db.execute(text("SELECT * FROM routing_rules ORDER BY priority")).mappings().all()
-        territories = db.execute(text("SELECT * FROM territories")).mappings().all()
-        sdr_roster = db.execute(text("SELECT * FROM sdr_roster")).mappings().all()
-        
         sdr_list = []
         for sdr in sdr_roster:
             s = dict(sdr)
@@ -535,87 +529,90 @@ def get_data_quality(db: Session = Depends(get_db)):
                         severity=severity
                     ))
 
-        # Chronological checks (removed queries for missing columns CreatedDate, LastModifiedDate)
-        
-        res = db.execute(text('SELECT * FROM opportunity WHERE ("IsClosed" = \'True\' OR "IsClosed" = \'true\') AND CAST("CloseDate" AS DATE) > CURRENT_DATE')).mappings().fetchall()
-        add_to_report("chronological", "closed opportunity with future close date", len(res), "warning", [dict(r) for r in res[:5]])
-        
-        res = db.execute(text("""
-            SELECT * FROM opportunity 
-            WHERE ("StageName" IN ('Closed Won', 'Closed Lost') AND ("IsClosed" = 'False' OR "IsClosed" = 'false'))
-               OR ("StageName" = 'Closed Won' AND ("IsWon" = 'False' OR "IsWon" = 'false'))
-               OR ("StageName" = 'Closed Lost' AND ("IsWon" = 'True' OR "IsWon" = 'true'))
-        """)).mappings().fetchall()
-        add_to_report("chronological", "stagename desync with isclosed/iswon flags", len(res), "high", [dict(r) for r in res[:5]])
-        
-        # Relational checks
-        res = db.execute(text('SELECT o.* FROM opportunity o LEFT JOIN contact c ON o."ContactId" = c."Id" WHERE c."Id" IS NULL AND o."ContactId" IS NOT NULL')).mappings().fetchall()
-        add_to_report("relational", "opportunity.contactid missing in contact", len(res), "high", [dict(r) for r in res[:5]])
-        
-        res = db.execute(text('SELECT o.* FROM opportunity o LEFT JOIN account a ON o."AccountId" = a."Id" WHERE a."Id" IS NULL AND o."AccountId" IS NOT NULL')).mappings().fetchall()
-        add_to_report("relational", "opportunity.accountid missing in account", len(res), "high", [dict(r) for r in res[:5]])
-        
-        res = db.execute(text('SELECT cr.* FROM consent_register cr LEFT JOIN contact c ON cr.contact_id = c."Id" WHERE c."Id" IS NULL')).mappings().fetchall()
-        add_to_report("relational", "consent_register.contact_id missing in contact", len(res), "high", [dict(r) for r in res[:5]])
+    # Chronological checks
+    res = db.execute(text('SELECT "Id" FROM opportunity WHERE CAST("CloseDate" AS DATE) < CAST("CreatedDate" AS DATE)')).fetchall()
+    add_to_report("chronological", "opportunity.closedate < opportunity.createddate", len(res), "warning", [r[0] for r in res[:5]])
+    
+    res = db.execute(text('SELECT "Id" FROM contact WHERE CAST("LastModifiedDate" AS DATE) < CAST("CreatedDate" AS DATE)')).fetchall()
+    add_to_report("chronological", "contact.lastmodifieddate < contact.createddate", len(res), "warning", [r[0] for r in res[:5]])
+    
+    res = db.execute(text('SELECT "Id" FROM opportunity WHERE ("IsClosed" = \'True\' OR "IsClosed" = \'true\') AND CAST("CloseDate" AS DATE) > CURRENT_DATE')).fetchall()
+    add_to_report("chronological", "closed opportunity with future close date", len(res), "warning", [r[0] for r in res[:5]])
+    
+    res = db.execute(text("""
+        SELECT "Id" FROM opportunity 
+        WHERE ("StageName" IN ('Closed Won', 'Closed Lost') AND ("IsClosed" = 'False' OR "IsClosed" = 'false'))
+           OR ("StageName" = 'Closed Won' AND ("IsWon" = 'False' OR "IsWon" = 'false'))
+           OR ("StageName" = 'Closed Lost' AND ("IsWon" = 'True' OR "IsWon" = 'true'))
+    """)).fetchall()
+    add_to_report("chronological", "stagename desync with isclosed/iswon flags", len(res), "high", [r[0] for r in res[:5]])
+    
+    # Relational checks
+    res = db.execute(text('SELECT o."Id" FROM opportunity o LEFT JOIN contact c ON o."ContactId" = c."Id" WHERE c."Id" IS NULL AND o."ContactId" IS NOT NULL')).fetchall()
+    add_to_report("relational", "opportunity.contactid missing in contact", len(res), "high", [r[0] for r in res[:5]])
+    
+    res = db.execute(text('SELECT o."Id" FROM opportunity o LEFT JOIN account a ON o."AccountId" = a."Id" WHERE a."Id" IS NULL AND o."AccountId" IS NOT NULL')).fetchall()
+    add_to_report("relational", "opportunity.accountid missing in account", len(res), "high", [r[0] for r in res[:5]])
+    
+    res = db.execute(text('SELECT cr.consent_id FROM consent_register cr LEFT JOIN contact c ON cr.contact_id = c."Id" WHERE c."Id" IS NULL')).fetchall()
+    add_to_report("relational", "consent_register.contact_id missing in contact", len(res), "high", [r[0] for r in res[:5]])
 
-        total_opps = db.execute(text('SELECT COUNT(*) FROM opportunity WHERE "ContactId" IS NOT NULL AND "AccountId" IS NOT NULL')).scalar() or 1
-        res = db.execute(text("""
-            SELECT o.* 
-            FROM opportunity o 
-            JOIN contact c ON o."ContactId" = c."Id" 
-            WHERE o."AccountId" != c."AccountId"
-        """)).mappings().fetchall()
-        rate = round(len(res) / total_opps * 100, 2)
-        if len(res) > 0:
-            add_to_report("relational", f"contact.accountid != opp.accountid ({rate}% rate)", len(res), "warning", [dict(r) for r in res[:5]])
-        
-        # State/logic checks
-        res = db.execute(text("""
-            SELECT c.* FROM contact c 
-            LEFT JOIN opportunity o ON c."AccountId" = o."AccountId" 
-            WHERE c."Lead_Stage__c" = 'Opportunity' AND o."Id" IS NULL
-        """)).mappings().fetchall()
-        add_to_report("state_logic", "Ghost Deal (lead_stage=Opportunity but no opps)", len(res), "high", [dict(r) for r in res[:5]])
-        
-        res = db.execute(text("""
-            SELECT c.* FROM contact c 
-            LEFT JOIN opportunity o ON c."AccountId" = o."AccountId" 
-            WHERE c."Lead_Stage__c" = 'Customer' AND o."Id" IS NULL
-        """)).mappings().fetchall()
-        add_to_report("state_logic", "Phantom Customer (No opps at all)", len(res), "warning", [dict(r) for r in res[:5]])
+    total_opps = db.execute(text('SELECT COUNT(*) FROM opportunity WHERE "ContactId" IS NOT NULL AND "AccountId" IS NOT NULL')).scalar() or 1
+    res = db.execute(text("""
+        SELECT o."Id" 
+        FROM opportunity o 
+        JOIN contact c ON o."ContactId" = c."Id" 
+        WHERE o."AccountId" != c."AccountId"
+    """)).fetchall()
+    rate = round(len(res) / total_opps * 100, 2)
+    if len(res) > 0:
+        add_to_report("relational", f"contact.accountid != opp.accountid ({rate}% rate)", len(res), "warning", [r[0] for r in res[:5]])
+    
+    # State/logic checks
+    res = db.execute(text("""
+        SELECT c."Id" FROM contact c 
+        LEFT JOIN opportunity o ON c."AccountId" = o."AccountId" 
+        WHERE c.lead_stage__c = 'Opportunity' AND o."Id" IS NULL
+    """)).fetchall()
+    add_to_report("state_logic", "Ghost Deal (lead_stage=Opportunity but no opps)", len(res), "high", [r[0] for r in res[:5]])
+    
+    res = db.execute(text("""
+        SELECT c."Id" FROM contact c 
+        LEFT JOIN opportunity o ON c."AccountId" = o."AccountId" 
+        WHERE c.lead_stage__c = 'Customer' AND o."Id" IS NULL
+    """)).fetchall()
+    add_to_report("state_logic", "Phantom Customer (No opps at all)", len(res), "warning", [r[0] for r in res[:5]])
 
-        res = db.execute(text("""
-            SELECT c.* FROM contact c WHERE c."Id" IN (
-                SELECT c2."Id" FROM contact c2 
-                JOIN opportunity o2 ON c2."AccountId" = o2."AccountId" 
-                WHERE c2."Lead_Stage__c" = 'Customer' 
-                GROUP BY c2."Id" 
-                HAVING SUM(CASE WHEN (o2."IsClosed"='True' OR o2."IsClosed"='true') AND (o2."IsWon"='True' OR o2."IsWon"='true') THEN 1 ELSE 0 END) = 0
-            )
-        """)).mappings().fetchall()
-        add_to_report("state_logic", "Phantom Customer (Opps exist but none won)", len(res), "high", [dict(r) for r in res[:5]])
+    res = db.execute(text("""
+        SELECT c."Id" FROM contact c 
+        JOIN opportunity o ON c."AccountId" = o."AccountId" 
+        WHERE c.lead_stage__c = 'Customer' 
+        GROUP BY c."Id" 
+        HAVING SUM(CASE WHEN ("IsClosed"='True' OR "IsClosed"='true') AND ("IsWon"='True' OR "IsWon"='true') THEN 1 ELSE 0 END) = 0
+    """)).fetchall()
+    add_to_report("state_logic", "Phantom Customer (Opps exist but none won)", len(res), "high", [r[0] for r in res[:5]])
 
-        res = db.execute(text("""
-            SELECT c.* FROM contact c
-            JOIN opportunity o ON c."AccountId" = o."AccountId"
-            WHERE c."Lead_Stage__c" IN ('Open','MQL','SQL') AND (o."IsClosed" = 'False' OR o."IsClosed" = 'false')
-        """)).mappings().fetchall()
-        add_to_report("state_logic", "Lazy Rep (Lead open but active opp exists)", len(res), "warning", [dict(r) for r in res[:5]])
-        
-        res = db.execute(text("""
-            SELECT * FROM opportunity
-            WHERE CAST(NULLIF(TRIM(CAST("Probability" AS TEXT)), '') AS FLOAT) > 0 AND CAST(NULLIF(TRIM(CAST("Probability" AS TEXT)), '') AS FLOAT) < 100 
-              AND ("StageName" IN ('Closed Won', 'Closed Lost') OR ("IsClosed" = 'True' OR "IsClosed" = 'true'))
-        """)).mappings().fetchall()
-        add_to_report("state_logic", "Pipeline desync (Prob > 0 and < 100 but closed)", len(res), "warning", [dict(r) for r in res[:5]])
-        
-        # Format/business logic
-        res = db.execute(text('SELECT created_at FROM visitoractivity WHERE created_at IS NOT NULL')).fetchall()
-        if res:
-            dates = pd.Series([r[0] for r in res])
-            formats = dates.apply(lambda x: 'ISO/DB' if '-' in x else ('Slash' if '/' in x else 'Text/Other')).value_counts()
-            if len(formats) > 1:
-                add_to_report("format", f"Multiple date formats in visitoractivity: {formats.to_dict()}", len(dates), "warning")
+    res = db.execute(text("""
+        SELECT c."Id" FROM contact c
+        JOIN opportunity o ON c."AccountId" = o."AccountId"
+        WHERE c.lead_stage__c IN ('Open','MQL','SQL') AND ("IsClosed" = 'False' OR "IsClosed" = 'false')
+    """)).fetchall()
+    add_to_report("state_logic", "Lazy Rep (Lead open but active opp exists)", len(res), "warning", [r[0] for r in res[:5]])
+    
+    res = db.execute(text("""
+        SELECT "Id" FROM opportunity
+        WHERE CAST(NULLIF("Probability", '') AS INT) > 0 AND CAST(NULLIF("Probability", '') AS INT) < 100 
+          AND ("StageName" IN ('Closed Won', 'Closed Lost') OR ("IsClosed" = 'True' OR "IsClosed" = 'true'))
+    """)).fetchall()
+    add_to_report("state_logic", "Pipeline desync (Prob > 0 and < 100 but closed)", len(res), "warning", [r[0] for r in res[:5]])
+    
+    # Format/business logic
+    res = db.execute(text('SELECT created_at FROM visitoractivity WHERE created_at IS NOT NULL')).fetchall()
+    if res:
+        dates = pd.Series([r[0] for r in res])
+        formats = dates.apply(lambda x: 'ISO/DB' if '-' in x else ('Slash' if '/' in x else 'Text/Other')).value_counts()
+        if len(formats) > 1:
+            add_to_report("format", f"Multiple date formats in visitoractivity: {formats.to_dict()}", len(dates), "warning")
 
         res = db.execute(text("SELECT * FROM sdr_roster WHERE CAST(NULLIF(TRIM(CAST(current_capacity AS TEXT)), '') AS FLOAT) > CAST(NULLIF(TRIM(CAST(max_capacity AS TEXT)), '') AS FLOAT)")).mappings().fetchall()
         add_to_report("format", "sdr_roster current_capacity > max_capacity", len(res), "high", [dict(r) for r in res[:5]])
@@ -635,3 +632,21 @@ def get_data_quality(db: Session = Depends(get_db)):
         log.error(f"Quality run error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
+from sqlalchemy import inspect as sqla_inspect
+
+@router.get("/database/tables")
+def get_db_tables(db: Session = Depends(get_db)):
+    engine = db.get_bind()
+    tables = sqla_inspect(engine).get_table_names()
+    return {"tables": tables}
+
+@router.get("/database/table/{table_name}")
+def get_db_table_data(table_name: str, db: Session = Depends(get_db)):
+    engine = db.get_bind()
+    tables = sqla_inspect(engine).get_table_names()
+    if table_name not in tables:
+        raise HTTPException(status_code=404, detail="Table not found")
+    
+    rows = db.execute(text(f'SELECT * FROM {table_name} LIMIT 100')).mappings().all()
+    return {"table": table_name, "rows": [dict(r) for r in rows]}
