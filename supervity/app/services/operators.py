@@ -8,9 +8,25 @@ from typing import Dict, Any, List
 
 log = logging.getLogger(__name__)
 
+import json
+
 # Core context that is passed between operators
 class LeadContext:
     def __init__(self, raw_data: Dict[str, Any]):
+        # Supervity often nests payloads or sends stringified JSON.
+        # Let's cleanly extract the real data block.
+        if "Lead Payload" in raw_data:
+            raw_data = raw_data["Lead Payload"]
+        elif "lead_payload" in raw_data:
+            raw_data = raw_data["lead_payload"]
+            
+        if isinstance(raw_data, str):
+            try:
+                raw_data = json.loads(raw_data)
+            except json.JSONDecodeError:
+                log.error("Failed to parse stringified JSON payload")
+                raw_data = {}
+
         self.raw_data = raw_data
         self.lead_id: str = raw_data.get("prospect_id", "")
         
