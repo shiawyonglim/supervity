@@ -458,19 +458,30 @@ def draft_email(contact_id: str, req: EmailDraftRequest, db: Session = Depends(g
         elif detail["do_not_call"]:
             privacy_block = "Note: Do not call this contact. Email only."
 
+        opportunities = []
+        if detail.get("account") and contact.get("AccountId"):
+            opps = db.execute(
+                text('SELECT * FROM opportunity WHERE "AccountId" = :id'),
+                {"id": contact["AccountId"]}
+            ).mappings().all()
+            opportunities = [dict(o) for o in opps]
+
         lead_payload = {
             "prospect_id": contact_id,
-            "sender": "Supervity",
-            "sender_role": role_label,
-            "contact": detail,
-            "lead_stage": lead_stage,
-            "intent_score": intent_score,
-            "intent_signals": intent_signals,
-            "privacy_constraints": privacy_block or "Can email and call.",
-            "recent_activities": detail["recent_activities"],
-            "account": detail["account"],
-            "recent_email_history": detail["emails"],
-            "additional_instructions": req.prompt_context,
+            "contact": {
+                "name": detail.get("first_name", "") + " " + detail.get("last_name", ""),
+                "email": detail.get("email"),
+                "title": detail.get("title")
+            },
+            "account": {
+                "Name": detail.get("account", {}).get("Name"),
+                "Industry": detail.get("account", {}).get("Industry"),
+                "BillingCountry": detail.get("account", {}).get("BillingCountry")
+            },
+            "opportunities": opportunities,
+            "activities": detail.get("recent_activities", []),
+            "external_intent_score": intent_score,
+            "external_privacy_flag": detail.get("has_opted_out_of_email", False) or detail.get("do_not_call", False)
         }
 
         try:
@@ -503,9 +514,16 @@ def _trigger_send_operator(contact_id: str, subject: str, body: str, contact: di
     """Fire the Master Orchestrator in the background so sending an email is handed to the Supervity Auto workflow."""
     payload = {
         "prospect_id": contact_id,
-        "action": "send_email",
-        "contact": contact,
-        "email": {"subject": subject, "body": body},
+        "contact": {
+            "name": contact.get("FirstName", "") + " " + contact.get("LastName", ""),
+            "email": contact.get("Email"),
+            "title": contact.get("Title")
+        },
+        "account": {},
+        "opportunities": [],
+        "activities": [],
+        "external_intent_score": 0,
+        "external_privacy_flag": False
     }
     try:
         result = MasterOrchestrator.process_lead(payload)

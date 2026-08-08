@@ -22,100 +22,114 @@ TEST_CASES = [
     "scenario": "Test 1: Privacy Compliance Blocked",
     "payload": {
       "prospect_id": "P-1001",
-      "sender_id": "S-001",
       "contact": {
         "name": "Jane Doe",
         "email": "jane.doe@acme-eu.com",
-        "title": "VP of Engineering",
-        "region": "EU",
-        "explicit_consent": False,
-        "lead_stage__c": "Open"
+        "title": "VP of Engineering"
       },
       "account": {
-        "name": "Acme EU",
-        "industry": "Manufacturing",
-        "employees": "1000-5000"
-      }
+        "Name": "Acme EU",
+        "Industry": "Manufacturing",
+        "BillingCountry": "Germany"
+      },
+      "opportunities": [],
+      "activities": [],
+      "external_intent_score": 0.88,
+      "external_privacy_flag": False
     }
   },
   {
     "scenario": "Test 2: Normal Fast Routing (MQL)",
     "payload": {
       "prospect_id": "P-1002",
-      "sender_id": "S-002",
       "contact": {
         "name": "John Smith",
         "email": "john.smith@betacorp.com",
-        "title": "Director of IT",
-        "region": "NA",
-        "explicit_consent": True,
-        "lead_stage__c": "MQL"
+        "title": "Director of IT"
       },
       "account": {
-        "name": "Beta Corp",
-        "industry": "Technology",
-        "employees": "500-1000"
-      }
+        "Name": "Beta Corp",
+        "Industry": "Technology",
+        "BillingCountry": "US"
+      },
+      "opportunities": [],
+      "activities": [
+        {
+          "activity_id": "990001",
+          "type": "Form Submission",
+          "url": "/contact-sales",
+          "duration_seconds": 120,
+          "campaign": "Inbound"
+        }
+      ],
+      "external_intent_score": 0.95,
+      "external_privacy_flag": True
     }
   },
   {
     "scenario": "Test 3: Normal Fast Routing (Opportunity)",
     "payload": {
       "prospect_id": "P-1003",
-      "sender_id": "S-001",
       "contact": {
         "name": "Alice Wong",
         "email": "awong@gammainc.io",
-        "title": "Chief Information Officer",
-        "region": "APAC",
-        "explicit_consent": True,
-        "lead_stage__c": "Opportunity"
+        "title": "Chief Information Officer"
       },
       "account": {
-        "name": "Gamma Inc",
-        "industry": "Finance",
-        "employees": "5000+"
-      }
+        "Name": "Gamma Inc",
+        "Industry": "Finance",
+        "BillingCountry": "Singapore"
+      },
+      "opportunities": [
+        {
+          "Name": "Gamma - Q4 Enterprise Rollout",
+          "StageName": "SQL",
+          "Amount": 250000.00
+        }
+      ],
+      "activities": [],
+      "external_intent_score": 0.92,
+      "external_privacy_flag": True
     }
   },
   {
     "scenario": "Test 4: Human Workbench Collision (SQL)",
     "payload": {
       "prospect_id": "P-1004",
-      "sender_id": "S-003",
       "contact": {
         "name": "Bob Miller",
         "email": "bmiller@deltallc.net",
-        "title": "Head of Operations",
-        "region": "NA",
-        "explicit_consent": True,
-        "lead_stage__c": "SQL"
+        "title": "Head of Operations"
       },
       "account": {
-        "name": "Delta LLC",
-        "industry": "Retail",
-        "employees": "200-500"
-      }
+        "Name": "Delta LLC",
+        "Industry": "Retail",
+        "BillingCountry": "UK"
+      },
+      "opportunities": [],
+      "activities": [],
+      "external_intent_score": 0.75,
+      "external_privacy_flag": True
     }
   },
   {
     "scenario": "Test 5: System Error Halt (Missing/Invalid Stage)",
     "payload": {
       "prospect_id": "P-1005",
-      "sender_id": "S-002",
       "contact": {
         "name": "Eve Davis",
         "email": "eve.davis@epsilongroup.co.uk",
-        "title": "Marketing Manager",
-        "region": "EMEA",
-        "explicit_consent": True,
-        "lead_stage__c": None
+        "title": "Marketing Manager"
       },
       "account": {
-        "name": "Epsilon Group",
-        "industry": "Media",
-        "employees": "50-200"
-      }
+        "Name": "Epsilon Group",
+        "Industry": "Media",
+        "BillingCountry": "UK"
+      },
+      "opportunities": [],
+      "activities": [],
+      "external_intent_score": 0.40,
+      "external_privacy_flag": True
     }
   }
 ]
