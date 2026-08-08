@@ -397,15 +397,50 @@ def handover_contact(contact_id: str, body: HandoverRequest, db: Session = Depen
     }
 
 
+def _resolve_closing_manager(db: Session, owner_id: str) -> Optional[dict]:
+    """Walk the org chain upward from an SDR / Sales Agent until we find the Manager."""
+    seen = set()
+    current = resolve_owner(db, owner_id)
+    while current and current["owner_id"] not in seen:
+        seen.add(current["owner_id"])
+        if current["role"] == "manager":
+            return current
+        next_id = current.get("next_id")
+        if not next_id:
+            return None
+        current = resolve_owner(db, next_id)
+    return None
+
+
 @router.post("/close/{contact_id}")
 def close_deal(contact_id: str, body: CloseRequest, db: Session = Depends(get_db)):
-    """Manager closes: lead stage -> Customer, the contact's open opportunities -> Closed Won."""
+    """Manager closes: lead stage -> Customer, the contact's open opportunities -> Closed Won.
+
+    The contact may currently be owned by an SDR or Sales Agent. In that case we walk
+    up the org chain to the assigned Manager, reassign the contact, and then close it.
+    """
     contact = _load_contact(db, contact_id)
-    owner = resolve_owner(db, contact["OwnerId"])
-    if not owner or owner["role"] != "manager":
-        raise HTTPException(status_code=400, detail="Only a Manager can close a deal — hand the contact up to a Manager first.")
+    current_owner = resolve_owner(db, contact["OwnerId"])
+    if not current_owner:
+        raise HTTPException(status_code=400, detail="This lead has no recognized owner. Assign it to a Manager first.")
+
+    if current_owner["role"] == "manager":
+        closing_manager = current_owner
+    else:
+        closing_manager = _resolve_closing_manager(db, contact["OwnerId"])
+        if not closing_manager:
+            raise HTTPException(status_code=400, detail="Only a Manager can close a deal — hand the contact up to a Manager first.")
 
     from_stage = contact.get("Lead_Stage__c")
+
+    # Reassign the contact to the closing manager if it isn't already.
+    if closing_manager["owner_id"] != contact["OwnerId"]:
+        db.execute(text('UPDATE contact SET "OwnerId" = :oid, "Owner_Name" = :oname WHERE "Id" = :id'),
+                   {"oid": closing_manager["owner_id"], "oname": closing_manager["name"], "id": contact_id})
+        _adjust_capacity(db, current_owner, -1)
+    else:
+        _adjust_capacity(db, closing_manager, -1)
+
     db.execute(text('UPDATE contact SET "Lead_Stage__c" = :s WHERE "Id" = :id'),
                {"s": "Customer", "id": contact_id})
 
@@ -415,13 +450,11 @@ def close_deal(contact_id: str, body: CloseRequest, db: Session = Depends(get_db
         {"id": contact_id},
     ).rowcount
 
-    _adjust_capacity(db, owner, -1)
-
-    close_note = body.note or f"{owner['name']} (Manager) closed the deal — signature secured. {won} opportunity(ies) marked Closed Won."
+    close_note = body.note or f"{closing_manager['name']} (Manager) closed the deal — signature secured. {won} opportunity(ies) marked Closed Won."
     db.add(HandoverLog(
         contact_id=contact_id, account_id=contact.get("AccountId"),
-        from_owner_id=owner["owner_id"], from_role="manager",
-        to_owner_id=owner["owner_id"], to_role="manager",
+        from_owner_id=current_owner["owner_id"], from_role=current_owner["role"],
+        to_owner_id=closing_manager["owner_id"], to_role="manager",
         from_stage=from_stage, to_stage="Customer", reason="close", note=close_note,
     ))
     db.commit()

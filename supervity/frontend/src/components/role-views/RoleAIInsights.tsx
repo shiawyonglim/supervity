@@ -128,7 +128,7 @@ export function RoleAIInsights({ role }: { role: AppRole }) {
     if (!draftEmail || !selectedInsight) return
     setSending(true)
     try {
-      await apiClient.post('/api/workbench/draft-email/send', {
+      await apiClient.post('/api/workbench/send-email', {
         to: `${selectedInsight.owner_name?.toLowerCase().replace(/\s+/g, '.')}@supervity.ai`,
         subject: draftEmail.subject,
         body: draftEmail.body,

@@ -36,7 +36,7 @@ def _smtp_config() -> dict:
         "server": _env("OUTLOOK_SMTP_SERVER", "smtp.office365.com"),
         "port": int(_env("OUTLOOK_SMTP_PORT", "587")),
         "user": _env("OUTLOOK_SMTP_USER", _env("OUTLOOK_EMAIL")),
-        "password": _env("OUTLOOK_SMTP_PASSWORD", _env("OUTLOOK_PASSWORD")),
+        "password": _env("OUTLOOK_SMTP_PASSWORD", _env("OUTLOOK_API_KEY")),
         "sender": _env("OUTLOOK_SENDER", _env("OUTLOOK_SMTP_USER", _env("OUTLOOK_EMAIL", "supervity@example.com"))),
     }
 

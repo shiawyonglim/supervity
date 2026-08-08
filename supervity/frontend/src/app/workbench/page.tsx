@@ -80,8 +80,11 @@ export default function WorkbenchPage() {
   // Prospects state for drafting email
   const [prospects, setProspects] = useState<any[]>([])
   const [draftingEmailFor, setDraftingEmailFor] = useState<any | null>(null)
+  const [draftSubject, setDraftSubject] = useState('')
   const [emailDraft, setEmailDraft] = useState('')
   const [isDrafting, setIsDrafting] = useState(false)
+  const [isSending, setIsSending] = useState(false)
+  const [sendNotice, setSendNotice] = useState<string | null>(null)
 
   const router = useRouter()
 
@@ -125,18 +128,47 @@ export default function WorkbenchPage() {
     setDraftingEmailFor(prospect)
     setIsDrafting(true)
     setEmailDraft('')
+    setDraftSubject('')
+    setSendNotice(null)
     try {
       const res = await apiClient.post<any>('/api/workbench/draft-email', {
+        contact_id: prospect.Id,
         user_id: prospect.Id,
         user_name: prospect.FirstName + ' ' + prospect.LastName,
         user_email: prospect.Email
       })
-      setEmailDraft(res.draft)
+      setEmailDraft(res.draft || res.body || '')
+      setDraftSubject(res.subject || 'Follow-up')
     } catch (err) {
       console.error('Draft error', err)
       setEmailDraft('Failed to generate draft.')
     } finally {
       setIsDrafting(false)
+    }
+  }
+
+  const handleSendEmail = async () => {
+    if (!draftingEmailFor || !emailDraft) return
+    setIsSending(true)
+    setSendNotice(null)
+    try {
+      const res = await apiClient.post<any>('/api/workbench/send-email', {
+        contact_id: draftingEmailFor.Id,
+        to: draftingEmailFor.Email,
+        subject: draftSubject || 'Follow-up',
+        body: emailDraft
+      })
+      setSendNotice(`Email ${res.status} to ${res.to}${res.smtp_success ? '' : ' (SMTP not configured — queued)'}`)
+      setTimeout(() => {
+        setDraftingEmailFor(null)
+        setSendNotice(null)
+      }, 3000)
+    } catch (err) {
+      console.error('Send error', err)
+      setSendNotice('Failed to send email.')
+    } finally {
+      setIsSending(false)
+      setTimeout(() => setSendNotice(null), 4000)
     }
   }
 
@@ -482,13 +514,27 @@ export default function WorkbenchPage() {
                   </div>
                 ) : (
                   <>
+                    <Label>Subject</Label>
+                    <input
+                      type="text"
+                      className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                      value={draftSubject}
+                      onChange={(e) => setDraftSubject(e.target.value)}
+                      placeholder="Email subject"
+                    />
                     <Label>Email Content</Label>
                     <textarea 
                       className="flex min-h-[300px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                       value={emailDraft}
                       onChange={(e) => setEmailDraft(e.target.value)}
                     />
-                    <Button className="w-full">Send Email</Button>
+                    {sendNotice && (
+                      <p className="text-sm text-emerald-600">{sendNotice}</p>
+                    )}
+                    <Button className="w-full" onClick={handleSendEmail} disabled={isSending || !emailDraft.trim()}>
+                      {isSending ? <Icons.loader className="w-4 h-4 mr-2 animate-spin" /> : null}
+                      Send Email
+                    </Button>
                   </>
                 )}
               </div>

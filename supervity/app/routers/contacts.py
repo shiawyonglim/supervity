@@ -438,66 +438,96 @@ def _fallback_email(detail: dict, role_label: str, lead_stage: str, intent_score
     return EmailDraftResponse(subject=subject, body=body)
 
 
+def _build_orchestrator_payload(contact_id: str, db: Session, include_detail: bool = False):
+    """Build the Supervity Auto Orchestrator lead payload for a contact."""
+    contact = db.execute(
+        text('SELECT * FROM contact WHERE "Id" = :id'), {"id": contact_id}
+    ).mappings().first()
+    if not contact:
+        raise ValueError(f"Contact {contact_id} not found")
+    contact = dict(contact)
+
+    account = None
+    if contact.get("AccountId"):
+        account = db.execute(
+            text('SELECT * FROM account WHERE "Id" = :id'), {"id": contact["AccountId"]}
+        ).mappings().first()
+        if account:
+            account = dict(account)
+
+    activities = db.execute(
+        text('SELECT * FROM visitoractivity WHERE prospect_id = :id ORDER BY created_at DESC LIMIT 10'),
+        {"id": contact_id},
+    ).mappings().all()
+    activities = [dict(a) for a in activities]
+
+    emails = _mock_emails(contact)
+    detail = _build_contact_detail(contact, account, activities, emails)
+
+    # Normalize intent to the 0-1 scale the orchestrator expects.
+    raw_confidence = contact.get("confidence")
+    try:
+        confidence = float(raw_confidence)
+    except (ValueError, TypeError):
+        confidence = None
+    intent_score = detail.get("intent_score") or 0
+    external_intent_score = max(
+        0.0, min(1.0, confidence if confidence is not None else intent_score / 100.0)
+    )
+
+    def _map_activity(a: dict) -> dict:
+        return {
+            "activity_id": str(a.get("id") or ""),
+            "type": a.get("type") or "",
+            "url": a.get("url") or "",
+            "duration_seconds": a.get("duration_seconds") or 0,
+            "campaign": a.get("campaign") or "",
+            "created_at": a.get("created_at") or "",
+            "source": a.get("source") or "",
+            "company_domain": a.get("company_domain") or "",
+            "channel": a.get("channel") or "",
+        }
+
+    payload = {
+        "prospect_id": contact_id,
+        "contact": {
+            "name": f"{detail.get('first_name') or ''} {detail.get('last_name') or ''}".strip() or "there",
+            "email": detail.get("email") or "",
+            "title": detail.get("title") or "",
+        },
+        "account": account if account else {},
+        "opportunities": [],
+        "activities": [_map_activity(a) for a in activities],
+        "external_intent_score": external_intent_score,
+        "external_privacy_flag": detail.get("has_opted_out_of_email", False) or detail.get("do_not_call", False),
+    }
+
+    if contact.get("AccountId"):
+        opps = db.execute(
+            text('SELECT * FROM opportunity WHERE "AccountId" = :id'),
+            {"id": contact["AccountId"]},
+        ).mappings().all()
+        payload["opportunities"] = [dict(o) for o in opps]
+
+    if include_detail:
+        return payload, detail, activities
+    return payload
+
+
 @router.post("/{contact_id}/draft", response_model=EmailDraftResponse)
 def draft_email(contact_id: str, req: EmailDraftRequest, db: Session = Depends(get_db)):
     """Draft a highly personalized Supervity sales email to the contact."""
     try:
-        contact = db.execute(text('SELECT * FROM contact WHERE "Id" = :id'), {"id": contact_id}).mappings().first()
-        if not contact:
-            raise HTTPException(status_code=404, detail="Contact not found")
-        contact = dict(contact)
-
-        account = None
-        if contact.get("AccountId"):
-            account = db.execute(text('SELECT * FROM account WHERE "Id" = :id'), {"id": contact["AccountId"]}).mappings().first()
-            if account:
-                account = dict(account)
-
-        activities = db.execute(
-            text('SELECT * FROM visitoractivity WHERE prospect_id = :id ORDER BY created_at DESC LIMIT 8'),
-            {"id": contact_id}
-        ).mappings().all()
-        activities = [dict(a) for a in activities]
-
-        emails = _mock_emails(contact)
-        detail = _build_contact_detail(contact, account, activities, emails)
+        try:
+            lead_payload, detail, activities = _build_orchestrator_payload(
+                contact_id, db, include_detail=True
+            )
+        except ValueError as e:
+            raise HTTPException(status_code=404, detail=str(e))
 
         role_label = req.role or "sales representative"
         lead_stage = req.lead_stage or detail["lead_stage"] or "Open"
         intent_score = req.intent_score or detail["intent_score"]
-        intent_signals = req.intent_signals or detail["intent_signals"]
-
-        privacy_block = ""
-        if detail["has_opted_out_of_email"]:
-            privacy_block = "CRITICAL: This contact has opted out of email. Return a note explaining no email can be sent."
-        elif detail["do_not_call"]:
-            privacy_block = "Note: Do not call this contact. Email only."
-
-        opportunities = []
-        if detail.get("account") and contact.get("AccountId"):
-            opps = db.execute(
-                text('SELECT * FROM opportunity WHERE "AccountId" = :id'),
-                {"id": contact["AccountId"]}
-            ).mappings().all()
-            opportunities = [dict(o) for o in opps]
-
-        lead_payload = {
-            "prospect_id": contact_id,
-            "contact": {
-                "name": detail.get("first_name", "") + " " + detail.get("last_name", ""),
-                "email": detail.get("email"),
-                "title": detail.get("title")
-            },
-            "account": {
-                "Name": detail.get("account", {}).get("Name"),
-                "Industry": detail.get("account", {}).get("Industry"),
-                "BillingCountry": detail.get("account", {}).get("BillingCountry")
-            },
-            "opportunities": opportunities,
-            "activities": detail.get("recent_activities", []),
-            "external_intent_score": intent_score,
-            "external_privacy_flag": detail.get("has_opted_out_of_email", False) or detail.get("do_not_call", False)
-        }
 
         try:
             # Call the Master Orchestrator with a short timeout so the user isn't
@@ -527,24 +557,16 @@ class EmailSendRequest(BaseModel):
 
 def _trigger_send_operator(contact_id: str, subject: str, body: str, contact: dict):
     """Fire the Master Orchestrator in the background so sending an email is handed to the Supervity Auto workflow."""
-    payload = {
-        "prospect_id": contact_id,
-        "contact": {
-            "name": contact.get("FirstName", "") + " " + contact.get("LastName", ""),
-            "email": contact.get("Email"),
-            "title": contact.get("Title")
-        },
-        "account": {},
-        "opportunities": [],
-        "activities": [],
-        "external_intent_score": 0,
-        "external_privacy_flag": False
-    }
+    from ..core.database import SessionLocal
+    db = SessionLocal()
     try:
+        payload = _build_orchestrator_payload(contact_id, db)
         result = MasterOrchestrator.process_lead(payload)
         log.info(f"Send operator result for {contact_id}: {result}")
     except Exception as e:
         log.error(f"Send operator failed for {contact_id}: {e}")
+    finally:
+        db.close()
 
 
 @router.post("/{contact_id}/send-email")
