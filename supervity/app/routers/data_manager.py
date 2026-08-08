@@ -157,78 +157,165 @@ def get_buying_groups(
             })
 
         # ── Proposed candidate groups ────────────────────────────────────
-        # Accounts that have zero buying_group rows
-        # where 2+ distinct contacts have high-intent visitoractivity
         url_conditions = " OR ".join([f"va.url ILIKE :p{i}" for i in range(len(HIGH_INTENT_PATTERNS))])
         params = {f"p{i}": p for i, p in enumerate(HIGH_INTENT_PATTERNS)}
         params["window_days"] = window_days
 
-        proposed_rows = db.execute(text(f"""
-            WITH accounts_without_bg AS (
-                SELECT DISTINCT a."Id" AS account_id, a."Name" AS account_name, a."Industry" AS account_industry
-                FROM account a
-                WHERE NOT EXISTS (
-                    SELECT 1 FROM buying_group bg WHERE bg.account_id = a."Id"
-                )
-            ),
-            intent_contacts AS (
-                SELECT
-                    c."AccountId"  AS account_id,
-                    c."Id"         AS contact_id,
-                    c."FirstName" || ' ' || c."LastName" AS contact_name,
-                    c."Title"      AS contact_title,
-                    c."Email"      AS contact_email,
-                    COUNT(va.id)   AS activity_count,
-                    array_agg(DISTINCT va.url) AS urls
-                FROM visitoractivity va
-                JOIN contact c ON va.prospect_id = c."Id"
-                WHERE ({url_conditions})
-                GROUP BY c."AccountId", c."Id", c."FirstName", c."LastName", c."Title", c."Email"
-            )
+        raw_visits = db.execute(text(f"""
             SELECT
-                awb.account_id,
-                awb.account_name,
-                awb.account_industry,
-                ic.contact_id,
-                ic.contact_name,
-                ic.contact_title,
-                ic.contact_email,
-                ic.activity_count,
-                ic.urls
-            FROM accounts_without_bg awb
-            JOIN intent_contacts ic ON ic.account_id = awb.account_id
-            WHERE awb.account_id IN (
-                SELECT account_id FROM intent_contacts
-                GROUP BY account_id HAVING COUNT(DISTINCT contact_id) >= 2
+                a."Id" AS account_id,
+                a."Name" AS account_name,
+                a."Industry" AS account_industry,
+                c."Id" AS contact_id,
+                c."FirstName" || ' ' || c."LastName" AS contact_name,
+                c."Title" AS contact_title,
+                c."Email" AS contact_email,
+                va.created_at,
+                va.url,
+                va.duration_seconds
+            FROM visitoractivity va
+            JOIN contact c ON va.prospect_id = c."Id"
+            JOIN account a ON c."AccountId" = a."Id"
+            WHERE NOT EXISTS (
+                SELECT 1 FROM buying_group bg WHERE bg.account_id = a."Id"
             )
-            ORDER BY awb.account_id, ic.activity_count DESC
+            AND ({url_conditions})
         """), params).mappings().all()
 
+        from collections import defaultdict
+        account_visits = defaultdict(list)
+        for row in raw_visits:
+            account_visits[row['account_id']].append(dict(row))
+
         proposed_groups: dict[str, dict] = {}
-        for row in proposed_rows:
-            r = dict(row)
-            aid = r["account_id"]
-            gid = f"PROPOSED-{aid}"
-            if gid not in proposed_groups:
+
+        for aid, visits in account_visits.items():
+            for v in visits:
+                if isinstance(v['created_at'], str):
+                    try:
+                        v['dt'] = datetime.fromisoformat(v['created_at'].replace('Z', '+00:00'))
+                    except Exception:
+                        try:
+                            v['dt'] = pd.to_datetime(v['created_at']).to_pydatetime()
+                        except Exception:
+                            v['dt'] = datetime.min
+                else:
+                    v['dt'] = v['created_at'] or datetime.min
+                    if isinstance(v['dt'], pd.Timestamp):
+                        v['dt'] = v['dt'].to_pydatetime()
+                    
+            visits.sort(key=lambda x: x['dt'])
+            
+            best_window = []
+            best_distinct = set()
+            
+            for i, start_v in enumerate(visits):
+                start_dt = start_v['dt']
+                if not isinstance(start_dt, datetime):
+                    continue
+                end_dt = start_dt + timedelta(days=7)
+                window_visits = []
+                distinct_contacts = set()
+                for j in range(i, len(visits)):
+                    if visits[j]['dt'] <= end_dt:
+                        window_visits.append(visits[j])
+                        distinct_contacts.add(visits[j]['contact_id'])
+                    else:
+                        break
+                
+                if len(distinct_contacts) > len(best_distinct):
+                    best_distinct = distinct_contacts
+                    best_window = window_visits
+                elif len(distinct_contacts) == len(best_distinct) and len(distinct_contacts) >= 2:
+                    if best_window and window_visits and window_visits[-1]['dt'] > best_window[-1]['dt']:
+                        best_distinct = distinct_contacts
+                        best_window = window_visits
+            
+            if len(best_distinct) >= 2:
+                contact_stats = {}
+                for v in best_window:
+                    cid = v['contact_id']
+                    if cid not in contact_stats:
+                        title = v['contact_title'] or ""
+                        is_vp = "vp" in title.lower() or "head" in title.lower()
+                        contact_stats[cid] = {
+                            "contact_id": cid,
+                            "name": v['contact_name'],
+                            "title": title,
+                            "email": v['contact_email'],
+                            "is_vp_or_head": is_vp,
+                            "visited_pricing_demo": False,
+                            "duration_gt_300": False,
+                            "visits": 0,
+                            "latest_visit": v['dt'],
+                            "urls": set()
+                        }
+                    cs = contact_stats[cid]
+                    cs['visits'] += 1
+                    cs['latest_visit'] = max(cs['latest_visit'], v['dt'])
+                    url = str(v['url']).lower() if v['url'] else ""
+                    if url: cs['urls'].add(url)
+                    if 'pricing' in url or 'demo' in url:
+                        cs['visited_pricing_demo'] = True
+                    if v['duration_seconds'] and float(v['duration_seconds']) > 300:
+                        cs['duration_gt_300'] = True
+                
+                candidates = []
+                for cid, cs in contact_stats.items():
+                    score = 0
+                    if cs['is_vp_or_head']: score += 100
+                    if cs['visited_pricing_demo']: score += 10
+                    if cs['duration_gt_300']: score += 50
+                    cs['intent_score'] = score
+                    candidates.append(cs)
+                
+                candidates.sort(key=lambda x: (x['intent_score'], x['visits'], x['latest_visit']), reverse=True)
+                candidates = candidates[:4]
+                
+                candidates[0]['role'] = 'Champion'
+                candidates[0]['is_primary'] = True
+                
+                used_roles = set(['Champion'])
+                for c in candidates[1:]:
+                    c['is_primary'] = False
+                    if c['is_vp_or_head'] and 'Economic Buyer' not in used_roles:
+                        c['role'] = 'Economic Buyer'
+                        used_roles.add('Economic Buyer')
+                    elif (c['visited_pricing_demo'] or c['duration_gt_300']) and 'User' not in used_roles:
+                        c['role'] = 'User'
+                        used_roles.add('User')
+                    else:
+                        if 'Influencer' not in used_roles:
+                            c['role'] = 'Influencer'
+                            used_roles.add('Influencer')
+                        else:
+                            avail = [r for r in ['Economic Buyer', 'User', 'Influencer'] if r not in used_roles]
+                            role = avail[0] if avail else 'Influencer'
+                            c['role'] = role
+                            used_roles.add(role)
+                
+                gid = f"PROPOSED-{aid}"
                 proposed_groups[gid] = {
                     "group_id": gid,
                     "account_id": aid,
-                    "account_name": r["account_name"],
-                    "account_industry": r["account_industry"],
+                    "account_name": best_window[0]["account_name"],
+                    "account_industry": best_window[0]["account_industry"],
                     "is_proposed": True,
-                    "contacts": [],
+                    "contacts": []
                 }
-            proposed_groups[gid]["contacts"].append({
-                "contact_id": r["contact_id"],
-                "name": r["contact_name"],
-                "title": r["contact_title"],
-                "email": r["contact_email"],
-                "role": None,
-                "is_primary": None,
-                "added_at": None,
-                "activity_count": r["activity_count"],
-                "urls": r["urls"],
-            })
+                for c in candidates:
+                    proposed_groups[gid]["contacts"].append({
+                        "contact_id": c["contact_id"],
+                        "name": c["name"],
+                        "title": c["title"],
+                        "email": c["email"],
+                        "role": c["role"],
+                        "is_primary": c["is_primary"],
+                        "added_at": None,
+                        "activity_count": c["visits"],
+                        "urls": list(c["urls"]),
+                        "intent_score": c["intent_score"]
+                    })
 
         # Create workbench exceptions for proposed groups
         for gid, pg in proposed_groups.items():
