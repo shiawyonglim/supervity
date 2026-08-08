@@ -15,35 +15,55 @@ log = logging.getLogger(__name__)
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
 
+from typing import Optional, Any
+
 @router.get("/stats")
-def get_dashboard_stats(db: Session = Depends(get_db)):
+def get_dashboard_stats(viewer_role: Optional[str] = None, viewer_id: Optional[str] = None, db: Session = Depends(get_db)):
     """
     Returns live KPI statistics computed from the seeded database tables.
     This replaces the hardcoded stats on the frontend dashboard.
     """
     try:
+        contact_where = ""
+        opp_where = ""
+        params: dict[str, Any] = {}
+        
+        if viewer_role == "sdr" and viewer_id:
+            contact_where = "WHERE c.\"OwnerId\" = :viewer_id AND c.\"Lead_Stage__c\" = 'Open'"
+            opp_where = "AND o.\"OwnerId\" = :viewer_id"
+            params["viewer_id"] = viewer_id
+        elif viewer_role == "sales_agent" and viewer_id:
+            contact_where = "WHERE c.\"Lead_Stage__c\" IN ('Opportunity','MQL') AND c.\"OwnerId\" IN (SELECT owner_id FROM sdr_roster WHERE sales_agent_id = :viewer_id)"
+            opp_where = "AND o.\"OwnerId\" IN (SELECT owner_id FROM sdr_roster WHERE sales_agent_id = :viewer_id)"
+            params["viewer_id"] = viewer_id
+        elif viewer_role == "manager" and viewer_id:
+            contact_where = "WHERE c.\"Lead_Stage__c\" = 'SQL' AND c.\"OwnerId\" IN (SELECT owner_id FROM sdr_roster sr JOIN sales_agents sa ON sr.sales_agent_id = sa.id WHERE sa.sales_manager_id = :viewer_id)"
+            opp_where = "AND o.\"OwnerId\" IN (SELECT owner_id FROM sdr_roster sr JOIN sales_agents sa ON sr.sales_agent_id = sa.id WHERE sa.sales_manager_id = :viewer_id)"
+            params["viewer_id"] = viewer_id
+
         # Total Leads (contacts)
-        total_leads = db.execute(text("SELECT COUNT(*) FROM contact")).scalar() or 0
+        total_leads = db.execute(text(f"SELECT COUNT(*) FROM contact c {contact_where}"), params).scalar() or 0
 
         # Active Opportunities
         active_opps = db.execute(
-            text("SELECT COUNT(*) FROM opportunity WHERE \"IsClosed\" = false OR \"IsClosed\" IS NULL")
+            text(f"SELECT COUNT(*) FROM opportunity o WHERE (o.\"IsClosed\" = false OR o.\"IsClosed\" IS NULL) {opp_where}"), params
         ).scalar() or 0
 
         # Pipeline Value
         pipeline_value = db.execute(
-            text("SELECT COALESCE(SUM(CAST(\"Amount\" AS NUMERIC)), 0) FROM opportunity WHERE \"IsClosed\" = false OR \"IsClosed\" IS NULL")
+            text(f"SELECT COALESCE(SUM(CAST(o.\"Amount\" AS NUMERIC)), 0) FROM opportunity o WHERE (o.\"IsClosed\" = false OR o.\"IsClosed\" IS NULL) {opp_where}"), params
         ).scalar() or 0
 
         # Win Rate
-        total_closed = db.execute(text("SELECT COUNT(*) FROM opportunity WHERE \"IsClosed\" = true")).scalar() or 0
-        total_won = db.execute(text("SELECT COUNT(*) FROM opportunity WHERE \"IsWon\" = true")).scalar() or 0
+        total_closed = db.execute(text(f"SELECT COUNT(*) FROM opportunity o WHERE o.\"IsClosed\" = true {opp_where}"), params).scalar() or 0
+        total_won = db.execute(text(f"SELECT COUNT(*) FROM opportunity o WHERE o.\"IsWon\" = true {opp_where}"), params).scalar() or 0
         win_rate = round((total_won / total_closed * 100), 1) if total_closed > 0 else 0
 
         # Active SDRs
         active_sdrs = db.execute(text("SELECT COUNT(*) FROM sdr_roster WHERE active = true")).scalar() or 0
 
         # Visitor Activity count
+        # Could scope to prospect_id IN (contacts), but keeping global for now as stats
         total_activities = db.execute(text("SELECT COUNT(*) FROM visitoractivity")).scalar() or 0
 
         # Pending exceptions

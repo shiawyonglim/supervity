@@ -25,6 +25,9 @@ CSV_FILES = [
     "Sequences.csv",
     "Territories.csv",
     "VisitorActivity.csv",
+    "Sales_Managers.csv",
+    "Sales_Agents.csv",
+    "CROs.csv",
 ]
 
 def main():

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Avatar } from '@/components/ui/avatar'
 import { Icons } from '@/components/ui/icons'
 import { useAI } from '@/context/AIContext'
+import { useRole, type AppRole } from '@/context/RoleContext'
 import { NotificationCenter } from '@/components/NotificationCenter'
 import { RoleSwitcher } from './RoleSwitcher'
 import {
@@ -130,10 +131,38 @@ function AIManagerTrigger() {
   )
 }
 
+const ROLE_USERS: Record<AppRole, { id: string; name: string }[]> = {
+  sdr: [
+    { id: '005AE1', name: 'Mei Chen' },
+    { id: '005AE2', name: 'Arjun Prakash' },
+    { id: '005AE3', name: 'Wei Ho' },
+    { id: '005AE4', name: 'Priya Nair' },
+    { id: '005AE5', name: 'Sanjay Rao' },
+  ],
+  sales_agent: [
+    { id: 'SA001', name: 'Khee En' },
+    { id: 'SA002', name: 'Kimberly Tey' },
+  ],
+  manager: [{ id: 'SM001', name: 'Kim Hopester' }],
+  cro: [{ id: 'CR0001', name: 'Bratt Frasser' }],
+  admin: [{ id: 'admin-1', name: 'System Admin' }],
+}
+
 // User menu with dropdown
 function UserMenu() {
-  const user = { name: 'Dev User', email: 'dev@autopilot.local' }
   const router = useRouter()
+  const { activeRole, activeUserId, setUserId } = useRole()
+  
+  const availableUsers = ROLE_USERS[activeRole] || []
+  
+  // Auto-select a valid user if none is selected for the current role
+  React.useEffect(() => {
+    if (availableUsers.length > 0 && !availableUsers.find((u) => u.id === activeUserId)) {
+      setUserId(availableUsers[0].id)
+    }
+  }, [activeRole, activeUserId, availableUsers, setUserId])
+
+  const currentUser = availableUsers.find((u) => u.id === activeUserId) || availableUsers[0] || { name: 'Dev User', id: 'dev' }
 
   return (
     <DropdownMenu>
@@ -148,14 +177,14 @@ function UserMenu() {
           <div className='flex items-center gap-3'>
             <div className='hidden flex-col text-right lg:flex'>
               <span className='text-sm font-medium text-foreground'>
-                {user.name}
+                {currentUser.name}
               </span>
               <span className='text-xs text-muted-foreground'>
-                {user.email}
+                {currentUser.id}
               </span>
             </div>
             <Avatar
-              fallback={user.name}
+              fallback={currentUser.name}
               size='md'
               showRing
             />
@@ -173,25 +202,46 @@ function UserMenu() {
         <div className='border-b border-border/50 px-3 py-3'>
           <div className='flex items-center gap-3'>
             <Avatar
-              fallback={user.name}
+              fallback={currentUser.name}
               size='md'
             />
             <div className='min-w-0 flex-1'>
               <p className='truncate text-sm font-medium text-foreground'>
-                {user.name}
+                {currentUser.name}
               </p>
               <p className='truncate text-xs text-muted-foreground'>
-                {user.email}
+                {currentUser.id}
               </p>
             </div>
           </div>
         </div>
 
-        <div className='py-1'>
-          <DropdownMenuItem className='gap-3 rounded-lg px-3 py-2.5'>
-            <Icons.user className='h-4 w-4 text-muted-foreground' strokeWidth={1.5} />
-            <span>Profile</span>
-          </DropdownMenuItem>
+        <div className='py-1 max-h-[300px] overflow-y-auto'>
+          <div className='px-3 py-2 text-xs font-semibold text-muted-foreground'>
+            Viewing as (Demo Auth)
+          </div>
+          {availableUsers.map((u) => (
+            <DropdownMenuItem
+              key={u.id}
+              onClick={() => setUserId(u.id)}
+              className={cn(
+                'gap-3 rounded-lg px-3 py-2.5 cursor-pointer',
+                activeUserId === u.id && 'bg-brand-cornflower/10 text-brand-navy font-medium'
+              )}
+            >
+              <Icons.user className='h-4 w-4' strokeWidth={1.5} />
+              <div className='flex flex-col'>
+                <span>{u.name}</span>
+                <span className='text-[10px] text-muted-foreground'>{u.id}</span>
+              </div>
+              {activeUserId === u.id && (
+                <Icons.check className='ml-auto h-4 w-4' />
+              )}
+            </DropdownMenuItem>
+          ))}
+        </div>
+
+        <div className='py-1 border-t border-border/50'>
           <DropdownMenuItem className='gap-3 rounded-lg px-3 py-2.5 cursor-pointer' onClick={() => router.push('/settings')}>
             <Icons.settings className='h-4 w-4 text-muted-foreground' strokeWidth={1.5} />
             <span>Settings</span>

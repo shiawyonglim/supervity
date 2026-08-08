@@ -6,10 +6,12 @@ import { apiClient } from '@/lib/api-client'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
+import { useRole, ROLE_META } from '@/context/RoleContext'
 import { Icons } from '@/components/ui/icons'
 import { Badge } from '@/components/ui/badge'
 import type { AppRole } from '@/context/RoleContext'
-import { ROLE_META } from '@/context/RoleContext'
 
 type Tab = 'buying-groups' | 'consent' | 'quality'
 
@@ -74,6 +76,7 @@ const tabs: { id: Tab; label: string; icon: React.ElementType }[] = [
 
 export function SalesDataManager({ role }: { role: AppRole }) {
   const meta = ROLE_META[role]
+  const { activeUserId } = useRole()
   const [activeTab, setActiveTab] = useState<Tab>('buying-groups')
   const [loading, setLoading] = useState(true)
   const [buyingGroups, setBuyingGroups] = useState<BuyingGroup[]>([])
@@ -86,14 +89,15 @@ export function SalesDataManager({ role }: { role: AppRole }) {
   const load = useCallback(async (tab: Tab) => {
     setLoading(true)
     try {
+      const qs = activeUserId ? `?viewer_role=${role}&viewer_id=${activeUserId}` : ''
       if (tab === 'buying-groups') {
-        const res = await apiClient.get<{ buying_groups: BuyingGroup[] }>('/api/data-manager/buying-groups')
+        const res = await apiClient.get<{ buying_groups: BuyingGroup[] }>(`/api/data-manager/buying-groups${qs}`)
         setBuyingGroups(res.buying_groups || [])
       } else if (tab === 'consent') {
-        const res = await apiClient.get<{ consent_records: ConsentRecord[] }>('/api/data-manager/consent')
+        const res = await apiClient.get<{ consent_records: ConsentRecord[] }>(`/api/data-manager/consent${qs}`)
         setConsent(res.consent_records || [])
       } else if (tab === 'quality') {
-        const res = await apiClient.get<QualityReport>('/api/data-manager/quality')
+        const res = await apiClient.get<QualityReport>(`/api/data-manager/quality${qs}`)
         setQuality(res)
       }
     } catch (err) {
@@ -101,7 +105,7 @@ export function SalesDataManager({ role }: { role: AppRole }) {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [role, activeUserId])
 
   useEffect(() => {
     load(activeTab)

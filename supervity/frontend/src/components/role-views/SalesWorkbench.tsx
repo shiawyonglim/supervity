@@ -10,7 +10,9 @@ import { Icons } from '@/components/ui/icons'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
-import { ROLE_META, type AppRole } from '@/context/RoleContext'
+import { Textarea } from '@/components/ui/textarea'
+import { useRole, ROLE_META } from '@/context/RoleContext'
+import type { AppRole } from '@/context/RoleContext'
 
 interface Contact {
   Id: string
@@ -78,6 +80,7 @@ const ALLOWED_STAGES: Record<Exclude<AppRole, 'admin' | 'cro'>, string[]> = {
 
 export function SalesWorkbench({ role }: { role: Exclude<AppRole, 'admin' | 'cro'> }) {
   const meta = ROLE_META[role]
+  const { activeUserId } = useRole()
   const step = ROLE_STEP[role]
   const [contacts, setContacts] = useState<Contact[]>([])
   const [handovers, setHandovers] = useState<Handover[]>([])
@@ -93,8 +96,9 @@ export function SalesWorkbench({ role }: { role: Exclude<AppRole, 'admin' | 'cro
   const load = useCallback(async () => {
     setLoading(true)
     try {
+      const qs = activeUserId ? `&viewer_role=${role}&viewer_id=${activeUserId}` : ''
       const [c, h, o] = await Promise.all([
-        apiClient.get<{ data: Contact[] }>('/api/data/contact?limit=200'),
+        apiClient.get<{ data: Contact[] }>(`/api/data/contact?limit=200${qs}`),
         apiClient.get<{ handovers: Handover[] }>('/api/org/handovers?limit=15'),
         apiClient.get<OrgHierarchy>('/api/org/hierarchy'),
       ])
@@ -106,7 +110,7 @@ export function SalesWorkbench({ role }: { role: Exclude<AppRole, 'admin' | 'cro
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [role, activeUserId])
 
   useEffect(() => {
     load()

@@ -1,0 +1,3 @@
+id,name,email,max_capacity,active,sales_manager_id
+SA001,Khee En,kheeenteo13@gmail.com,80,TRUE,SM001
+SA002,Kimberly Tey,teykimberly@supervity.ai,80,TRUE,SM001

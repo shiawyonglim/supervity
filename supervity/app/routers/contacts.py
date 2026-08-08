@@ -3,7 +3,7 @@
 
 import logging
 import threading
-from typing import List, Optional, Any
+from typing import List, Optional, Any, Union
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -45,7 +45,7 @@ class AccountDetail(BaseModel):
 
 class VisitorActivity(BaseModel):
     id: int
-    visitor_id: Optional[str] = None
+    visitor_id: Optional[Union[int, str]] = None
     type: Optional[str] = None
     created_at: Optional[str] = None
     url: Optional[str] = None
@@ -101,9 +101,23 @@ class EmailDraftResponse(BaseModel):
     body: str
 
 @router.get("", response_model=List[ContactRead])
-def list_contacts(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def list_contacts(skip: int = 0, limit: int = 100, viewer_role: Optional[str] = None, viewer_id: Optional[str] = None, db: Session = Depends(get_db)):
     """List all contacts for the Workbench Communications view."""
-    query = text("""
+    
+    where_clause = ""
+    params: dict[str, Any] = {"skip": skip, "limit": limit}
+    
+    if viewer_role == "sdr" and viewer_id:
+        where_clause = "WHERE c.\"OwnerId\" = :viewer_id AND c.\"Lead_Stage__c\" = 'Open'"
+        params["viewer_id"] = viewer_id
+    elif viewer_role == "sales_agent" and viewer_id:
+        where_clause = "WHERE c.\"Lead_Stage__c\" IN ('Opportunity','MQL') AND c.\"OwnerId\" IN (SELECT owner_id FROM sdr_roster WHERE sales_agent_id = :viewer_id)"
+        params["viewer_id"] = viewer_id
+    elif viewer_role == "manager" and viewer_id:
+        where_clause = "WHERE c.\"Lead_Stage__c\" = 'SQL' AND c.\"OwnerId\" IN (SELECT owner_id FROM sdr_roster sr JOIN sales_agents sa ON sr.sales_agent_id = sa.id WHERE sa.sales_manager_id = :viewer_id)"
+        params["viewer_id"] = viewer_id
+
+    query = text(f"""
         SELECT 
             c."Id" as id, 
             c."FirstName" as first_name, 
@@ -115,10 +129,11 @@ def list_contacts(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
             c."Owner_Name" as owner_name
         FROM contact c
         LEFT JOIN account a ON c."AccountId" = a."Id"
+        {where_clause}
         ORDER BY c."CreatedDate" DESC NULLS LAST, c."Id" DESC
         OFFSET :skip LIMIT :limit
     """)
-    rows = db.execute(query, {"skip": skip, "limit": limit}).mappings().all()
+    rows = db.execute(query, params).mappings().all()
     return [dict(r) for r in rows]
 
 

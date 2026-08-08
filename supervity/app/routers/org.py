@@ -128,40 +128,58 @@ def get_hierarchy(db: Session = Depends(get_db)):
     )).mappings().all()
     sdrs = [dict(s) for s in sdrs]
 
+    sdr_workload = {
+        r["owner_id"]: r["current_capacity"] 
+        for r in db.execute(text("SELECT owner_id, current_capacity FROM sdr_workload")).mappings()
+    }
+    agent_workload = {
+        r["sales_agent_id"]: r["current_capacity"] 
+        for r in db.execute(text("SELECT sales_agent_id, current_capacity FROM sales_agent_workload")).mappings()
+    }
+    manager_workload = {
+        r["sales_manager_id"]: r["current_capacity"] 
+        for r in db.execute(text("SELECT sales_manager_id, current_capacity FROM sales_manager_workload")).mappings()
+    }
+    
+    # Update sdrs in place so it applies everywhere
+    for s in sdrs:
+        if s["owner_id"] in sdr_workload:
+            s["current_capacity"] = sdr_workload[s["owner_id"]]
+
     def agent_node(a: SalesAgent):
         return {
-            "agent_id": a.agent_id, "name": a.name, "email": a.email, "region": a.region,
-            "segment": a.segment, "active": a.active,
-            "current_capacity": a.current_capacity, "max_capacity": a.max_capacity,
-            "manager_id": a.manager_id,
+            "agent_id": a.id, "name": a.name, "email": a.email, "region": "",
+            "segment": "", "active": a.active,
+            "current_capacity": agent_workload.get(a.id, 0), "max_capacity": a.max_capacity,
+            "manager_id": a.sales_manager_id,
             "sdrs": [
                 {"owner_id": s["owner_id"], "name": s["name"], "region": s.get("region"),
                  "segment": s.get("segment"), "active": bool(s.get("active")),
-                 "current_capacity": s.get("current_capacity"), "max_capacity": s.get("max_capacity")}
-                for s in sdrs if s.get("sales_agent_id") == a.agent_id
+                 "current_capacity": sdr_workload.get(s["owner_id"], s.get("current_capacity")), "max_capacity": s.get("max_capacity")}
+                for s in sdrs if s.get("sales_agent_id") == a.id
             ],
         }
 
     def manager_node(m: Manager):
         return {
-            "manager_id": m.manager_id, "name": m.name, "email": m.email, "region": m.region,
-            "active": m.active, "current_capacity": m.current_capacity, "max_capacity": m.max_capacity,
-            "cro_id": m.cro_id,
-            "agents": [agent_node(a) for a in agents if a.manager_id == m.manager_id],
+            "manager_id": m.id, "name": m.name, "email": m.email, "region": "",
+            "active": m.active, "current_capacity": manager_workload.get(m.id, 0), "max_capacity": m.max_capacity,
+            "cro_id": None,
+            "agents": [agent_node(a) for a in agents if a.sales_manager_id == m.id],
         }
 
     tree = [
         {
-            "cro_id": c.cro_id, "name": c.name, "email": c.email, "active": c.active,
-            "managers": [manager_node(m) for m in managers if m.cro_id == c.cro_id],
+            "cro_id": c.id, "name": c.name, "email": c.email, "active": c.active,
+            "managers": [manager_node(m) for m in managers], # Sales managers don't have a cro_id in the new schema
         }
         for c in cros
     ]
 
     # SDRs / agents / managers not attached to anything above them (visibility for editing).
     unassigned_sdrs = [s for s in sdrs if not s.get("sales_agent_id")]
-    orphan_agents = [agent_node(a) for a in agents if not a.manager_id]
-    orphan_managers = [manager_node(m) for m in managers if not m.cro_id]
+    orphan_agents = [agent_node(a) for a in agents if not a.sales_manager_id]
+    orphan_managers = [] # Managers have no cro_id, so they are not "orphans" technically, or they all are. We will omit this for now since we mapped all of them above.
 
     return {
         "hierarchy": tree,

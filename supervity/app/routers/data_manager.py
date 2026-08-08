@@ -600,7 +600,11 @@ def get_routing_config(db: Session = Depends(get_db)):
 
         # SDR roster with computed coverage from routing_rules
         sdrs = db.execute(text(
-            "SELECT * FROM sdr_roster"
+            """
+            SELECT sr.*, COALESCE(w.current_capacity, 0) AS live_computed_capacity 
+            FROM sdr_roster sr 
+            LEFT JOIN sdr_workload w ON sr.owner_id = w.owner_id
+            """
         )).mappings().all()
         sdr_list = []
         for sdr in sdrs:
@@ -654,7 +658,7 @@ def get_routing_config(db: Session = Depends(get_db)):
         warnings = []
         for s in sdr_list:
             try:
-                current = float(s.get("current_capacity") or 0)
+                current = float(s.get("live_computed_capacity") if s.get("live_computed_capacity") is not None else s.get("current_capacity") or 0)
                 maximum = float(s.get("max_capacity") or 1)
             except (ValueError, TypeError):
                 current, maximum = 0, 1
@@ -808,7 +812,13 @@ def run_routing(body: RoutingRunRequest, db: Session = Depends(get_db)):
         active_rules_list = [dict(r) for r in active_rules]
 
         # Get SDR roster
-        sdrs = db.execute(text("SELECT * FROM sdr_roster")).mappings().all()
+        sdrs = db.execute(text(
+            """
+            SELECT sr.*, COALESCE(w.current_capacity, 0) AS live_computed_capacity 
+            FROM sdr_roster sr 
+            LEFT JOIN sdr_workload w ON sr.owner_id = w.owner_id
+            """
+        )).mappings().all()
         sdr_map = {dict(s)["owner_id"]: dict(s) for s in sdrs}
 
         assigned_count = 0
@@ -891,7 +901,7 @@ def run_routing(body: RoutingRunRequest, db: Session = Depends(get_db)):
                     if not _bool_true(sdr.get("active")):
                         continue
                     try:
-                        current = float(sdr.get("current_capacity") or 0)
+                        current = float(sdr.get("live_computed_capacity") if sdr.get("live_computed_capacity") is not None else sdr.get("current_capacity") or 0)
                         maximum = float(sdr.get("max_capacity") or 1)
                     except (ValueError, TypeError):
                         current, maximum = 0, 1

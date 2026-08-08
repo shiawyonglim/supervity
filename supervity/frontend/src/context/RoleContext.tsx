@@ -48,6 +48,8 @@ function roleFromPath(pathname: string): AppRole | null {
 interface RoleContextValue {
   activeRole: AppRole
   setRole: (role: AppRole) => void
+  activeUserId: string
+  setUserId: (id: string) => void
   roleMeta: RoleMeta
   isSalesRole: boolean
   isAdminOrCro: boolean
@@ -83,6 +85,14 @@ export function RoleProvider({ children }: { children: ReactNode }) {
     return 'admin'
   })
 
+  // DEMO AUTH: This is a temporary stand-in for real per-user auth via JWT.
+  const [activeUserId, setActiveUserId] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem(`${STORAGE_KEY}-user-id`) || ''
+    }
+    return ''
+  })
+
   // Sync active role with URL (back/forward buttons, direct links)
   useEffect(() => {
     const fromPath = roleFromPath(pathname || '')
@@ -107,6 +117,13 @@ export function RoleProvider({ children }: { children: ReactNode }) {
     [router]
   )
 
+  const setUserId = useCallback((id: string) => {
+    setActiveUserId(id)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(`${STORAGE_KEY}-user-id`, id)
+    }
+  }, [])
+
   const roleMeta = ROLE_META[activeRole]
   const isSalesRole = roleMeta.isSales
   const isAdminOrCro = activeRole === 'admin' || activeRole === 'cro'
@@ -126,6 +143,8 @@ export function RoleProvider({ children }: { children: ReactNode }) {
       value={{
         activeRole,
         setRole,
+        activeUserId,
+        setUserId,
         roleMeta,
         isSalesRole,
         isAdminOrCro,

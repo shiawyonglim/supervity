@@ -20,11 +20,12 @@ from ..core.database import Base
 
 class CRO(Base):
     """The Overseer — holds master access, reassigns stalled deals."""
-    __tablename__ = "cro"
+    __tablename__ = "cros"
 
-    cro_id = Column(String(50), primary_key=True, index=True)  # e.g. 005CRO01
+    id = Column(String(50), primary_key=True, index=True)  # e.g. CR0001
     name = Column(String(255), nullable=False)
     email = Column(String(255))
+    max_capacity = Column(Integer)
     active = Column(Boolean, default=True)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
@@ -32,15 +33,11 @@ class CRO(Base):
 
 class Manager(Base):
     """The Closer — runs final calls, writes the SOW, gets the signature."""
-    __tablename__ = "manager"
+    __tablename__ = "sales_managers"
 
-    manager_id = Column(String(50), primary_key=True, index=True)  # e.g. 005MGR01
+    id = Column(String(50), primary_key=True, index=True)  # e.g. SM001
     name = Column(String(255), nullable=False)
     email = Column(String(255))
-    region = Column(String(50))
-    # Who this manager reports up to.
-    cro_id = Column(String(50), ForeignKey("cro.cro_id"), nullable=True)
-    current_capacity = Column(Integer, default=0)
     max_capacity = Column(Integer, default=15)
     active = Column(Boolean, default=True)
     created_at = Column(DateTime, server_default=func.now())
@@ -48,17 +45,14 @@ class Manager(Base):
 
 
 class SalesAgent(Base):
-    """The Pitch — calls the prospect, qualifies budget/timeline, tags SQL."""
-    __tablename__ = "sales_agent"
+    """The Pitch — runs the discovery call, builds the deck, advances to SQL."""
+    __tablename__ = "sales_agents"
 
-    agent_id = Column(String(50), primary_key=True, index=True)  # e.g. 005SA01
+    id = Column(String(50), primary_key=True, index=True)  # e.g. SA001
     name = Column(String(255), nullable=False)
     email = Column(String(255))
-    region = Column(String(50))
-    segment = Column(String(50))
-    # Who this agent hands closed-qualified deals up to.
-    manager_id = Column(String(50), ForeignKey("manager.manager_id"), nullable=True)
-    current_capacity = Column(Integer, default=0)
+    # Who this agent reports up to.
+    sales_manager_id = Column(String(50), ForeignKey("sales_managers.id"), nullable=True)
     max_capacity = Column(Integer, default=40)
     active = Column(Boolean, default=True)
     created_at = Column(DateTime, server_default=func.now())

@@ -11,8 +11,8 @@ import { Icons } from '@/components/ui/icons'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
+import { useRole, ROLE_META } from '@/context/RoleContext'
 import type { AppRole } from '@/context/RoleContext'
-import { ROLE_META } from '@/context/RoleContext'
 
 interface DashboardStats {
   total_leads: number
@@ -141,6 +141,7 @@ const ALLOWED_STAGES: Record<AppRole, string[]> = {
 
 export function SalesDashboard({ role }: { role: AppRole }) {
   const meta = ROLE_META[role]
+  const { activeUserId } = useRole()
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [leads, setLeads] = useState<Lead[]>([])
   const [policies, setPolicies] = useState<Policy[]>([])
@@ -163,9 +164,11 @@ export function SalesDashboard({ role }: { role: AppRole }) {
   const load = useCallback(async () => {
     setLoading(true)
     try {
+      const qs = activeUserId ? `?viewer_role=${role}&viewer_id=${activeUserId}` : ''
+      const limitQs = activeUserId ? `&limit=20` : `?limit=20`
       const [s, l, p] = await Promise.all([
-        apiClient.get<DashboardStats>('/api/dashboard/stats'),
-        apiClient.get<Lead[]>('/api/contacts?limit=20'),
+        apiClient.get<DashboardStats>(`/api/dashboard/stats${qs}`),
+        apiClient.get<Lead[]>(`/api/contacts${qs}${limitQs}`),
         apiClient.get<Policy[]>('/api/policies?limit=20'),
       ])
       setStats(s)
@@ -176,7 +179,7 @@ export function SalesDashboard({ role }: { role: AppRole }) {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [role, activeUserId])
 
   useEffect(() => {
     load()
