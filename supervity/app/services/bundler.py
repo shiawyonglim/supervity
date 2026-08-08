@@ -12,6 +12,7 @@ from sqlalchemy import text
 from supabase import create_client, Client
 from ..core.database import engine, SessionLocal
 from ..services.audit import audit, AuditCategory, AuditSeverity
+from ..services.knowledge_base import build_knowledge_base_text
 from ..routers.insights import generate_insights
 
 log = logging.getLogger(__name__)
@@ -280,9 +281,20 @@ def trigger_supervity_orchestrator(bundle: dict = None, prospect_ids: List[str] 
 
     # Send the full bundle payload which contains 'contact', 'account', 'activities', etc.
     payload_str = json.dumps(payload_to_send)
+
+    # Ground the run in the live, business-editable Knowledge Base (active AI Policies +
+    # reference docs) so an edit made in the UI takes effect on the very next trigger.
+    try:
+        with SessionLocal() as kb_db:
+            knowledge_base_text = build_knowledge_base_text(kb_db)
+    except Exception as e:
+        log.error(f"Failed to build knowledge base text for Auto trigger: {e}")
+        knowledge_base_text = "(Knowledge base unavailable.)"
+
     files = {
         "workflowId": (None, "019fd5dd-4f56-7000-8641-9bfdd6c1e3e1"),
-        "inputs[lead_payload]": (None, payload_str)
+        "inputs[lead_payload]": (None, payload_str),
+        "inputs[knowledge_base]": (None, knowledge_base_text),
     }
     
     try:

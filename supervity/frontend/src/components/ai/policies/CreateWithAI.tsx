@@ -139,7 +139,7 @@ export function CreateWithAI({ onPolicyCreate, onCancel }: CreateWithAIProps) {
   const [selectedConflicts, setSelectedConflicts] = useState<Set<string>>(new Set())
   
   // Editable fields (user can override AI suggestions)
-  const [policyType, setPolicyType] = useState<'logical' | 'natural_language'>('logical')
+  const [policyType, setPolicyType] = useState<'logical' | 'natural_language'>('natural_language')
   const [policyName, setPolicyName] = useState('')
   const [description, setDescription] = useState('')
   const [tags, setTags] = useState<string[]>([])

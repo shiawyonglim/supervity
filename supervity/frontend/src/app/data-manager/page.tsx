@@ -15,6 +15,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
+import { OrgHandoverTab } from '@/components/data-manager/OrgHandoverTab'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -26,12 +27,13 @@ const itemVariants = {
   visible: { opacity: 1, y: 0 },
 }
 
-type TabType = 'buying-groups' | 'dedup' | 'routing' | 'consent' | 'integrations' | 'quality' | 'database'
+type TabType = 'buying-groups' | 'dedup' | 'routing' | 'org' | 'consent' | 'integrations' | 'quality' | 'database'
 
 const tabs = [
   { id: 'buying-groups' as TabType, label: 'Buying Groups', icon: Icons.users },
   { id: 'dedup' as TabType, label: 'Deduplication', icon: Icons.layers },
   { id: 'routing' as TabType, label: 'Routing & Territories', icon: Icons.share },
+  { id: 'org' as TabType, label: 'Org & Handover', icon: Icons.network },
   { id: 'consent' as TabType, label: 'Consent Registry', icon: Icons.checkCircle },
   { id: 'integrations' as TabType, label: 'Integrations', icon: Icons.zap },
   { id: 'quality' as TabType, label: 'Data Quality', icon: Icons.shield },
@@ -247,6 +249,9 @@ export default function DataManagerPage() {
         const response = await apiClient.get<any>('/api/data-manager/database/tables')
         setDbTables(response.tables || [])
         setData(true)
+      } else if (tab === 'org') {
+        // Self-contained component fetches its own data from /api/org/*
+        setData(true)
       } else {
         let endpoint = `/api/data-manager/${tab}`
         if (tab === 'dedup') endpoint = `/api/data-manager/dedup/config`
@@ -341,6 +346,8 @@ export default function DataManagerPage() {
     if (!data) return null
 
     switch (activeTab) {
+      case 'org':
+        return <OrgHandoverTab />
       case 'database':
         return (
           <div className="flex flex-col md:flex-row gap-6">

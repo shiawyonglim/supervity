@@ -100,6 +100,33 @@ def _create_exception_if_not_exists(
 # 1. BUYING GROUP RESOLUTION
 # =============================================================================
 
+def _to_naive_utc_dt(value):
+    """
+    Normalize any date value — a mixed-format string, a pandas Timestamp, a
+    datetime (tz-aware or naive), or None/NaT — to a tz-NAIVE UTC datetime.
+
+    visitoractivity.created_at arrives in several formats, some carrying an
+    offset (e.g. +08:00) and some naive. Comparing the two kinds raises
+    "can't compare offset-naive and offset-aware datetimes", so we flatten
+    everything to naive UTC before any sort/compare. Bad/empty values become
+    datetime.min (also naive) so they sort first and never break comparisons.
+    """
+    if value is None or value == "":
+        return datetime.min
+    ts = value
+    if isinstance(ts, str):
+        ts = parse_mixed_date(ts)  # -> tz-aware UTC Timestamp, or NaT
+    if isinstance(ts, pd.Timestamp):
+        if pd.isna(ts):
+            return datetime.min
+        ts = ts.to_pydatetime()
+    if not isinstance(ts, datetime):
+        return datetime.min
+    if ts.tzinfo is not None:
+        ts = ts.astimezone(timezone.utc).replace(tzinfo=None)
+    return ts
+
+
 @router.get("/buying-groups")
 def get_buying_groups(
     db: Session = Depends(get_db),
@@ -191,19 +218,10 @@ def get_buying_groups(
 
         for aid, visits in account_visits.items():
             for v in visits:
-                if isinstance(v['created_at'], str):
-                    try:
-                        v['dt'] = datetime.fromisoformat(v['created_at'].replace('Z', '+00:00'))
-                    except Exception:
-                        try:
-                            v['dt'] = pd.to_datetime(v['created_at']).to_pydatetime()
-                        except Exception:
-                            v['dt'] = datetime.min
-                else:
-                    v['dt'] = v['created_at'] or datetime.min
-                    if isinstance(v['dt'], pd.Timestamp):
-                        v['dt'] = v['dt'].to_pydatetime()
-                    
+                # Flatten every created_at to a tz-naive UTC datetime so the
+                # sort/compare below never mixes aware and naive values.
+                v['dt'] = _to_naive_utc_dt(v['created_at'])
+
             visits.sort(key=lambda x: x['dt'])
             
             best_window = []

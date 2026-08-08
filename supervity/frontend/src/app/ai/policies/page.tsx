@@ -14,6 +14,7 @@ import { PolicyEditModal } from '@/components/ai/policies/PolicyEditModal'
 import { CreateWithAI } from '@/components/ai/policies/CreateWithAI'
 import { PermissionMatrixTab } from '@/components/ai/policies/PermissionMatrixTab'
 import { StructuredBuilder } from '@/components/ai/policies/StructuredBuilder'
+import { KnowledgeBaseTab } from '@/components/ai/policies/KnowledgeBaseTab'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -32,7 +33,7 @@ const itemVariants = {
 // Types
 // ============================================================================
 
-type TabType = 'policies' | 'create-ai' | 'structured' | 'matrix'
+type TabType = 'policies' | 'create-ai' | 'structured' | 'matrix' | 'knowledge-base'
 type FilterType = 'all' | 'active' | 'inactive' | 'logical' | 'natural_language'
 type SortType = 'newest' | 'oldest' | 'priority' | 'name' | 'executions'
 
@@ -43,6 +44,7 @@ type SortType = 'newest' | 'oldest' | 'priority' | 'name' | 'executions'
 const TABS = [
   { id: 'policies' as TabType, label: 'Policies', Icon: Icons.layers },
   { id: 'create-ai' as TabType, label: 'Create with AI', Icon: Icons.sparkles },
+  { id: 'knowledge-base' as TabType, label: 'Knowledge Base', Icon: Icons.brain },
   { id: 'structured' as TabType, label: 'Structured Builder', Icon: Icons.grid },
   { id: 'matrix' as TabType, label: 'Permission Matrix', Icon: Icons.table },
 ]
@@ -96,6 +98,7 @@ export default function AIPoliciesPage() {
       if (tabParam === 'create-with-ai') setActiveTab('create-ai')
       else if (tabParam === 'structured') setActiveTab('structured')
       else if (tabParam === 'matrix') setActiveTab('matrix')
+      else if (tabParam === 'knowledge-base') setActiveTab('knowledge-base')
     }
   }, [])
 
@@ -531,6 +534,18 @@ export default function AIPoliciesPage() {
           transition={{ duration: 0.15 }}
         >
           <PermissionMatrixTab />
+        </motion.div>
+      )}
+
+      {activeTab === 'knowledge-base' && (
+        <motion.div
+          key="knowledge-base-tab"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          transition={{ duration: 0.15 }}
+        >
+          <KnowledgeBaseTab />
         </motion.div>
       )}
       </AnimatePresence>

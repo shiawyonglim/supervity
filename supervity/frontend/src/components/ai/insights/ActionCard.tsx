@@ -8,6 +8,11 @@ export interface ActionItem {
   title: string
   priority: 'critical' | 'high' | 'medium' | 'low'
   estimated_impact: string
+  /** WHO this action belongs to */
+  owner_name?: string
+  owner_role?: string
+  /** WHAT happens if it isn't done */
+  consequence?: string
   action_type?: string
   action_config?: Record<string, unknown>
 }
@@ -45,13 +50,13 @@ export function ActionCard({ action, onApply }: ActionCardProps) {
 
   return (
     <div className={cn(
-      'flex items-center gap-4 rounded-xl p-4',
+      'flex items-start gap-4 rounded-xl p-4',
       'bg-white/70 border border-border/50',
       'transition-all duration-200 hover:bg-white hover:shadow-soft'
     )}>
       {/* Icon */}
       <div className={cn(
-        'flex h-10 w-10 items-center justify-center rounded-lg',
+        'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg',
         priority.bg
       )}>
         <Icons.zap className={cn('h-5 w-5', priority.color)} strokeWidth={1.5} />
@@ -60,7 +65,7 @@ export function ActionCard({ action, onApply }: ActionCardProps) {
       {/* Content */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <h4 className="font-medium text-foreground truncate">{action.title}</h4>
+          <h4 className="font-medium text-foreground">{action.title}</h4>
           <span className={cn(
             'rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase flex-shrink-0',
             priority.badge
@@ -68,10 +73,30 @@ export function ActionCard({ action, onApply }: ActionCardProps) {
             {action.priority}
           </span>
         </div>
-        <p className="mt-1 text-xs text-muted-foreground flex items-center gap-1">
-          <Icons.trendingUp className="h-3 w-3" strokeWidth={1.5} />
-          {action.estimated_impact}
-        </p>
+
+        {/* WHO it's for */}
+        {action.owner_name && (
+          <p className="mt-1 text-xs flex items-center gap-1">
+            <Icons.user className="h-3 w-3 flex-shrink-0 text-muted-foreground" strokeWidth={1.5} />
+            <span className="font-medium text-foreground">{action.owner_name}</span>
+            {action.owner_role && (
+              <span className="text-muted-foreground">— {action.owner_role}</span>
+            )}
+          </p>
+        )}
+
+        {/* WHAT happens if ignored */}
+        {action.consequence ? (
+          <p className="mt-1 text-xs text-muted-foreground flex items-start gap-1">
+            <Icons.alertTriangle className="mt-0.5 h-3 w-3 flex-shrink-0 text-red-500" strokeWidth={1.5} />
+            <span><span className="font-semibold text-red-600">If ignored: </span>{action.consequence}</span>
+          </p>
+        ) : (
+          <p className="mt-1 text-xs text-muted-foreground flex items-center gap-1">
+            <Icons.trendingUp className="h-3 w-3" strokeWidth={1.5} />
+            {action.estimated_impact}
+          </p>
+        )}
       </div>
 
       {/* Apply Button */}
@@ -79,7 +104,7 @@ export function ActionCard({ action, onApply }: ActionCardProps) {
         variant="outline"
         size="sm"
         onClick={() => onApply?.(action)}
-        className="flex-shrink-0"
+        className="mt-0.5 flex-shrink-0"
       >
         Apply
         <Icons.arrowRight className="ml-1 h-3.5 w-3.5" />

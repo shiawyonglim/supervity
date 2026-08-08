@@ -78,6 +78,9 @@ export default function AIInsightsPage() {
         title: i.suggested_action || i.title,
         priority: i.severity === 'critical' ? 'critical' : i.severity === 'warning' ? 'high' : 'medium',
         estimated_impact: 'See details',
+        owner_name: i.owner_name,
+        owner_role: i.owner_role,
+        consequence: i.consequence,
         action_type: i.action_type,
         action_config: i.data,
       }))

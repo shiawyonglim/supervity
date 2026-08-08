@@ -31,6 +31,7 @@ services:
       - ./alembic:/app/alembic
       - ./alembic.ini/:/app/alembic.ini/
       - ./data:/app/data
+      - ./docs:/app/docs:ro
       - ./seed_db.py:/app/seed_db.py
       - document_storage:/app/document_storage
     ports:

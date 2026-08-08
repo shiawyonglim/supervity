@@ -15,7 +15,14 @@ export interface Insight {
   title: string
   description: string
   data?: Record<string, unknown>
+  /** WHO this insight is for */
+  owner_name?: string
+  owner_role?: string
+  owner_id?: string
+  /** WHAT they should do now */
   suggested_action?: string
+  /** WHAT happens if they don't */
+  consequence?: string
   action_type?: string
   confidence?: number
   created_at: string
@@ -221,17 +228,63 @@ export function InsightCard({ insight, onAction, onDismiss }: InsightCardProps) 
             </div>
           )}
 
-          {/* Suggested Action */}
+          {/* WHO / DO NOW / IF IGNORED */}
+          {(insight.owner_name || insight.suggested_action || insight.consequence) && (
+            <div className="mt-4 space-y-2 rounded-lg border border-white/60 bg-white/50 p-3">
+              {/* WHO is this for */}
+              {insight.owner_name && (
+                <div className="flex items-start gap-2">
+                  <Icons.user className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" strokeWidth={1.5} />
+                  <p className="text-sm">
+                    <span className="font-semibold uppercase tracking-wide text-[10px] text-muted-foreground mr-1.5">
+                      For
+                    </span>
+                    <span className="font-semibold text-foreground">{insight.owner_name}</span>
+                    {insight.owner_role && (
+                      <span className="text-muted-foreground"> — {insight.owner_role}</span>
+                    )}
+                  </p>
+                </div>
+              )}
+
+              {/* WHAT to do now */}
+              {insight.suggested_action && (
+                <div className="flex items-start gap-2">
+                  <Icons.zap className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-emerald-600" strokeWidth={1.5} />
+                  <p className="text-sm text-foreground">
+                    <span className="font-semibold uppercase tracking-wide text-[10px] text-emerald-700 mr-1.5">
+                      Do now
+                    </span>
+                    {insight.suggested_action}
+                  </p>
+                </div>
+              )}
+
+              {/* WHAT happens if they don't */}
+              {insight.consequence && (
+                <div className="flex items-start gap-2">
+                  <Icons.alertTriangle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-red-500" strokeWidth={1.5} />
+                  <p className="text-sm text-foreground">
+                    <span className="font-semibold uppercase tracking-wide text-[10px] text-red-600 mr-1.5">
+                      If ignored
+                    </span>
+                    {insight.consequence}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Action button */}
           {insight.suggested_action && (
-            <div className="mt-4 flex items-center gap-3">
+            <div className="mt-3 flex items-center gap-3">
               <Button
                 variant="default"
                 size="sm"
                 onClick={() => onAction?.(insight)}
               >
                 <Icons.zap className="mr-1.5 h-3.5 w-3.5" strokeWidth={1.5} />
-                {insight.suggested_action.slice(0, 30)}
-                {insight.suggested_action.length > 30 ? '...' : ''}
+                Take this action
               </Button>
             </div>
           )}

@@ -63,43 +63,81 @@ def generate_insights(db: Session = Depends(get_db)):
             "SELECT id, type as error_type, context as payload, resolution_action FROM exceptions WHERE status = 'resolved' ORDER BY resolved_at DESC LIMIT 20"
         )).mappings().all()
 
+        # The real people an insight can be assigned to. Passing this in means the
+        # model names an actual rep from the roster instead of inventing someone.
+        sdrs = db.execute(text(
+            "SELECT owner_id, name, email, territory, region, segment, "
+            "current_capacity, max_capacity, active FROM sdr_roster"
+        )).mappings().all()
+
         # Convert to dicts for JSON serialization
         contacts_data = [dict(r) for r in contacts]
         activities_data = [dict(r) for r in activities]
         opportunities_data = [dict(r) for r in opportunities]
         exceptions_data = [dict(r) for r in exceptions]
+        sdr_data = [dict(r) for r in sdrs]
 
         combined_data = {
             "contacts": contacts_data,
             "visitor_activities": activities_data,
             "opportunities": opportunities_data,
             "recent_resolved_exceptions": exceptions_data,
+            "sdr_roster": sdr_data,
         }
 
         _step(
             "fetch_data",
             f"Pulled {len(contacts_data)} contacts, {len(activities_data)} visitor activities, "
-            f"{len(opportunities_data)} opportunities, and {len(exceptions_data)} resolved exceptions from the database.",
+            f"{len(opportunities_data)} opportunities, {len(exceptions_data)} resolved exceptions, "
+            f"and {len(sdr_data)} SDR roster entries from the database.",
         )
 
         prompt = """Analyze this sales intelligence data and generate exactly 3-5 insights.
-For each insight, provide:
+
+EVERY insight must answer three questions explicitly. An insight that does not name a
+person, a concrete next step, and a real consequence is useless — do not produce one.
+
+1. WHO IS THIS FOR?
+   - owner_name: the specific person who must act. Use a REAL name from the `sdr_roster`
+     data whenever the insight concerns their leads, territory, capacity, or deals.
+     Only if the insight is genuinely operation-wide (e.g. a policy or data-quality
+     issue that no single rep owns) may you use a role title such as
+     "Revenue Ops Manager" or "Sales Manager". NEVER invent a person's name.
+   - owner_role: their role and patch, e.g. "SDR — MY Enterprise". Derive from the
+     roster's territory/region/segment fields.
+   - owner_id: the matching `owner_id` from `sdr_roster` (starts with 005). Use null
+     when the owner is a role rather than a specific rostered person.
+
+2. WHAT SHOULD THEY DO NOW?
+   - suggested_action: one concrete, immediately executable instruction addressed to
+     that person. Name the specific records, accounts, or thresholds involved and how
+     many. Good: "Re-assign the 4 overflow leads on the Penang Semiconductor account to
+     Grace Lim before Friday." Bad: "Review lead routing."
+
+3. WHAT HAPPENS IF THEY DON'T?
+   - consequence: the concrete business cost of inaction, quantified from the data
+     where possible — revenue at risk, deals that will stall, compliance exposure,
+     leads that will go cold, SLA breaches. Good: "The 4 leads breach the 24-hour
+     speed-to-lead SLA and ~$180K of pipeline goes cold; Wei Ho stays 2 over capacity
+     so the next inbound lead is also dropped." Bad: "Performance may suffer."
+
+Also provide:
 - type: "pattern", "anomaly", or "recommendation"
 - severity: "critical", "warning", or "info"
 - title: a short descriptive title
-- description: 1-2 sentence explanation
+- description: 1-2 sentence explanation of what you observed in the data
 - confidence: a float between 0.0 and 1.0
-- suggested_action: what should be done about this
 - action_type: "create_policy", "investigate", "review_duplicate", or "optimize"
 - data: if action_type is "create_policy", include a JSON dict with "policy_type" ("natural_language"), "natural_language" (the rule), and "entity_name"
 
 Return a JSON array of insight objects. YOU MUST FOCUS ON:
 1. Pattern recognition for buying probability: Correlate VisitorActivities and Contact data with Opportunities where IsWon=True to identify which patterns (e.g., campaigns, specific web pages, regions) have a higher probability of buying stuff.
 2. Automation from Exceptions: Analyze the `recent_resolved_exceptions`. If human operators have manually performed the same `resolution_action` (e.g., mapping fields, merging records like 'IBM' and 'Intl Business Machines') multiple times, generate a Recommendation with action_type="create_policy" asking the user: "Human operators manually performed X recently. Would you like me to create an AI Policy to automate this in the future?". Provide the policy details in the `data` field.
+3. Rep-level operational risk: over-capacity SDRs, stalled deals, and unworked high-intent leads — these map naturally onto a named owner from the roster.
 
 Be specific about the numbers you see in the data."""
 
-        _step("build_prompt", "Constructed analysis prompt focusing on buying-probability patterns and exception-based automation opportunities.")
+        _step("build_prompt", "Constructed analysis prompt requiring each insight to name an owner (from the SDR roster), a concrete next action, and the consequence of inaction.")
 
         result, llm_meta = llm.smart_json(prompt=prompt, data=combined_data)
         _step(
@@ -126,7 +164,11 @@ Be specific about the numbers you see in the data."""
                 title=item.get("title", "Generated Insight"),
                 description=item.get("description", ""),
                 data=insight_data,
+                owner_name=item.get("owner_name"),
+                owner_role=item.get("owner_role"),
+                owner_id=item.get("owner_id"),
                 suggested_action=item.get("suggested_action"),
+                consequence=item.get("consequence"),
                 action_type=item.get("action_type"),
                 confidence=item.get("confidence", 0.5) or 0.0,
             )
@@ -200,7 +242,19 @@ def self_learn(db: Session = Depends(get_db)):
                 "entity_name": "exception",
                 "learned_from": {"exception_type": exc_type, "occurrences": count},
             },
-            suggested_action=f"Create an AI Policy to auto-approve '{exc_type}' exceptions",
+            # This is an operation-wide governance decision, not one rep's job.
+            owner_name="Revenue Ops Manager",
+            owner_role="Owner of the AI Policies engine",
+            owner_id=None,
+            suggested_action=(
+                f"Open AI Policies and create the suggested rule so '{exc_type}' exceptions "
+                f"with confidence above 80% are auto-approved instead of queued for a human."
+            ),
+            consequence=(
+                f"Operators keep clearing '{exc_type}' exceptions by hand — at the current rate "
+                f"that is {count} repeat resolutions already, and every future one costs review "
+                f"time and delays the affected leads while they sit in the Workbench queue."
+            ),
             action_type="create_policy",
             confidence=min(0.5 + 0.1 * count, 0.95),
         )

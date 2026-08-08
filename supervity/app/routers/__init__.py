@@ -24,6 +24,8 @@ from .ai_policies import router as ai_policies_router
 from .ai_chat import router as ai_chat_router
 from .operators import router as operators_router
 from .workbench import router as workbench_router
+from .knowledge_base import router as knowledge_base_router
+from .org import router as org_router
 
 __all__ = [
     "admin_router",
@@ -46,4 +48,6 @@ __all__ = [
     "settings_router",
     "operators_router",
     "workbench_router",
+    "knowledge_base_router",
+    "org_router",
 ]

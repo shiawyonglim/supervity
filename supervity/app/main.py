@@ -45,6 +45,8 @@ from .routers import (
     operators_router,
     contacts_router,
     workbench_router,
+    knowledge_base_router,
+    org_router,
 )
 from .security import get_current_user, verify_access
 
@@ -81,6 +83,17 @@ def on_startup():
     # Create all tables (does not overwrite existing ones)
     Base.metadata.create_all(bind=engine)
     log.info("Database tables verified/created.")
+
+    # create_all() does not add new columns to pre-existing tables — patch those in.
+    from .core.schema_patch import apply_additive_columns
+    apply_additive_columns(engine)
+
+    from .core.database import SessionLocal
+    from .services.knowledge_base_seed import seed_default_documents
+    from .services.org_seed import seed_org_hierarchy
+    with SessionLocal() as db:
+        seed_default_documents(db)
+        seed_org_hierarchy(db)
 
 # =============================================================================
 # MIDDLEWARE CONFIGURATION
@@ -157,6 +170,8 @@ api_router.include_router(settings_router)
 api_router.include_router(operators_router)
 api_router.include_router(contacts_router)
 api_router.include_router(workbench_router)
+api_router.include_router(knowledge_base_router)
+api_router.include_router(org_router)
 
 
 # =============================================================================

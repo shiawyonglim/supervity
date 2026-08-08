@@ -13,7 +13,14 @@ class InsightBase(BaseModel):
     title: str
     description: str = ""
     data: Optional[Any] = None
+
+    # WHO this is for / WHAT to do now / WHAT happens if they don't
+    owner_name: Optional[str] = None
+    owner_role: Optional[str] = None
+    owner_id: Optional[str] = None
     suggested_action: Optional[str] = None
+    consequence: Optional[str] = None
+
     action_type: Optional[str] = None
     confidence: float = 0.0
 
