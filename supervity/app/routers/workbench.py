@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from ..core.database import get_db
 from ..models.exception import Exception as ExceptionModel
 from ..services.llm_service import llm
+from ..services.audit import audit, AuditCategory, AuditSeverity
 
 log = logging.getLogger(__name__)
 router = APIRouter(prefix="/workbench", tags=["Workbench Extended"])
@@ -139,3 +140,25 @@ def draft_email(req: DraftEmailRequest):
     except Exception as e:
         log.error(f"Draft email error: {e}")
         raise HTTPException(status_code=500, detail="Failed to draft email")
+
+
+class SendEmailRequest(BaseModel):
+    to: str
+    subject: str
+    body: str
+
+
+@router.post("/send-email")
+def send_email(req: SendEmailRequest):
+    """Queue an email to be sent. SMTP is not configured in the hackathon environment; the email is logged for audit."""
+    audit.log_sync(
+        action="communications.send_email",
+        description=f"Queued email to {req.to} with subject '{req.subject}'",
+        category=AuditCategory.DATA,
+        severity=AuditSeverity.INFO,
+        resource_type="email",
+        resource_name=req.subject,
+        metadata={"to": req.to, "subject": req.subject, "body_preview": req.body[:200]},
+        actor={"id": "workbench", "email": "workbench@supervity.ai"},
+    )
+    return {"status": "queued", "to": req.to, "subject": req.subject}

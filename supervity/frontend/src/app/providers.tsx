@@ -5,6 +5,7 @@ import { ToastProvider } from '@/components/ui/toast'
 import { CommandPalette } from '@/components/CommandPalette'
 import { AIProvider } from '@/context/AIContext'
 import { AIManager } from '@/components/ai/AIManager'
+import { RoleProvider } from '@/context/RoleContext'
 
 // Mock session — all components see an authenticated admin user
 const mockSession: {
@@ -28,12 +29,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
       refetchInterval={0}
       refetchOnWindowFocus={false}
     >
-      <AIProvider>
-        {children}
-        <AIManager />
-        <ToastProvider />
-        <CommandPalette />
-      </AIProvider>
+      <RoleProvider>
+        <AIProvider>
+          {children}
+          <AIManager />
+          <ToastProvider />
+          <CommandPalette />
+        </AIProvider>
+      </RoleProvider>
     </SessionProvider>
   )
 }

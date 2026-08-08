@@ -37,7 +37,7 @@ const EMPTY_FORM = { title: '', category: 'reference', content: '' }
 // Component
 // ============================================================================
 
-export function KnowledgeBaseTab() {
+export function KnowledgeBasePanel() {
   const [documents, setDocuments] = useState<KnowledgeDocument[]>([])
   const [preview, setPreview] = useState<KnowledgeBaseText | null>(null)
   const [isLoading, setIsLoading] = useState(true)

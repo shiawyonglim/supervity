@@ -26,6 +26,8 @@ from .operators import router as operators_router
 from .workbench import router as workbench_router
 from .knowledge_base import router as knowledge_base_router
 from .org import router as org_router
+from .cro import router as cro_router
+from .chat import router as chat_router
 
 __all__ = [
     "admin_router",
@@ -50,4 +52,6 @@ __all__ = [
     "workbench_router",
     "knowledge_base_router",
     "org_router",
+    "cro_router",
+    "chat_router",
 ]

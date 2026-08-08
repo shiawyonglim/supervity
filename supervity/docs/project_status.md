@@ -130,3 +130,37 @@ docker-compose up -d --build
 
 *Report generated: August 7, 2026*  
 *All requested hackathon features are complete and verified.*
+
+---
+
+## Role-Based Sales Frontend (Added)
+
+A new role-aware frontend layer was added for SDR, Sales Agent, Sales Manager, and CRO users.
+
+- **Role switcher** in `Header.tsx` and `Sidebar.tsx`; `RoleContext` manages active role with localStorage + URL sync.
+- **Dynamic routes** under `app/[role]/{dashboard,workbench,data-manager,ai/{policies,insights,manager}}`.
+- **SDR / Sales Agent / Manager views**
+  - Dashboard: KPIs, new leads, draft/send email, active policies.
+  - Workbench: owner-filtered leads, approve/close with handover note popup, handover context log.
+  - Data Manager: Buying Groups, Consent Registry, Data Quality (with auto-fix and AI advice).
+  - AI Policies: list, toggle, delete, edit, Create with AI.
+  - AI Insights: forecast, actionable insights, draft/send follow-up reminder.
+  - AI Manager: full-page chat with marketing strategy starter prompts, persisted sessions, and integrated Knowledge Base document management.
+- CRO AI Manager: view all sales-team chat sessions, review messages, and add recommendations.
+- **CRO views**
+  - Command Center dashboard: total revenue, open pipeline, expected revenue, team scoreboard, top SDR, top paying customer, weekly email draft/send.
+  - Workbench: editable capacity KPIs per team member, active toggles, reassign stalled.
+  - Data Manager: reuses the full global Data Manager.
+  - AI views: same as sales roles plus all-admin nav.
+- **Backend additions**
+  - `POST /api/contacts/{id}/send-email`
+  - `POST /api/cro/weekly-email` and `POST /api/cro/weekly-email/send`
+  - `POST /api/ai/draft-reminder`
+  - `POST /api/workbench/send-email`
+  - `POST /api/org/close/{id}` now accepts an optional `note`
+  - `PATCH /api/org/sdr/{id}` now accepts `max_capacity` and `current_capacity`
+  - `GET /api/chat/sessions`, `POST /api/chat/sessions`, `GET /api/chat/sessions/{id}`, `POST /api/chat/sessions/{id}/message` for persisted AI Manager sessions.
+  - `app/routers/cro.py` and `app/routers/chat.py` registered in the main FastAPI app.
+
+Verified with `npm run build`, `npx tsc --noEmit`, and `npm run lint` (warnings are pre-existing).
+

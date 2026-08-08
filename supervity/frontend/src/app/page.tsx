@@ -414,7 +414,7 @@ export default function HomePage() {
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-brand-navy">
               <Icons.checkCircle className="h-5 w-5 text-emerald-500" />
-              What's Live
+              What&apos;s Live
             </CardTitle>
           </CardHeader>
           <CardContent>

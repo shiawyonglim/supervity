@@ -12,6 +12,7 @@ from pydantic import BaseModel
 
 from ..core.database import get_db
 from ..services.llm_service import llm
+from ..services.audit import audit, AuditCategory, AuditSeverity
 
 log = logging.getLogger(__name__)
 
@@ -138,3 +139,29 @@ Here is the data:
     except Exception as e:
         log.error(f"Email draft error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+class EmailSendRequest(BaseModel):
+    subject: str
+    body: str
+
+
+@router.post("/{contact_id}/send-email")
+def send_email(contact_id: str, req: EmailSendRequest, db: Session = Depends(get_db)):
+    """Record an email to be sent to the contact. SMTP is not configured in the hackathon environment, so we log it."""
+    contact = db.execute(text('SELECT "Id", "FirstName", "LastName", "Email" FROM contact WHERE "Id" = :id'), {"id": contact_id}).mappings().first()
+    if not contact:
+        raise HTTPException(status_code=404, detail="Contact not found")
+
+    audit.log_sync(
+        action="communications.send_email",
+        description=f"Queued email to {contact.get('FirstName', '')} {contact.get('LastName', '')} ({contact.get('Email', '')})",
+        category=AuditCategory.DATA,
+        severity=AuditSeverity.INFO,
+        resource_type="contact",
+        resource_id=contact_id,
+        metadata={"subject": req.subject, "body_preview": req.body[:200]},
+        actor={"id": "sales-dashboard", "email": "sales-dashboard@supervity.ai"},
+    )
+
+    return {"status": "queued", "contact_id": contact_id, "subject": req.subject}

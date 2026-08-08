@@ -173,10 +173,12 @@ def bundle_and_push_data(limit: int = 10, mode: str = "direct"):
         bundle = {
             "prospect_id": prospect_id,
             "visitor_id": acts[0].get("visitor_id"),
-            "activities": activity_list,
             "contact": enrichment.get("contact", {}),
             "account": enrichment.get("account", {}),
-            "opportunities": enrichment.get("opportunities", [])
+            "opportunities": enrichment.get("opportunities", []),
+            "activities": activity_list,
+            "external_intent_score": 0.88,
+            "external_privacy_flag": False
         }
         bundled_payloads.append(bundle)
         

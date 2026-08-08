@@ -198,6 +198,8 @@ def get_chain(owner_id: str, db: Session = Depends(get_db)):
 class SdrLinkUpdate(BaseModel):
     sales_agent_id: Optional[str] = None
     active: Optional[bool] = None
+    max_capacity: Optional[int] = None
+    current_capacity: Optional[int] = None
 
 
 class AgentUpdate(BaseModel):
@@ -227,6 +229,12 @@ def update_sdr_link(owner_id: str, body: SdrLinkUpdate, db: Session = Depends(ge
     if body.active is not None:
         db.execute(text("UPDATE sdr_roster SET active = :a WHERE owner_id = :id"),
                    {"a": body.active, "id": owner_id})
+    if body.max_capacity is not None:
+        db.execute(text("UPDATE sdr_roster SET max_capacity = :m WHERE owner_id = :id"),
+                   {"m": body.max_capacity, "id": owner_id})
+    if body.current_capacity is not None:
+        db.execute(text("UPDATE sdr_roster SET current_capacity = :c WHERE owner_id = :id"),
+                   {"c": body.current_capacity, "id": owner_id})
     db.commit()
     return {"status": "success", "owner_id": owner_id, **body.model_dump(exclude_unset=True)}
 
@@ -274,6 +282,10 @@ def update_manager(manager_id: str, body: ManagerUpdate, db: Session = Depends(g
 class HandoverRequest(BaseModel):
     note: Optional[str] = None
     stage: Optional[str] = None  # optional explicit lead stage override
+
+
+class CloseRequest(BaseModel):
+    note: Optional[str] = None
 
 
 def _load_contact(db: Session, contact_id: str) -> dict:
@@ -368,7 +380,7 @@ def handover_contact(contact_id: str, body: HandoverRequest, db: Session = Depen
 
 
 @router.post("/close/{contact_id}")
-def close_deal(contact_id: str, db: Session = Depends(get_db)):
+def close_deal(contact_id: str, body: CloseRequest, db: Session = Depends(get_db)):
     """Manager closes: lead stage -> Customer, the contact's open opportunities -> Closed Won."""
     contact = _load_contact(db, contact_id)
     owner = resolve_owner(db, contact["OwnerId"])
@@ -387,22 +399,22 @@ def close_deal(contact_id: str, db: Session = Depends(get_db)):
 
     _adjust_capacity(db, owner, -1)
 
-    note = f"{owner['name']} (Manager) closed the deal — signature secured. {won} opportunity(ies) marked Closed Won."
+    close_note = body.note or f"{owner['name']} (Manager) closed the deal — signature secured. {won} opportunity(ies) marked Closed Won."
     db.add(HandoverLog(
         contact_id=contact_id, account_id=contact.get("AccountId"),
         from_owner_id=owner["owner_id"], from_role="manager",
         to_owner_id=owner["owner_id"], to_role="manager",
-        from_stage=from_stage, to_stage="Customer", reason="close", note=note,
+        from_stage=from_stage, to_stage="Customer", reason="close", note=close_note,
     ))
     db.commit()
 
     audit.log_sync(
-        action="org.close", description=note, category=AuditCategory.DATA,
+        action="org.close", description=close_note, category=AuditCategory.DATA,
         severity=AuditSeverity.INFO, resource_type="contact", resource_id=contact_id,
         actor={"id": "system", "email": "org_flow@supervity.ai"},
     )
     return {"status": "success", "contact_id": contact_id, "stage": {"from": from_stage, "to": "Customer"},
-            "opportunities_won": won, "note": note}
+            "opportunities_won": won, "note": close_note}
 
 
 # =========================================================================

@@ -15,6 +15,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { useSession } from 'next-auth/react'
+import { useRole, type AppRole, ROLE_META } from '@/context/RoleContext'
 
 // Sidebar context for collapse state
 interface SidebarContextType {
@@ -57,29 +58,82 @@ interface NavSection {
   items: NavItem[]
 }
 
-const navItems: NavSection[] = [
-  {
-    title: 'Platform',
-    items: [
-      { href: '/', label: 'Dashboard', icon: Icons.dashboard },
-      { href: '/workbench', label: 'Workbench', icon: Icons.workbench },
-      { href: '/data-manager', label: 'Data Manager', icon: Icons.table2 },
-    ],
-  },
-  {
-    title: 'AI Intelligence',
-    items: [
-      { href: '/ai/policies', label: 'AI Policies', icon: Icons.brain },
-      { href: '/ai/insights', label: 'AI Insights', icon: Icons.lightbulb },
-    ],
-  },
-  {
-    title: 'System',
-    items: [
-      { href: '/settings', label: 'Settings', icon: Icons.settings },
-    ],
-  },
+const adminNavItems: NavSection[] = [
+  { title: 'User Management', items: [
+    { href: '/admin/users', label: 'Users', icon: Icons.user, adminOnly: true },
+    { href: '/admin/groups', label: 'Groups', icon: Icons.users, adminOnly: true },
+    { href: '/admin/roles', label: 'Roles', icon: Icons.shield, adminOnly: true },
+  ]},
+  { title: 'Audit & Events', items: [
+    { href: '/admin/audit', label: 'Audit Logs', icon: Icons.fileText, adminOnly: true },
+    { href: '/admin/events', label: 'Events', icon: Icons.activity, adminOnly: true },
+    { href: '/admin/sessions', label: 'Sessions', icon: Icons.clock, adminOnly: true },
+  ]},
+  { title: 'Configuration', items: [
+    { href: '/admin/settings', label: 'Admin Settings', icon: Icons.settings, adminOnly: true },
+  ]},
 ]
+
+function getNavItems(role: AppRole): NavSection[] {
+  if (role === 'admin') {
+    return [
+      {
+        title: 'Platform',
+        items: [
+          { href: '/', label: 'Dashboard', icon: Icons.dashboard },
+          { href: '/workbench', label: 'Workbench', icon: Icons.workbench },
+          { href: '/data-manager', label: 'Data Manager', icon: Icons.table2 },
+        ],
+      },
+      {
+        title: 'AI Intelligence',
+        items: [
+          { href: '/ai/policies', label: 'AI Policies', icon: Icons.brain },
+          { href: '/ai/insights', label: 'AI Insights', icon: Icons.lightbulb },
+        ],
+      },
+      ...adminNavItems,
+      {
+        title: 'System',
+        items: [
+          { href: '/settings', label: 'Settings', icon: Icons.settings },
+        ],
+      },
+    ]
+  }
+
+  const prefix = `/${role}`
+  const sections: NavSection[] = [
+    {
+      title: `${ROLE_META[role].label} Workspace`,
+      items: [
+        { href: `${prefix}/dashboard`, label: 'Dashboard', icon: Icons.dashboard },
+        { href: `${prefix}/workbench`, label: 'Workbench', icon: Icons.workbench },
+        { href: `${prefix}/data-manager`, label: 'Data Manager', icon: Icons.table2 },
+      ],
+    },
+    {
+      title: 'AI Intelligence',
+      items: [
+        { href: `${prefix}/ai/policies`, label: 'AI Policies', icon: Icons.brain },
+        { href: `${prefix}/ai/insights`, label: 'AI Insights', icon: Icons.lightbulb },
+        { href: `${prefix}/ai/manager`, label: 'AI Manager', icon: Icons.sparkles },
+      ],
+    },
+    {
+      title: 'System',
+      items: [
+        { href: '/settings', label: 'Settings', icon: Icons.settings },
+      ],
+    },
+  ]
+
+  if (role === 'cro') {
+    sections.push({ title: 'Administration', items: adminNavItems.flatMap(s => s.items) })
+  }
+
+  return sections
+}
 
 // Navigation Link Component
 interface NavLinkProps {
@@ -162,6 +216,7 @@ function NavLink({
 // User section at bottom of sidebar
 function SidebarUser({ isCollapsed }: { isCollapsed: boolean }) {
   const { data: session } = useSession()
+  const { roleMeta } = useRole()
   const basePath = process.env.NEXT_PUBLIC_BASE_PATH || ''
 
   if (!session?.user) return null
@@ -190,6 +245,11 @@ function SidebarUser({ isCollapsed }: { isCollapsed: boolean }) {
           <p className='truncate text-xs text-brand-muted'>
             {session.user.email}
           </p>
+          <p className='mt-1 truncate text-[10px] font-semibold'>
+            <span className={cn('rounded border px-1.5 py-0.5 uppercase tracking-wide', roleMeta.color)}>
+              {roleMeta.shortLabel}
+            </span>
+          </p>
         </div>
       )}
 
@@ -212,16 +272,16 @@ function SidebarUser({ isCollapsed }: { isCollapsed: boolean }) {
 
 export function Sidebar() {
   const { isCollapsed, setIsCollapsed } = useSidebar()
-  const { data: session } = useSession()
+  const { activeRole } = useRole()
 
-  // Check if user is admin
-  const isAdmin = session?.roles?.includes('admin')
+  // Build navigation from active role
+  const navItems = getNavItems(activeRole)
 
   // Filter navigation items based on user role
   const filteredNavItems = navItems
     .map((section) => ({
       ...section,
-      items: section.items.filter((item) => !item.adminOnly || isAdmin),
+      items: section.items.filter((item) => !item.adminOnly || activeRole === 'admin' || activeRole === 'cro'),
     }))
     .filter((section) => section.items.length > 0)
 

@@ -8,6 +8,7 @@ import { Avatar } from '@/components/ui/avatar'
 import { Icons } from '@/components/ui/icons'
 import { useAI } from '@/context/AIContext'
 import { NotificationCenter } from '@/components/NotificationCenter'
+import { RoleSwitcher } from './RoleSwitcher'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -300,6 +301,9 @@ export function Header({ onOpenMobileMenu }: HeaderProps) {
 
         {/* AI Manager */}
         <AIManagerTrigger />
+
+        {/* Role Switcher */}
+        <RoleSwitcher />
 
         {/* Notifications */}
         <NotificationCenter />

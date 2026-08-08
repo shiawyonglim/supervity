@@ -21,6 +21,7 @@ from sqlalchemy.orm import Session
 
 from ..core.database import get_db
 from ..services.llm_service import llm
+from ..services.audit import audit, AuditCategory, AuditSeverity
 
 log = logging.getLogger(__name__)
 
@@ -202,3 +203,46 @@ def ai_chat(req: ChatRequest, db: Session = Depends(get_db)):
         "model_used": model_used,
         "llm_notice": llm_notice,
     }
+
+
+class DraftReminderRequest(BaseModel):
+    owner_name: str
+    owner_email: str
+    insight_title: str
+    insight_description: str
+    suggested_action: str
+    consequence: str
+
+
+@router.post("/draft-reminder")
+def draft_reminder(req: DraftReminderRequest):
+    """Draft a follow-up reminder email to an insight owner."""
+    prompt = f"""You are the sales operations assistant for a revenue command center.
+
+Write a concise, urgent follow-up email to {req.owner_name} ({req.owner_email}) about this insight:
+
+Title: {req.insight_title}
+Description: {req.insight_description}
+Suggested action: {req.suggested_action}
+Risk if no follow-up is made: {req.consequence}
+
+Return ONLY a JSON object with two keys:
+- subject: a clear, action-oriented email subject
+- body: a short, professional email body in plain text with newlines
+"""
+    try:
+        result = llm.gemini_json(prompt=prompt, data={})
+        audit.log_sync(
+            action="ai.draft_reminder",
+            description=f"Drafted reminder email to {req.owner_name}.",
+            category=AuditCategory.DATA,
+            severity=AuditSeverity.INFO,
+            resource_type="insight",
+            resource_name=req.insight_title,
+            metadata={"owner_email": req.owner_email},
+            actor={"id": "ai-insights", "email": "ai-insights@supervity.ai"},
+        )
+        return {"subject": result.get("subject", "Follow-up required"), "body": result.get("body", "")}
+    except Exception as e:
+        log.error(f"Draft reminder error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to draft reminder email")

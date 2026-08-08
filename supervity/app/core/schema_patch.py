@@ -31,6 +31,8 @@ ADDITIVE_COLUMNS = [
     # leads up to. `sdr_roster` is a raw CSV-seeded table, so create_all cannot
     # add this — patch it in here.
     ("sdr_roster", "sales_agent_id", "VARCHAR(50)"),
+    ("sdr_roster", "max_capacity", "INTEGER"),
+    ("sdr_roster", "current_capacity", "INTEGER"),
 ]
 
 

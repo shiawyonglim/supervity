@@ -2,6 +2,7 @@
 # Core Application Dependencies
 fastapi
 uvicorn
+uvicorn-worker
 gunicorn
 python-jose[cryptography]
 requests
