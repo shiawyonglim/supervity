@@ -10,6 +10,7 @@ from ..core.database import get_db
 from ..models.exception import Exception as ExceptionModel
 from ..services.llm_service import llm
 from ..services.audit import audit, AuditCategory, AuditSeverity
+from ..services.email_service import send_email as send_email_via_smtp
 
 log = logging.getLogger(__name__)
 router = APIRouter(prefix="/workbench", tags=["Workbench Extended"])
@@ -150,15 +151,20 @@ class SendEmailRequest(BaseModel):
 
 @router.post("/send-email")
 def send_email(req: SendEmailRequest):
-    """Queue an email to be sent. SMTP is not configured in the hackathon environment; the email is logged for audit."""
-    audit.log_sync(
-        action="communications.send_email",
-        description=f"Queued email to {req.to} with subject '{req.subject}'",
-        category=AuditCategory.DATA,
-        severity=AuditSeverity.INFO,
-        resource_type="email",
-        resource_name=req.subject,
-        metadata={"to": req.to, "subject": req.subject, "body_preview": req.body[:200]},
-        actor={"id": "workbench", "email": "workbench@supervity.ai"},
-    )
-    return {"status": "queued", "to": req.to, "subject": req.subject}
+    """Send an email using the EmailService."""
+    success = send_email_via_smtp(req.to, req.subject, req.body)
+    
+    if success:
+        audit.log_sync(
+            action="communications.send_email",
+            description=f"Sent email to {req.to} with subject '{req.subject}'",
+            category=AuditCategory.DATA,
+            severity=AuditSeverity.INFO,
+            resource_type="email",
+            resource_name=req.subject,
+            metadata={"to": req.to, "subject": req.subject, "body_preview": req.body[:200]},
+            actor={"id": "workbench", "email": "workbench@supervity.ai"},
+        )
+        return {"status": "sent", "to": req.to, "subject": req.subject}
+    else:
+        raise HTTPException(status_code=500, detail="Failed to send email. Check credentials.")

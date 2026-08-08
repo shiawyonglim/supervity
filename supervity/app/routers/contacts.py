@@ -2,6 +2,7 @@
 """Endpoints for User Communications and email drafting in Workbench."""
 
 import logging
+import threading
 from typing import List, Optional, Any
 from datetime import datetime
 
@@ -13,6 +14,7 @@ from pydantic import BaseModel
 from ..core.database import get_db
 from ..services.audit import audit, AuditCategory, AuditSeverity
 from ..services.operators import MasterOrchestrator
+from ..services.email_service import send_email as send_email_via_smtp
 
 log = logging.getLogger(__name__)
 
@@ -494,22 +496,54 @@ class EmailSendRequest(BaseModel):
     body: str
 
 
+def _trigger_send_operator(contact_id: str, subject: str, body: str, contact: dict):
+    """Fire the Master Orchestrator in the background so sending an email is handed to the Supervity Auto workflow."""
+    payload = {
+        "prospect_id": contact_id,
+        "action": "send_email",
+        "contact": contact,
+        "email": {"subject": subject, "body": body},
+    }
+    try:
+        result = MasterOrchestrator.process_lead(payload)
+        log.info(f"Send operator result for {contact_id}: {result}")
+    except Exception as e:
+        log.error(f"Send operator failed for {contact_id}: {e}")
+
+
 @router.post("/{contact_id}/send-email")
 def send_email(contact_id: str, req: EmailSendRequest, db: Session = Depends(get_db)):
-    """Record an email to be sent to the contact. SMTP is not configured in the hackathon environment, so we log it."""
+    """Send an email using Outlook SMTP in addition to tracking."""
     contact = db.execute(text('SELECT "Id", "FirstName", "LastName", "Email" FROM contact WHERE "Id" = :id'), {"id": contact_id}).mappings().first()
     if not contact:
         raise HTTPException(status_code=404, detail="Contact not found")
 
-    audit.log_sync(
-        action="communications.send_email",
-        description=f"Queued email to {contact.get('FirstName', '')} {contact.get('LastName', '')} ({contact.get('Email', '')})",
-        category=AuditCategory.DATA,
-        severity=AuditSeverity.INFO,
-        resource_type="contact",
-        resource_id=contact_id,
-        metadata={"subject": req.subject, "body_preview": req.body[:200]},
-        actor={"id": "sales-dashboard", "email": "sales-dashboard@supervity.ai"},
-    )
+    contact_dict = dict(contact)
+    to_email = contact_dict.get('Email', '')
 
-    return {"status": "queued", "contact_id": contact_id, "subject": req.subject}
+    if not to_email:
+        raise HTTPException(status_code=400, detail="Contact has no email address")
+
+    success = send_email_via_smtp(to_email, req.subject, req.body)
+
+    if success:
+        # We can still trigger the orchestrator if we want to log the AI workflow, or just rely on SMTP
+        threading.Thread(
+            target=_trigger_send_operator,
+            args=(contact_id, req.subject, req.body, contact_dict),
+            daemon=True,
+        ).start()
+
+        audit.log_sync(
+            action="communications.send_email",
+            description=f"Sent email to {contact_dict.get('FirstName', '')} {contact_dict.get('LastName', '')} ({to_email})",
+            category=AuditCategory.DATA,
+            severity=AuditSeverity.INFO,
+            resource_type="contact",
+            resource_id=contact_id,
+            metadata={"subject": req.subject, "body_preview": req.body[:200]},
+            actor={"id": "sales-dashboard", "email": "sales-dashboard@supervity.ai"},
+        )
+        return {"status": "sent", "to": to_email}
+    else:
+        raise HTTPException(status_code=500, detail="Failed to send email via Outlook SMTP.")
