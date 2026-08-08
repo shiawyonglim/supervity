@@ -162,7 +162,14 @@ A new role-aware frontend layer was added for SDR, Sales Agent, Sales Manager, a
   - `PATCH /api/org/sdr/{id}` now accepts `max_capacity` and `current_capacity`
   - `GET /api/chat/sessions`, `POST /api/chat/sessions`, `GET /api/chat/sessions/{id}`, `POST /api/chat/sessions/{id}/message` for persisted AI Manager sessions.
   - `GET /api/contacts/{id}` returns full contact details, account, visitor activity, computed intent score, privacy status, and email history.
-  - `POST /api/contacts/{id}/draft` triggers the Supervity Master Orchestrator (`019fd5dd-4f56-7000-8641-9bfdd6c1e3e1`) using the full lead payload (contact, account, activities, intent, privacy, history, knowledge base). It parses the SSE stream, extracts the generated email, and falls back to a rule-based draft if the orchestrator is unavailable.
+  - `POST /api/contacts/{id}/draft` triggers the Supervity Master Orchestrator (`019fd5dd-4f56-7000-8641-9bfdd6c1e3e1`) using the full lead payload and falls back to a rule-based draft if the orchestrator is unavailable.
+  - `POST /api/contacts/{id}/send-email` stores the email in `email_log`, attempts Outlook SMTP delivery, and triggers the Master Orchestrator in the background.
+  - `GET /api/contacts/{id}/context` and `POST /api/contacts/{id}/learn` generate user-facing context and AI learnings, with extra depth when intent score > 90.
+  - `GET /api/contacts/{id}/learnings` returns stored AI learnings.
+  - `PUT /api/contacts/{id}/stage` updates a contact's lead stage and audits the change.
+  - `GET /api/reports/weekly` returns a weekly report with role leaderboards, revenue, pipeline, and expected closes.
+  - New ORM tables: `email_log`, `learning`, `contact_context`.
+  - Outlook auto listener (IMAP) runs at startup, storing received emails into `email_log`.
   - `app/routers/cro.py` and `app/routers/chat.py` registered in the main FastAPI app.
 
 Verified with `npm run build`, `npx tsc --noEmit`, and `npm run lint` (warnings are pre-existing).

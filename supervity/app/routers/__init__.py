@@ -28,6 +28,7 @@ from .knowledge_base import router as knowledge_base_router
 from .org import router as org_router
 from .cro import router as cro_router
 from .chat import router as chat_router
+from .reports import router as reports_router
 
 __all__ = [
     "admin_router",
@@ -54,4 +55,5 @@ __all__ = [
     "org_router",
     "cro_router",
     "chat_router",
+    "reports_router",
 ]

@@ -81,6 +81,7 @@ function getNavItems(role: AppRole): NavSection[] {
         title: 'Platform',
         items: [
           { href: '/', label: 'Dashboard', icon: Icons.dashboard },
+          { href: '/reports', label: 'Weekly Report', icon: Icons.barChart },
           { href: '/workbench', label: 'Workbench', icon: Icons.workbench },
           { href: '/data-manager', label: 'Data Manager', icon: Icons.table2 },
         ],
@@ -108,6 +109,7 @@ function getNavItems(role: AppRole): NavSection[] {
       title: `${ROLE_META[role].label} Workspace`,
       items: [
         { href: `${prefix}/dashboard`, label: 'Dashboard', icon: Icons.dashboard },
+        { href: `${prefix}/reports`, label: 'Weekly Report', icon: Icons.barChart },
         { href: `${prefix}/workbench`, label: 'Workbench', icon: Icons.workbench },
         { href: `${prefix}/data-manager`, label: 'Data Manager', icon: Icons.table2 },
       ],

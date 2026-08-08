@@ -14,6 +14,7 @@ from pydantic import BaseModel
 from ..core.database import get_db
 from ..services.audit import audit, AuditCategory, AuditSeverity
 from ..services.operators import MasterOrchestrator
+from ..services.learning_service import ensure_contact_context, generate_learnings, get_contact_contexts, get_contact_learnings
 from ..services.email_service import send_email as send_email_via_smtp
 
 log = logging.getLogger(__name__)
@@ -473,7 +474,9 @@ def draft_email(contact_id: str, req: EmailDraftRequest, db: Session = Depends(g
         }
 
         try:
-            operator_result = MasterOrchestrator.process_lead(lead_payload)
+            # Call the Master Orchestrator with a short timeout so the user isn't
+            # left waiting if the workflow is slow or unavailable.
+            operator_result = MasterOrchestrator.process_lead(lead_payload, timeout=8)
 
             if isinstance(operator_result, dict) and "subject" in operator_result and "body" in operator_result:
                 return EmailDraftResponse(
@@ -524,26 +527,138 @@ def send_email(contact_id: str, req: EmailSendRequest, db: Session = Depends(get
     if not to_email:
         raise HTTPException(status_code=400, detail="Contact has no email address")
 
-    success = send_email_via_smtp(to_email, req.subject, req.body)
+    success = send_email_via_smtp(to_email, req.subject, req.body, contact_id=contact_id)
 
-    if success:
-        # We can still trigger the orchestrator if we want to log the AI workflow, or just rely on SMTP
-        threading.Thread(
-            target=_trigger_send_operator,
-            args=(contact_id, req.subject, req.body, contact_dict),
-            daemon=True,
-        ).start()
+    # Always hand the send action to the Master Orchestrator so the AI workflow can
+    # augment delivery, log context, or trigger downstream actions.
+    threading.Thread(
+        target=_trigger_send_operator,
+        args=(contact_id, req.subject, req.body, contact_dict),
+        daemon=True,
+    ).start()
 
-        audit.log_sync(
-            action="communications.send_email",
-            description=f"Sent email to {contact_dict.get('FirstName', '')} {contact_dict.get('LastName', '')} ({to_email})",
-            category=AuditCategory.DATA,
-            severity=AuditSeverity.INFO,
-            resource_type="contact",
-            resource_id=contact_id,
-            metadata={"subject": req.subject, "body_preview": req.body[:200]},
-            actor={"id": "sales-dashboard", "email": "sales-dashboard@supervity.ai"},
-        )
-        return {"status": "sent", "to": to_email}
-    else:
-        raise HTTPException(status_code=500, detail="Failed to send email via Outlook SMTP.")
+    status = "sent" if success else "queued"
+    audit.log_sync(
+        action="communications.send_email",
+        description=f"{status.capitalize()} email to {contact_dict.get('FirstName', '')} {contact_dict.get('LastName', '')} ({to_email})",
+        category=AuditCategory.DATA,
+        severity=AuditSeverity.INFO,
+        resource_type="contact",
+        resource_id=contact_id,
+        metadata={"subject": req.subject, "body_preview": req.body[:200], "smtp_success": success},
+        actor={"id": "sales-dashboard", "email": "sales-dashboard@supervity.ai"},
+    )
+    return {"status": status, "to": to_email, "smtp_success": success}
+
+
+@router.get("/{contact_id}/context")
+def get_context(contact_id: str, db: Session = Depends(get_db)):
+    """Return user-facing context snippets for a contact, generating one if missing."""
+    try:
+        ensure_contact_context(db, contact_id)
+        contexts = get_contact_contexts(db, contact_id)
+        return {
+            "contact_id": contact_id,
+            "contexts": [
+                {
+                    "id": c.id,
+                    "type": c.context_type,
+                    "content": c.content,
+                    "generated_by": c.generated_by,
+                    "priority": c.priority,
+                    "created_at": c.created_at,
+                }
+                for c in contexts
+            ],
+        }
+    except Exception as e:
+        log.error(f"Context error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/{contact_id}/learn")
+def learn_contact(contact_id: str, db: Session = Depends(get_db)):
+    """Generate AI learnings for a contact, with extra depth for high-intent contacts."""
+    try:
+        learnings = generate_learnings(db, contact_id)
+        # Also refresh the user-facing context after learning
+        ensure_contact_context(db, contact_id, force=True)
+        return {
+            "contact_id": contact_id,
+            "generated": len(learnings),
+            "learnings": [
+                {
+                    "id": l.id,
+                    "category": l.category,
+                    "insight": l.insight,
+                    "source": l.source,
+                    "confidence": l.confidence,
+                    "sample_text": l.sample_text,
+                    "reviewed": l.reviewed,
+                }
+                for l in learnings
+            ],
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        log.error(f"Learning error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/{contact_id}/learnings")
+def get_learnings(contact_id: str, db: Session = Depends(get_db)):
+    """Return stored AI learnings for a contact."""
+    return {
+        "contact_id": contact_id,
+        "learnings": [
+            {
+                "id": l.id,
+                "category": l.category,
+                "insight": l.insight,
+                "source": l.source,
+                "confidence": l.confidence,
+                "sample_text": l.sample_text,
+                "reviewed": l.reviewed,
+            }
+            for l in get_contact_learnings(db, contact_id)
+        ],
+    }
+
+
+class StageUpdateRequest(BaseModel):
+    lead_stage: str
+
+
+@router.put("/{contact_id}/stage")
+def update_lead_stage(contact_id: str, req: StageUpdateRequest, db: Session = Depends(get_db)):
+    """Update a contact's lead stage and log the change."""
+    contact = db.execute(text('SELECT "Id", "FirstName", "LastName", "Lead_Stage__c", "Email" FROM contact WHERE "Id" = :id'), {"id": contact_id}).mappings().first()
+    if not contact:
+        raise HTTPException(status_code=404, detail="Contact not found")
+
+    old_stage = contact.get("Lead_Stage__c") or "Open"
+    new_stage = req.lead_stage
+
+    db.execute(
+        text('UPDATE contact SET "Lead_Stage__c" = :stage WHERE "Id" = :id'),
+        {"stage": new_stage, "id": contact_id},
+    )
+    db.commit()
+
+    audit.log_sync(
+        action="contact.stage_change",
+        description=f"Changed lead stage for {contact.get('FirstName', '')} {contact.get('LastName', '')} from {old_stage} to {new_stage}",
+        category=AuditCategory.DATA,
+        severity=AuditSeverity.INFO,
+        resource_type="contact",
+        resource_id=contact_id,
+        metadata={"old_stage": old_stage, "new_stage": new_stage},
+        actor={"id": "sales-dashboard", "email": "sales-dashboard@supervity.ai"},
+    )
+
+    return {
+        "contact_id": contact_id,
+        "old_stage": old_stage,
+        "new_stage": new_stage,
+    }

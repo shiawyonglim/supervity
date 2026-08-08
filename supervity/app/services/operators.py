@@ -7,6 +7,7 @@ import json
 import logging
 import os
 import re
+import time
 from typing import Any, Dict, List, Optional, Tuple
 
 import requests
@@ -149,13 +150,19 @@ def _extract_email_draft(payload: Dict[str, Any], original_subject: str) -> Opti
     return None
 
 
-def _parse_sse_stream(response) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
-    """Parse a Supervity SSE stream and return the final result payload or error."""
+def _parse_sse_stream(response, max_seconds: Optional[int] = None) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
+    """Parse a Supervity SSE stream and return the final result payload or error.
+
+    If max_seconds is provided, stop reading and return a timeout if the stream runs longer.
+    """
     events = []
     current_event: Optional[str] = None
     current_data: List[str] = []
+    start = time.monotonic()
 
     for raw in response.iter_lines(decode_unicode=True):
+        if max_seconds is not None and (time.monotonic() - start) > max_seconds:
+            raise RuntimeError("timeout")
         line = (raw or "").strip()
         if not line:
             if current_event and current_data:
@@ -225,6 +232,13 @@ class MasterOrchestrator:
         api_key = os.getenv("WORKFLOW_API_KEY")
         workflow_id = os.getenv("SUPERVITY_WORKFLOW_ID") or DEFAULT_MASTER_WORKFLOW_ID
 
+        # If the env variable is set to something that is not a UUID (e.g. the API key was
+        # accidentally used), fall back to the default master workflow ID.
+        import re
+        if not re.match(r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$", workflow_id):
+            log.warning(f"SUPERVITY_WORKFLOW_ID '{workflow_id[:20]}...' is not a valid UUID; using default {DEFAULT_MASTER_WORKFLOW_ID}")
+            workflow_id = DEFAULT_MASTER_WORKFLOW_ID
+
         if not api_key:
             log.error("WORKFLOW_API_KEY is not set. Cannot trigger Auto.")
             return {"error": "WORKFLOW_API_KEY missing"}
@@ -236,16 +250,20 @@ class MasterOrchestrator:
             "x-user-timezone": "Asia/Kuala_Lumpur"
         }
 
-        payload_json = json.dumps(payload)
+        payload_str = json.dumps(payload)
         knowledge_base_text = _get_knowledge_base_text()
 
+        # The Supervity Auto endpoint expects plain multipart form fields
+        # (matching the existing bundler integration) rather than typed file parts.
         files = {
-            "workflowId": (None, workflow_id, 'text/plain'),
-            "inputs[lead_payload]": (None, payload_json, 'application/json'),
-            "inputs[knowledge_base]": (None, knowledge_base_text, 'text/plain'),
+            "workflowId": (None, workflow_id),
+            "inputs[lead_payload]": (None, payload_str),
+            "inputs[knowledge_base]": (None, knowledge_base_text),
         }
 
         try:
+            # Use the caller's timeout as both per-read and overall deadline so the
+            # stream doesn't hang, but the workflow has a short window to respond.
             response = requests.post(
                 WORKFLOW_URL,
                 headers=headers,
@@ -257,7 +275,7 @@ class MasterOrchestrator:
 
             log.info("--- Supervity Auto triggered successfully ---")
 
-            final_payload, err = _parse_sse_stream(response)
+            final_payload, err = _parse_sse_stream(response, max_seconds=timeout)
             if err:
                 raise RuntimeError(err)
             if not final_payload:

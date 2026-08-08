@@ -75,6 +75,25 @@ interface SentEmail {
   sent_by: string
 }
 
+interface ContactContext {
+  id: number
+  type: string
+  content: string
+  generated_by: string
+  priority: number
+  created_at: string
+}
+
+interface Learning {
+  id: number
+  category: string
+  insight: string
+  source: string
+  confidence: number
+  sample_text: string | null
+  reviewed: boolean
+}
+
 interface ContactDetail {
   id: string
   first_name: string | null
@@ -130,12 +149,16 @@ export function SalesDashboard({ role }: { role: AppRole }) {
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
   const [detailLead, setDetailLead] = useState<Lead | null>(null)
   const [detail, setDetail] = useState<ContactDetail | null>(null)
+  const [contexts, setContexts] = useState<ContactContext[]>([])
+  const [learnings, setLearnings] = useState<Learning[]>([])
   const [detailLoading, setDetailLoading] = useState(false)
   const [draftSubject, setDraftSubject] = useState('')
   const [draftBody, setDraftBody] = useState('')
   const [isDrafting, setIsDrafting] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [sendNotice, setSendNotice] = useState<string | null>(null)
+  const [stageValue, setStageValue] = useState('')
+  const [stageSaving, setStageSaving] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -162,10 +185,25 @@ export function SalesDashboard({ role }: { role: AppRole }) {
   const handleView = async (lead: Lead) => {
     setDetailLead(lead)
     setDetail(null)
+    setContexts([])
+    setLearnings([])
+    setStageValue(lead.lead_stage || 'Open')
     setDetailLoading(true)
     try {
-      const d = await apiClient.get<ContactDetail>(`/api/contacts/${lead.id}`)
+      const [d, ctxRes, learnRes] = await Promise.all([
+        apiClient.get<ContactDetail>(`/api/contacts/${lead.id}`),
+        apiClient.get<{ contexts: ContactContext[] }>(`/api/contacts/${lead.id}/context`),
+        apiClient.get<{ learnings: Learning[] }>(`/api/contacts/${lead.id}/learnings`),
+      ])
       setDetail(d)
+      setContexts(ctxRes.contexts)
+      setLearnings(learnRes.learnings)
+      // If no learnings yet, generate them in the background
+      if (learnRes.learnings.length === 0) {
+        apiClient.post<{ learnings: Learning[] }>(`/api/contacts/${lead.id}/learn`)
+          .then((res) => setLearnings(res.learnings))
+          .catch((err) => console.error('Background learning failed:', err))
+      }
     } catch (err) {
       console.error('Failed to load contact detail:', err)
     } finally {
@@ -211,18 +249,33 @@ export function SalesDashboard({ role }: { role: AppRole }) {
   const handleSend = async () => {
     setIsSending(true)
     try {
-      await apiClient.post(`/api/contacts/${selectedLead?.id}/send-email`, {
+      const res = await apiClient.post<{ status: string; to: string; smtp_success: boolean }>(`/api/contacts/${selectedLead?.id}/send-email`, {
         subject: draftSubject,
         body: draftBody,
       })
-      setSendNotice(`Email queued to ${selectedLead?.first_name || ''} ${selectedLead?.last_name || ''}`.trim())
+      const notice = `Email ${res.status} to ${res.to || `${selectedLead?.first_name || ''} ${selectedLead?.last_name || ''}`.trim()}${res.smtp_success ? '' : ' (SMTP not configured — queued)'}`
+      setSendNotice(notice)
       setSelectedLead(null)
     } catch (err) {
       console.error('Send failed:', err)
-      setSendNotice('Email send not wired to a real provider in this environment.')
+      setSendNotice('Failed to send email.')
     } finally {
       setIsSending(false)
       setTimeout(() => setSendNotice(null), 4000)
+    }
+  }
+
+  const handleStageChange = async () => {
+    if (!detail || !detailLead) return
+    setStageSaving(true)
+    try {
+      await apiClient.put(`/api/contacts/${detail.id}/stage`, { lead_stage: stageValue })
+      setDetail({ ...detail, lead_stage: stageValue })
+      setLeads((prev) => prev.map((l) => (l.id === detail.id ? { ...l, lead_stage: stageValue } : l)))
+    } catch (err) {
+      console.error('Stage change failed:', err)
+    } finally {
+      setStageSaving(false)
     }
   }
 
@@ -255,7 +308,11 @@ export function SalesDashboard({ role }: { role: AppRole }) {
             {meta.label} Dashboard
           </h1>
           <p className='mt-2 text-lg text-muted-foreground'>
-            KPIs, new leads, and active policies for your role.
+            {role === 'sdr' && 'Qualify new leads, review visitor activity, and move them to MQL.'}
+            {role === 'sales_agent' && 'Convert MQLs into opportunities and pitch Supervity.'}
+            {role === 'manager' && 'Close SQLs and coach the team on high-intent deals.'}
+            {role === 'cro' && 'Oversee pipeline, revenue, and AI policy performance across all roles.'}
+            {role === 'admin' && 'KPIs, new leads, and active policies for your role.'}
           </p>
         </div>
         <Badge
@@ -294,6 +351,35 @@ export function SalesDashboard({ role }: { role: AppRole }) {
             </CardContent>
           </Card>
         ))}
+      </motion.div>
+
+      {/* Active AI Policies showcase */}
+      <motion.div variants={itemVariants}>
+        <Card>
+          <CardHeader>
+            <CardTitle className='flex items-center gap-2'>
+              <Icons.brain className='h-5 w-5 text-brand-primary' />
+              AI Policies in Action
+            </CardTitle>
+            <CardDescription>These active policies are currently routing, scoring, and communicating with leads.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {policies.length === 0 ? (
+              <p className='text-sm text-muted-foreground'>No active AI policies.</p>
+            ) : (
+              <div className='flex flex-wrap gap-2'>
+                {policies.map((p) => (
+                  <Badge key={p.id} variant='outline' className='px-2.5 py-1 text-xs'>
+                    {p.name}
+                  </Badge>
+                ))}
+                <Badge className='bg-brand-cornflower/20 px-2.5 py-1 text-xs text-brand-navy'>
+                  {visibleLeads.length} leads matched this view
+                </Badge>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </motion.div>
 
       {/* New Leads */}
@@ -573,6 +659,78 @@ export function SalesDashboard({ role }: { role: AppRole }) {
                           <p className='font-medium text-brand-navy'>{e.subject}</p>
                           <p className='text-xs text-muted-foreground'>Sent {new Date(e.sent_at).toLocaleString()} by {e.sent_by}</p>
                           <p className='mt-1 whitespace-pre-wrap text-xs text-muted-foreground'>{e.body}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Lead Stage */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className='text-sm font-semibold uppercase tracking-wide text-muted-foreground'>Lead Stage</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className='flex items-center gap-3'>
+                    <select
+                      className='h-10 rounded-md border border-input bg-background px-3 py-2 text-sm'
+                      value={stageValue}
+                      onChange={(e) => setStageValue(e.target.value)}
+                    >
+                      <option value='Open'>Open</option>
+                      <option value='MQL'>MQL</option>
+                      <option value='SQL'>SQL</option>
+                      <option value='Opportunity'>Opportunity</option>
+                      <option value='Customer'>Customer</option>
+                    </select>
+                    <Button onClick={handleStageChange} disabled={stageSaving || stageValue === (detail.lead_stage || 'Open')}>
+                      {stageSaving ? <Icons.loader className='mr-2 h-4 w-4 animate-spin' /> : null}
+                      Update Stage
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* AI Context */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className='text-sm font-semibold uppercase tracking-wide text-muted-foreground'>AI Context</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {contexts.length === 0 ? (
+                    <p className='text-sm text-muted-foreground'>No context generated yet.</p>
+                  ) : (
+                    <div className='space-y-3'>
+                      {contexts.map((c) => (
+                        <div key={c.id} className='rounded-lg border bg-slate-50 p-3 text-sm'>
+                          <p className='whitespace-pre-wrap text-brand-navy'>{c.content}</p>
+                          <p className='mt-1 text-[10px] text-muted-foreground'>Generated by {c.generated_by} · {new Date(c.created_at).toLocaleString()}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* AI Learnings */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className='text-sm font-semibold uppercase tracking-wide text-muted-foreground'>AI Learnings</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {learnings.length === 0 ? (
+                    <p className='text-sm text-muted-foreground'>No learnings generated yet. Run a manual analysis from AI Manager.</p>
+                  ) : (
+                    <div className='space-y-3'>
+                      {learnings.map((l) => (
+                        <div key={l.id} className='rounded-lg border p-3 text-sm'>
+                          <div className='mb-1 flex items-center gap-2'>
+                            <Badge variant='secondary' className='text-[10px]'>{l.category}</Badge>
+                            <span className='text-[10px] text-muted-foreground'>{l.confidence}% confidence</span>
+                          </div>
+                          <p className='font-medium text-brand-navy'>{l.insight}</p>
+                          {l.sample_text && <p className='mt-1 text-xs text-muted-foreground'>&ldquo;{l.sample_text.length > 120 ? `${l.sample_text.slice(0, 120)}...` : l.sample_text}&rdquo;</p>}
                         </div>
                       ))}
                     </div>

@@ -154,17 +154,15 @@ def send_email(req: SendEmailRequest):
     """Send an email using the EmailService."""
     success = send_email_via_smtp(req.to, req.subject, req.body)
     
-    if success:
-        audit.log_sync(
-            action="communications.send_email",
-            description=f"Sent email to {req.to} with subject '{req.subject}'",
-            category=AuditCategory.DATA,
-            severity=AuditSeverity.INFO,
-            resource_type="email",
-            resource_name=req.subject,
-            metadata={"to": req.to, "subject": req.subject, "body_preview": req.body[:200]},
-            actor={"id": "workbench", "email": "workbench@supervity.ai"},
-        )
-        return {"status": "sent", "to": req.to, "subject": req.subject}
-    else:
-        raise HTTPException(status_code=500, detail="Failed to send email. Check credentials.")
+    status = "sent" if success else "queued"
+    audit.log_sync(
+        action="communications.send_email",
+        description=f"{status.capitalize()} email to {req.to} with subject '{req.subject}'",
+        category=AuditCategory.DATA,
+        severity=AuditSeverity.INFO,
+        resource_type="email",
+        resource_name=req.subject,
+        metadata={"to": req.to, "subject": req.subject, "body_preview": req.body[:200], "smtp_success": success},
+        actor={"id": "workbench", "email": "workbench@supervity.ai"},
+    )
+    return {"status": status, "to": req.to, "subject": req.subject, "smtp_success": success}

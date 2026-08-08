@@ -24,6 +24,7 @@ from .authz import AuthzEngine
 from .core.database import Base
 from .core.storage import GCSStorage, LocalStorage, StorageBackend
 from .middleware import AuditMiddleware
+from . import models  # ensure all ORM models are registered before create_all
 from .routers import (
     admin_router,
     audit_router,
@@ -49,6 +50,7 @@ from .routers import (
     org_router,
     cro_router,
     chat_router,
+    reports_router,
 )
 from .security import get_current_user, verify_access
 
@@ -93,9 +95,13 @@ def on_startup():
     from .core.database import SessionLocal
     from .services.knowledge_base_seed import seed_default_documents
     from .services.org_seed import seed_org_hierarchy
+    from .services.email_service import start_outlook_listener
     with SessionLocal() as db:
         seed_default_documents(db)
         seed_org_hierarchy(db)
+
+    # Start the Outlook inbox listener so received emails are captured into email_log.
+    start_outlook_listener()
 
 # =============================================================================
 # MIDDLEWARE CONFIGURATION
@@ -175,6 +181,7 @@ api_router.include_router(workbench_router)
 api_router.include_router(knowledge_base_router)
 api_router.include_router(org_router)
 api_router.include_router(cro_router)
+api_router.include_router(reports_router)
 api_router.include_router(chat_router)
 
 
