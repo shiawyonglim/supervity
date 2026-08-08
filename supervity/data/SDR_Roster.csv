@@ -1,7 +1,7 @@
-owner_id,name,email,territory,region,segment,current_capacity,max_capacity,active,
-005AE1,Mei Chen,mei.chen@supervity.ai,MY-Strategic,MY,Enterprise,18,120,TRUE,sa1
-005AE2,Arjun Prakash,arjun.prakash@supervity.ai,IN-Growth,IN,Mid-Market,22,120,TRUE,sa1
-005AE3,Wei Ho,wei.ho@supervity.ai,SG-Strategic,SG,Enterprise,29,120,TRUE,sa1
-005AE4,Priya Nair,priya.nair@supervity.ai,TH-ID-Growth,TH,SMB,12,120,TRUE,sa1
-005AE5,Sanjay Rao,sanjay.rao@supervity.ai,IN-Strategic,IN,Enterprise,9,120,TRUE,sa2
-005AE6,Grace Lim,grace.lim@supervity.ai,MY-Growth,MY,Mid-Market,20,120,FALSE,sa3
+owner_id,name,email,territory,region,segment,current_capacity,max_capacity,active
+005AE1,Mei Chen,mei.chen@supervity.ai,MY-Strategic,MY,Enterprise,18,25,true
+005AE2,Arjun Prakash,arjun.prakash@supervity.ai,IN-Growth,IN,Mid-Market,22,25,true
+005AE3,Wei Ho,wei.ho@supervity.ai,SG-Strategic,SG,Enterprise,32,30,true
+005AE4,Priya Nair,priya.nair@supervity.ai,TH-ID-Growth,TH,SMB,12,25,true
+005AE5,Sanjay Rao,sanjay.rao@supervity.ai,IN-Strategic,IN,Enterprise,9,25,true
+005AE6,Grace Lim,grace.lim@supervity.ai,MY-Growth,MY,Mid-Market,20,25,false

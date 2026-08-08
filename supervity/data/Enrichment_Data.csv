@@ -1,47 +1,47 @@
 enrichment_id,company_domain,matched_account_id,industry,employees,region,revenue_band,ip_range,hq_country,is_competitor,source,confidence,last_verified
-ENRs2Bm2e51ZE8R,northgate.com,001uOiJaJkJat7CrhI,Chemicals,5000,IN,>$1B,95.91.6.0/24,IN,false,Clearbit,0.99,2026-07-05 00:00:00
-ENRzCHQRfhjzzSL,sabah.com,001QH756sYhE3xvrqJ,Manufacturing,300,SG,$10-50M,27.86.33.0/24,SG,false,Clearbit,0.71,Jun 26 2026
-ENRmM2zho1BUFrW,everbright.com,001yjb50XlJAdc7p3L,Logistics,800,IN,$50-100M,183.139.204.0/24,IN,false,Clearbit,0.71,2026-07-11T00:00:00+08:00
-ENR8zFGrjXDghqF,straits.com,001aKq9OAkFDAazLrZ,Manufacturing,50,SG,<$10M,128.118.68.0/24,SG,false,Clearbit,0.56,2026-07-13 00:00:00
-ENR1eFRblyMRujt,lotus.com,001Pyzv6LKmJhkZV1Y,Technology,120,MY,$10-50M,160.49.39.0/24,MY,false,Clearbit,0.84,2026-07-06
-ENRYDmsQFFGqIvZ,andaman.com,001Y3LBbuJoB9K6hD6,Technology,50,TH,<$10M,221.9.16.0/24,TH,false,Clearbit,0.99,2026-07-18 00:00:00
-ENRyCu2yCDcclJQ,highland.com,001zJ1DMIY5suKOMgP,Technology,800,ID,$50-100M,221.155.84.0/24,ID,false,Clearbit,0.77,Jun 24 2026
-ENRTyFWhKRFQJRI,lumina.com,001o1u7ckTr414cYaE,Manufacturing,120,TH,$10-50M,147.240.243.0/24,TH,false,Clearbit,0.80,2026-06-25T00:00:00+08:00
-ENRdzqFLyNRwXsu,zenith.com,001BxXdFCOmhaNf0ez,Retail,800,TH,$50-100M,16.14.23.0/24,TH,false,Clearbit,0.61,Jul 01 2026
-ENRZVLbW5OvygBw,kirana.com,001ZrNDru0WnWI7C1E,Logistics,800,TH,$50-100M,92.210.179.0/24,TH,false,Clearbit,0.57,27/06/2026
-ENRpPtLf6Se3thv,orion.com,001Q4zJiPXnkfvSYXw,Technology,800,IN,$50-100M,44.10.166.0/24,IN,false,Clearbit,0.57,2026-07-11
-ENRKG5ArbSELbuy,bharat.com,001y7oXm8Oa2wFG5HC,Technology,120,MY,$10-50M,147.199.165.0/24,MY,false,Clearbit,0.80,2026-07-15
-ENRgSRnvFGZWQvk,pacific.com,0018wxvZFjtODPTTEA,Chemicals,5000,MY,>$1B,158.153.186.0/24,MY,false,Clearbit,0.98,2026-06-26
-ENRO2Ye12Insqdt,summit.com,001H4cP0sFYxHjnq6U,Retail,2000,IN,$250-500M,147.205.115.0/24,IN,false,Clearbit,0.82,2026-07-20 00:00:00
-ENRT2LgLvreKZHE,harbor.com,0015Ow05Rcuo8wKeHk,Retail,120,ID,$10-50M,110.107.177.0/24,ID,false,Clearbit,0.90,Jul 10 2026
-ENRGZtBQIumAzqN,nexus.com,001sfw7845UU6khqtV,Retail,300,TH,$10-50M,132.232.92.0/24,TH,false,Clearbit,0.94,2026-07-10T00:00:00+08:00
-ENR3lKFnQ90V8Dr,sunrise.com,001XP4wFZEA5SFB2eQ,Technology,5000,MY,>$1B,164.222.30.0/24,MY,false,Clearbit,0.78,2026-07-01
-ENRjpjVRWt2BAu3,meridian.com,001hkNKWNDARWM6kP2,Manufacturing,300,IN,$10-50M,213.32.104.0/24,IN,false,Clearbit,0.92,Jun 28 2026
-ENRPkqRMpzphjmb,brightwave.com,001DqPOAEhtUaG5zpX,Manufacturing,50,IN,<$10M,63.158.237.0/24,IN,false,Clearbit,0.76,2026-07-03
-ENRP5cmkribqYZr,delta.com,001KRbHQQpMxQhnrct,Technology,2000,SG,$250-500M,169.90.21.0/24,SG,false,Clearbit,0.97,2026-07-05 00:00:00
-ENRd35fuMt3e59A,mekong.com,001799bPWF8ea48ie7,Logistics,300,MY,$10-50M,94.46.203.0/24,MY,false,Clearbit,0.96,13/07/2026
-ENRphKVG7hHQ1L8,johor.com,001ZMszSLB72NFP6ir,Chemicals,120,SG,$10-50M,199.128.254.0/24,SG,false,Clearbit,0.94,2026-06-27T00:00:00+08:00
-ENRhXZuv1LVyZVV,klang.com,001XVPrG5zoRw6R4bE,Retail,300,ID,$10-50M,61.216.111.0/24,ID,false,Clearbit,0.61,25/06/2026
-ENRrCAq3LdFIxS8,cendana.com,001QHFjSNhc5jCeo0R,Logistics,800,SG,$50-100M,29.162.216.0/24,SG,false,Clearbit,0.76,Jun 27 2026
-ENR4Y7jxETx0tbP,coastal.com,001B6ICJ1JKEWzvaOw,Technology,800,IN,$50-100M,156.17.27.0/24,IN,false,Clearbit,0.85,15/07/2026
-ENRqJytO9Sx5ZRh,northern.com,001KLFqZmwWENh8l4n,Manufacturing,300,TH,$10-50M,137.121.226.0/24,TH,false,Clearbit,0.72,2026-07-19
-ENR76qtf70Wptn3,penang-semi.com,001om06Dwt0Y3oobQm,Manufacturing,2000,MY,$250-500M,42.224.162.0/24,MY,false,Clearbit,0.94,2026-07-14
-ENRYcr3f0X8FEVA,cyberjaya-data.com,001v8bh4qlL9qcgMBw,Technology,800,MY,$50-100M,216.170.216.0/24,MY,false,Clearbit,0.94,2026-07-16 00:00:00
-ENR0kSqGewAMU0J,frankfurt-ind.de,001aH7ZIRU8VVQmxBe,Manufacturing,1200,EU,$100-250M,189.167.232.0/24,EU,false,Clearbit,0.86,2026-07-14 00:00:00
-ENRPPlOCYPiazmO,mumbai-alloys.com,001AuzSsJimAQ8yRV5,Manufacturing,900,IN,$50-100M,79.160.42.0/24,IN,false,Clearbit,0.60,2026-06-27T00:00:00+08:00
-ENRTX1PWi2MRAY8,selangor-precision.com,001PuDCCRnGEY59YVk,Manufacturing,1500,MY,$250-500M,82.231.244.0/24,MY,false,Clearbit,0.93,Jun 24 2026
-ENRlRL0uZsmfAxl,batam-log.com,001oZmjbcpEN2XeDA4,Logistics,1200,ID,$100-250M,101.193.114.0/24,ID,false,Clearbit,0.56,2026-06-20T00:00:00+08:00
-ENRPNOo6fDmqS2k,chennai-fab.com,0013X4gXBolZ9SHDdJ,Manufacturing,600,IN,$50-100M,13.205.219.0/24,IN,false,Clearbit,0.81,2026-06-24 00:00:00
-ENR9xk8KhaTHBX6,sg-marine.com,0015CN0U5GB16JC5kV,Logistics,2000,SG,$250-500M,117.253.60.0/24,SG,false,Clearbit,0.65,26/06/2026
-ENR830YrsVFyiB2,bkk-tools.com,001rCeTsprvu5Ifijo,Manufacturing,700,TH,$50-100M,53.110.144.0/24,TH,false,Clearbit,0.87,2026-06-26
-ENRlAYjbsqpNC6p,munich-auto.de,001Ay5XL8Sb24WKyEa,Technology,3000,EU,$500M-1B,95.234.43.0/24,EU,false,Clearbit,0.55,Jun 24 2026
-ENRSzRnTyTBVMqe,delhi-chem.com,001M5oForBFbyvQRZz,Chemicals,850,IN,$50-100M,25.30.26.0/24,IN,false,Clearbit,0.70,2026-06-27
-ENR6wM8Q9ZMTVZc,jb-steel.com,001fPBi3DldqyunDuv,Manufacturing,1100,MY,$100-250M,2.129.195.0/24,MY,false,Clearbit,0.68,Jul 02 2026
-ENRi95JcLlqkGF7,surabaya-tex.com,001d8woPeX9PcWb8pm,Chemicals,500,ID,$10-50M,87.239.67.0/24,ID,false,Clearbit,0.59,2026-07-12T00:00:00+08:00
-ENRBjqhuciF31rV,kl-facilities.com,001S1OpgSXt2RMZhYK,Technology,400,MY,$10-50M,93.220.144.0/24,MY,false,Clearbit,0.95,2026-06-28T00:00:00+08:00
-ENR1W7qHuB5kuVF,hanoi-comp.com,001FgB9xO51DTjBlUH,Manufacturing,650,TH,$50-100M,196.77.225.0/24,TH,false,Clearbit,0.57,2026-06-24 00:00:00
-ENRolcEqkTDBh57,adelaide-freight.com,001u2p17fr4CpWDKNQ,Logistics,550,SG,$10-50M,127.20.226.0/24,SG,false,Clearbit,0.71,2026-07-12T00:00:00+08:00
-ENRFDFh2U3jhwfn,pune-eng.com,001MS4rJaH8mfpUAFJ,Manufacturing,1300,IN,$100-250M,223.145.92.0/24,IN,false,Clearbit,0.92,2026-07-13T00:00:00+08:00
-ENR5QLnLaHXKlA6,competitor-crm.io,,Software,300,IN,$10-50M,20.126.255.0/24,IN,true,IPinfo,0.85,Jul 18 2026
-ENRRRhzxL78g1uj,rivalpardot.com,,Software,120,EU,$10-50M,8.41.235.0/24,EU,true,IPinfo,0.92,2026-07-11
-ENR9rMQavcPN8Cu,salesloft-clone.com,,Software,300,IN,$10-50M,188.66.108.0/24,IN,true,IPinfo,0.93,Jul 15 2026
+ENRs2Bm2e51ZE8R,northgate.com,001uOiJaJkJat7CrhI,Chemicals,5000,IN,>$1B,95.91.6.0/24,IN,False,Clearbit,0.99,2026/07/05
+ENRzCHQRfhjzzSL,sabah.com,001QH756sYhE3xvrqJ,Manufacturing,300,SG,$10-50M,27.86.33.0/24,SG,False,Clearbit,0.71,2026/06/26
+ENRmM2zho1BUFrW,everbright.com,001yjb50XlJAdc7p3L,Logistics,800,IN,$50-100M,183.139.204.0/24,IN,False,Clearbit,0.71,2026/07/10
+ENR8zFGrjXDghqF,straits.com,001aKq9OAkFDAazLrZ,Manufacturing,50,SG,<$10M,128.118.68.0/24,SG,False,Clearbit,0.56,2026/07/13
+ENR1eFRblyMRujt,lotus.com,001Pyzv6LKmJhkZV1Y,Technology,120,MY,$10-50M,160.49.39.0/24,MY,False,Clearbit,0.84,2026/07/06
+ENRYDmsQFFGqIvZ,andaman.com,001Y3LBbuJoB9K6hD6,Technology,50,TH,<$10M,221.9.16.0/24,TH,False,Clearbit,0.99,2026/07/18
+ENRyCu2yCDcclJQ,highland.com,001zJ1DMIY5suKOMgP,Technology,800,ID,$50-100M,221.155.84.0/24,ID,False,Clearbit,0.77,2026/06/24
+ENRTyFWhKRFQJRI,lumina.com,001o1u7ckTr414cYaE,Manufacturing,120,TH,$10-50M,147.240.243.0/24,TH,False,Clearbit,0.8,2026/06/24
+ENRdzqFLyNRwXsu,zenith.com,001BxXdFCOmhaNf0ez,Retail,800,TH,$50-100M,16.14.23.0/24,TH,False,Clearbit,0.61,2026/07/01
+ENRZVLbW5OvygBw,kirana.com,001ZrNDru0WnWI7C1E,Logistics,800,TH,$50-100M,92.210.179.0/24,TH,False,Clearbit,0.57,2026/06/27
+ENRpPtLf6Se3thv,orion.com,001Q4zJiPXnkfvSYXw,Technology,800,IN,$50-100M,44.10.166.0/24,IN,False,Clearbit,0.57,2026/07/11
+ENRKG5ArbSELbuy,bharat.com,001y7oXm8Oa2wFG5HC,Technology,120,MY,$10-50M,147.199.165.0/24,MY,False,Clearbit,0.8,2026/07/15
+ENRgSRnvFGZWQvk,pacific.com,0018wxvZFjtODPTTEA,Chemicals,5000,MY,>$1B,158.153.186.0/24,MY,False,Clearbit,0.98,2026/06/26
+ENRO2Ye12Insqdt,summit.com,001H4cP0sFYxHjnq6U,Retail,2000,IN,$250-500M,147.205.115.0/24,IN,False,Clearbit,0.82,2026/07/20
+ENRT2LgLvreKZHE,harbor.com,0015Ow05Rcuo8wKeHk,Retail,120,ID,$10-50M,110.107.177.0/24,ID,False,Clearbit,0.9,2026/07/10
+ENRGZtBQIumAzqN,nexus.com,001sfw7845UU6khqtV,Retail,300,TH,$10-50M,132.232.92.0/24,TH,False,Clearbit,0.94,2026/07/09
+ENR3lKFnQ90V8Dr,sunrise.com,001XP4wFZEA5SFB2eQ,Technology,5000,MY,>$1B,164.222.30.0/24,MY,False,Clearbit,0.78,2026/07/01
+ENRjpjVRWt2BAu3,meridian.com,001hkNKWNDARWM6kP2,Manufacturing,300,IN,$10-50M,213.32.104.0/24,IN,False,Clearbit,0.92,2026/06/28
+ENRPkqRMpzphjmb,brightwave.com,001DqPOAEhtUaG5zpX,Manufacturing,50,IN,<$10M,63.158.237.0/24,IN,False,Clearbit,0.76,2026/07/03
+ENRP5cmkribqYZr,delta.com,001KRbHQQpMxQhnrct,Technology,2000,SG,$250-500M,169.90.21.0/24,SG,False,Clearbit,0.97,2026/07/05
+ENRd35fuMt3e59A,mekong.com,001799bPWF8ea48ie7,Logistics,300,MY,$10-50M,94.46.203.0/24,MY,False,Clearbit,0.96,2026/07/13
+ENRphKVG7hHQ1L8,johor.com,001ZMszSLB72NFP6ir,Chemicals,120,SG,$10-50M,199.128.254.0/24,SG,False,Clearbit,0.94,2026/06/26
+ENRhXZuv1LVyZVV,klang.com,001XVPrG5zoRw6R4bE,Retail,300,ID,$10-50M,61.216.111.0/24,ID,False,Clearbit,0.61,2026/06/25
+ENRrCAq3LdFIxS8,cendana.com,001QHFjSNhc5jCeo0R,Logistics,800,SG,$50-100M,29.162.216.0/24,SG,False,Clearbit,0.76,2026/06/27
+ENR4Y7jxETx0tbP,coastal.com,001B6ICJ1JKEWzvaOw,Technology,800,IN,$50-100M,156.17.27.0/24,IN,False,Clearbit,0.85,2026/07/15
+ENRqJytO9Sx5ZRh,northern.com,001KLFqZmwWENh8l4n,Manufacturing,300,TH,$10-50M,137.121.226.0/24,TH,False,Clearbit,0.72,2026/07/19
+ENR76qtf70Wptn3,penang-semi.com,001om06Dwt0Y3oobQm,Manufacturing,2000,MY,$250-500M,42.224.162.0/24,MY,False,Clearbit,0.94,2026/07/14
+ENRYcr3f0X8FEVA,cyberjaya-data.com,001v8bh4qlL9qcgMBw,Technology,800,MY,$50-100M,216.170.216.0/24,MY,False,Clearbit,0.94,2026/07/16
+ENR0kSqGewAMU0J,frankfurt-ind.de,001aH7ZIRU8VVQmxBe,Manufacturing,1200,EU,$100-250M,189.167.232.0/24,EU,False,Clearbit,0.86,2026/07/14
+ENRPPlOCYPiazmO,mumbai-alloys.com,001AuzSsJimAQ8yRV5,Manufacturing,900,IN,$50-100M,79.160.42.0/24,IN,False,Clearbit,0.6,2026/06/26
+ENRTX1PWi2MRAY8,selangor-precision.com,001PuDCCRnGEY59YVk,Manufacturing,1500,MY,$250-500M,82.231.244.0/24,MY,False,Clearbit,0.93,2026/06/24
+ENRlRL0uZsmfAxl,batam-log.com,001oZmjbcpEN2XeDA4,Logistics,1200,ID,$100-250M,101.193.114.0/24,ID,False,Clearbit,0.56,2026/06/19
+ENRPNOo6fDmqS2k,chennai-fab.com,0013X4gXBolZ9SHDdJ,Manufacturing,600,IN,$50-100M,13.205.219.0/24,IN,False,Clearbit,0.81,2026/06/24
+ENR9xk8KhaTHBX6,sg-marine.com,0015CN0U5GB16JC5kV,Logistics,2000,SG,$250-500M,117.253.60.0/24,SG,False,Clearbit,0.65,2026/06/26
+ENR830YrsVFyiB2,bkk-tools.com,001rCeTsprvu5Ifijo,Manufacturing,700,TH,$50-100M,53.110.144.0/24,TH,False,Clearbit,0.87,2026/06/26
+ENRlAYjbsqpNC6p,munich-auto.de,001Ay5XL8Sb24WKyEa,Technology,3000,EU,$500M-1B,95.234.43.0/24,EU,False,Clearbit,0.55,2026/06/24
+ENRSzRnTyTBVMqe,delhi-chem.com,001M5oForBFbyvQRZz,Chemicals,850,IN,$50-100M,25.30.26.0/24,IN,False,Clearbit,0.7,2026/06/27
+ENR6wM8Q9ZMTVZc,jb-steel.com,001fPBi3DldqyunDuv,Manufacturing,1100,MY,$100-250M,2.129.195.0/24,MY,False,Clearbit,0.68,2026/07/02
+ENRi95JcLlqkGF7,surabaya-tex.com,001d8woPeX9PcWb8pm,Chemicals,500,ID,$10-50M,87.239.67.0/24,ID,False,Clearbit,0.59,2026/07/11
+ENRBjqhuciF31rV,kl-facilities.com,001S1OpgSXt2RMZhYK,Technology,400,MY,$10-50M,93.220.144.0/24,MY,False,Clearbit,0.95,2026/06/27
+ENR1W7qHuB5kuVF,hanoi-comp.com,001FgB9xO51DTjBlUH,Manufacturing,650,TH,$50-100M,196.77.225.0/24,TH,False,Clearbit,0.57,2026/06/24
+ENRolcEqkTDBh57,adelaide-freight.com,001u2p17fr4CpWDKNQ,Logistics,550,SG,$10-50M,127.20.226.0/24,SG,False,Clearbit,0.71,2026/07/11
+ENRFDFh2U3jhwfn,pune-eng.com,001MS4rJaH8mfpUAFJ,Manufacturing,1300,IN,$100-250M,223.145.92.0/24,IN,False,Clearbit,0.92,2026/07/12
+ENR5QLnLaHXKlA6,competitor-crm.io,,Software,300,IN,$10-50M,20.126.255.0/24,IN,True,IPinfo,0.85,2026/07/18
+ENRRRhzxL78g1uj,rivalpardot.com,,Software,120,EU,$10-50M,8.41.235.0/24,EU,True,IPinfo,0.92,2026/07/11
+ENR9rMQavcPN8Cu,salesloft-clone.com,,Software,300,IN,$10-50M,188.66.108.0/24,IN,True,IPinfo,0.93,2026/07/15

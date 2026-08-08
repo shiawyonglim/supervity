@@ -3,21 +3,21 @@
 AI Operators for processing Supervity leads.
 """
 
-import logging
-from typing import Dict, Any, List
-
-log = logging.getLogger(__name__)
-
+import json
 import logging
 import os
-import json
+import re
+from typing import Any, Dict, List, Optional, Tuple
+
 import requests
-from typing import Dict, Any, List
 
 from ..core.database import SessionLocal
 from .knowledge_base import build_knowledge_base_text
 
 log = logging.getLogger(__name__)
+
+DEFAULT_MASTER_WORKFLOW_ID = "019fd5dd-4f56-7000-8641-9bfdd6c1e3e1"
+WORKFLOW_URL = "https://auto-workflow-api.supervity.ai/api/v1/workflow-runs/execute/stream"
 
 
 def _get_knowledge_base_text() -> str:
@@ -31,77 +31,261 @@ def _get_knowledge_base_text() -> str:
         return "(Knowledge base unavailable.)"
 
 
+def _extract_output(payload: Dict[str, Any], key: str) -> Any:
+    """Search a Supervity workflow result/activity payload for an output variable."""
+    if not isinstance(payload, dict):
+        return None
+
+    candidates = [
+        payload.get("workflowRun", {}).get("outputs", {}).get(key),
+        payload.get("workflowRun", {}).get("output", {}).get(key),
+        payload.get("outputs", {}).get(key),
+        payload.get("output", {}).get(key),
+        payload.get(key),
+    ]
+
+    # outputs may be an array of {name, value} objects
+    for outputs in [
+        payload.get("workflowRun", {}).get("outputs"),
+        payload.get("outputs"),
+        payload.get("workflowRun", {}).get("activityRuns"),
+        payload.get("activityRuns"),
+    ]:
+        if isinstance(outputs, list):
+            for o in outputs:
+                if isinstance(o, dict) and (o.get("name") == key or o.get("id") == key):
+                    return o.get("value")
+                # nested outputs dict
+                if isinstance(o, dict):
+                    for field in ("outputs", "output"):
+                        nested = o.get(field)
+                        if isinstance(nested, dict) and key in nested:
+                            return nested[key]
+                        if isinstance(nested, list):
+                            for no in nested:
+                                if isinstance(no, dict) and (no.get("name") == key or no.get("id") == key):
+                                    return no.get("value")
+
+    # activity-run / activityRun event content
+    for prefix in ("content", "activityRun", "activity-run"):
+        obj = payload.get(prefix) if isinstance(payload, dict) else None
+        if isinstance(obj, dict):
+            for field in ("outputs", "output"):
+                nested = obj.get(field)
+                if isinstance(nested, dict) and key in nested:
+                    return nested[key]
+                if isinstance(nested, list):
+                    for no in nested:
+                        if isinstance(no, dict) and (no.get("name") == key or no.get("id") == key):
+                            return no.get("value")
+
+    for c in candidates:
+        if c is not None:
+            return c
+
+    return None
+
+
+def _split_email_draft(text: str, original_subject: str) -> Tuple[str, str]:
+    """Try to split a workflow email output into subject and body."""
+    if not text:
+        return original_subject, text or ""
+
+    if isinstance(text, (dict, list)):
+        if isinstance(text, dict):
+            if "subject" in text and "body" in text:
+                return str(text["subject"]), str(text["body"])
+            if "generated_email_draft" in text:
+                text = text["generated_email_draft"]
+
+    text = str(text).strip()
+
+    # Try to parse JSON if the whole thing looks like JSON
+    if text.startswith(("{", "[")):
+        try:
+            parsed = json.loads(text)
+            if isinstance(parsed, dict):
+                if "subject" in parsed and "body" in parsed:
+                    return str(parsed["subject"]), str(parsed["body"])
+                if "generated_email_draft" in parsed:
+                    text = str(parsed["generated_email_draft"])
+        except (json.JSONDecodeError, ValueError):
+            pass
+
+    subject = original_subject
+    body = text
+
+    subject_match = re.search(r"^[\s]*(?:Subject:|Subj:?|title:?)[\s]*(.*)$", text, re.MULTILINE | re.IGNORECASE)
+    if subject_match:
+        subject = subject_match.group(1).strip()
+        body = text[subject_match.end():].strip()
+
+    if body.startswith("\n"):
+        body = body.lstrip("\n")
+
+    return subject, body
+
+
+def _extract_email_draft(payload: Dict[str, Any], original_subject: str) -> Optional[Dict[str, str]]:
+    """Extract a polished email draft from a workflow result payload."""
+    if not isinstance(payload, dict):
+        return None
+
+    # Try common variable names that a workflow might expose
+    for key in ["generated_email_draft", "email_draft", "email", "draft", "result"]:
+        value = _extract_output(payload, key)
+        if value is None:
+            continue
+        if isinstance(value, dict) and "subject" in value and "body" in value:
+            return {"subject": str(value["subject"]), "body": str(value["body"])}
+        subject, body = _split_email_draft(value, original_subject)
+        if body:
+            return {"subject": subject, "body": body}
+
+    # Some workflows output top-level {subject, body}
+    if "subject" in payload and "body" in payload:
+        return {"subject": str(payload["subject"]), "body": str(payload["body"])}
+
+    return None
+
+
+def _parse_sse_stream(response) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
+    """Parse a Supervity SSE stream and return the final result payload or error."""
+    events = []
+    current_event: Optional[str] = None
+    current_data: List[str] = []
+
+    for raw in response.iter_lines(decode_unicode=True):
+        line = (raw or "").strip()
+        if not line:
+            if current_event and current_data:
+                data_str = "".join(current_data)
+                try:
+                    payload = json.loads(data_str) if data_str else {}
+                except (json.JSONDecodeError, ValueError):
+                    payload = {"raw": data_str}
+                events.append((current_event, payload))
+                current_event = None
+                current_data = []
+            continue
+
+        if line.startswith("event:"):
+            current_event = line[len("event:"):].strip()
+        elif line.startswith("data:"):
+            current_data.append(line[len("data:"):].strip())
+
+    # Handle any trailing event without a blank line
+    if current_event and current_data:
+        data_str = "".join(current_data)
+        try:
+            payload = json.loads(data_str) if data_str else {}
+        except (json.JSONDecodeError, ValueError):
+            payload = {"raw": data_str}
+        events.append((current_event, payload))
+
+    final_result: Optional[Dict[str, Any]] = None
+    latest_activity_output: Optional[Dict[str, Any]] = None
+    error: Optional[str] = None
+
+    for name, payload in events:
+        if name == "result":
+            final_result = payload
+        elif name == "error":
+            error = payload.get("error") or payload.get("content") or str(payload)
+        elif name in ("activity-run", "activityRun"):
+            # If a Python Script step published the email, it may appear here first
+            if isinstance(payload, dict):
+                content = payload.get("content", payload)
+                if isinstance(content, dict):
+                    email = _extract_email_draft(content, "Following up")
+                    if email:
+                        latest_activity_output = email
+
+    if error:
+        raise RuntimeError(error)
+
+    if final_result is not None:
+        return final_result, None
+
+    if latest_activity_output is not None:
+        return {"__email_draft__": latest_activity_output}, None
+
+    return None, None
+
+
 class MasterOrchestrator:
     """
     Coordinates the entire workflow by triggering the Supervity Auto Orchestrator workflow.
     """
 
     @staticmethod
-    def process_lead(payload: Dict[str, Any]) -> Dict[str, Any]:
+    def process_lead(payload: Dict[str, Any], timeout: int = 30) -> Dict[str, Any]:
         log.info(f"--- Master Orchestrator triggering Supervity Auto for {payload.get('prospect_id')} ---")
 
         api_key = os.getenv("WORKFLOW_API_KEY")
-        workflow_id = os.getenv("SUPERVITY_WORKFLOW_ID")
-        
+        workflow_id = os.getenv("SUPERVITY_WORKFLOW_ID") or DEFAULT_MASTER_WORKFLOW_ID
+
         if not api_key:
             log.error("WORKFLOW_API_KEY is not set. Cannot trigger Auto.")
             return {"error": "WORKFLOW_API_KEY missing"}
-            
-        if not workflow_id:
-            log.warning("SUPERVITY_WORKFLOW_ID is not set. Simulating Auto trigger.")
-            # For hackathon purposes, if the user hasn't put the ID in yet, we return a mock success
-            # to prevent the app from crashing, but log heavily that they need to add it.
-            return {
-                "prospect_id": payload.get("prospect_id", "unknown"),
-                "status": "simulated_success",
-                "message": "Please add SUPERVITY_WORKFLOW_ID to .env to make real API call."
-            }
-            
-        url = "https://auto-workflow-api.supervity.ai/api/v1/workflow-runs/execute/stream"
+
         headers = {
             "Authorization": f"Bearer {api_key}",
             "x-source": "external",
             "x-active-org": "R.E.P.O",
             "x-user-timezone": "Asia/Kuala_Lumpur"
         }
-        
-        # Supervity expects multipart/form-data for inputs
-        # To guarantee it receives the payload, we'll send it in multiple formats
-        payload_json = json.dumps(payload)
-        payload_str = str(payload)
 
-        # Ground the run in the live, business-editable Knowledge Base (active AI Policies +
-        # reference docs). Any edit made in the Knowledge Base UI is picked up on the very
-        # next trigger — no redeploy needed.
+        payload_json = json.dumps(payload)
         knowledge_base_text = _get_knowledge_base_text()
 
         files = {
             "workflowId": (None, workflow_id, 'text/plain'),
-            "inputs[lead_payload]": (None, payload_json, 'application/json'),      # Documented format (JSON string)
-            "inputs[knowledge_base]": (None, knowledge_base_text, 'text/plain'),   # Live policies + reference docs
-            "inputs": (None, json.dumps({"lead_payload": payload, "knowledge_base": knowledge_base_text}), 'application/json'), # Alternate nested format
-            "lead_payload": (None, payload_json, 'application/json'),              # Direct field
-            "payload": (None, payload_json, 'application/json'),                   # Generic field
-            "knowledge_base": (None, knowledge_base_text, 'text/plain'),           # Direct field fallback
-            "text": (None, payload_json, 'text/plain')                       # Some generic fallback
+            "inputs[lead_payload]": (None, payload_json, 'application/json'),
+            "inputs[knowledge_base]": (None, knowledge_base_text, 'text/plain'),
         }
-        
+
         try:
-            # We also send data instead of files just in case it wants urlencoded, but we'll stick to multipart as per docs
-            response = requests.post(url, headers=headers, files=files)
+            response = requests.post(
+                WORKFLOW_URL,
+                headers=headers,
+                files=files,
+                stream=True,
+                timeout=(10, timeout),
+            )
             response.raise_for_status()
-            
+
             log.info("--- Supervity Auto triggered successfully ---")
-            
-            # Read response
-            resp_data = response.json() if response.text else {}
-            return resp_data
-            
-        except Exception as e:
+
+            final_payload, err = _parse_sse_stream(response)
+            if err:
+                raise RuntimeError(err)
+            if not final_payload:
+                raise RuntimeError("Workflow completed without a result")
+
+            # Try to extract a final email draft; if not present, return the raw workflow payload
+            original_subject = payload.get("lead_stage") or "Following up"
+            if "__email_draft__" in final_payload:
+                return final_payload["__email_draft__"]
+
+            email = _extract_email_draft(final_payload, original_subject)
+            if email:
+                return email
+
+            return {"_raw_workflow_result": final_payload}
+
+        except requests.exceptions.Timeout:
+            log.error("Master Orchestrator timed out.")
+            return {"error": "timeout"}
+        except requests.exceptions.RequestException as e:
             log.error(f"Failed to trigger Supervity Auto workflow: {e}")
-            if hasattr(e, 'response') and e.response is not None:
-                log.error(f"Response: {e.response.text}")
+            if hasattr(e, "response") and e.response is not None:
+                log.error(f"Response: {e.response.text[:500]}")
             return {"error": str(e)}
+        except Exception as e:
+            log.error(f"Master Orchestrator processing error: {e}")
+            return {"error": str(e)}
+
 
 def run_operator_pipeline_batch(batch_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """Wrapper for batch processing using the new MasterOrchestrator hitting the Auto platform."""

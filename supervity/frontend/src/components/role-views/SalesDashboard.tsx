@@ -43,6 +43,65 @@ interface Lead {
   owner_name: string | null
 }
 
+interface AccountDetail {
+  id: string
+  name: string | null
+  industry: string | null
+  number_of_employees: number | null
+  type: string | null
+  website: string | null
+  billing_country: string | null
+  strategic: boolean | null
+}
+
+interface VisitorActivity {
+  id: number
+  visitor_id: string | null
+  type: string | null
+  created_at: string | null
+  url: string | null
+  duration_seconds: number | null
+  campaign: string | null
+  source: string | null
+  company_domain: string | null
+  channel: string | null
+}
+
+interface SentEmail {
+  id: number
+  subject: string
+  body: string
+  sent_at: string
+  sent_by: string
+}
+
+interface ContactDetail {
+  id: string
+  first_name: string | null
+  last_name: string | null
+  email: string | null
+  phone: string | null
+  title: string | null
+  account_name: string | null
+  lead_source: string | null
+  lead_stage: string | null
+  owner_name: string | null
+  owner_id: string | null
+  has_opted_out_of_email: boolean
+  do_not_call: boolean
+  consent_basis: string | null
+  region: string | null
+  confidence: number | null
+  created_date: string | null
+  last_activity_date: string | null
+  account: AccountDetail | null
+  recent_activities: VisitorActivity[]
+  emails: SentEmail[]
+  intent_score: number
+  intent_signals: string[]
+  privacy_status: string
+}
+
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.08 } },
@@ -69,6 +128,9 @@ export function SalesDashboard({ role }: { role: AppRole }) {
   const [loading, setLoading] = useState(true)
 
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
+  const [detailLead, setDetailLead] = useState<Lead | null>(null)
+  const [detail, setDetail] = useState<ContactDetail | null>(null)
+  const [detailLoading, setDetailLoading] = useState(false)
   const [draftSubject, setDraftSubject] = useState('')
   const [draftBody, setDraftBody] = useState('')
   const [isDrafting, setIsDrafting] = useState(false)
@@ -97,15 +159,45 @@ export function SalesDashboard({ role }: { role: AppRole }) {
     load()
   }, [load])
 
-  const handleDraft = async (lead: Lead) => {
-    setSelectedLead(lead)
+  const handleView = async (lead: Lead) => {
+    setDetailLead(lead)
+    setDetail(null)
+    setDetailLoading(true)
+    try {
+      const d = await apiClient.get<ContactDetail>(`/api/contacts/${lead.id}`)
+      setDetail(d)
+    } catch (err) {
+      console.error('Failed to load contact detail:', err)
+    } finally {
+      setDetailLoading(false)
+    }
+  }
+
+  const handleDraft = async (lead: Lead | ContactDetail) => {
+    setDetail(null)
+    setDetailLead(null)
+    setSelectedLead({
+      id: lead.id,
+      first_name: lead.first_name,
+      last_name: lead.last_name,
+      email: lead.email,
+      account_name: (lead as ContactDetail).account?.name || lead.account_name,
+      lead_stage: lead.lead_stage,
+      owner_name: lead.owner_name,
+    })
     setDraftSubject('')
     setDraftBody('')
     setIsDrafting(true)
     try {
-      const res = await apiClient.post<{ subject: string; body: string }>(`/api/contacts/${lead.id}/draft`, {
-        prompt_context: `You are a ${meta.label}. Draft a concise, personalized outreach email to this lead based on their stage (${lead.lead_stage || 'new'}).`,
-      })
+      const payload: Record<string, unknown> = {
+        role: meta.label,
+        lead_stage: lead.lead_stage,
+      }
+      if ('intent_score' in lead) {
+        payload.intent_score = lead.intent_score
+        payload.intent_signals = lead.intent_signals
+      }
+      const res = await apiClient.post<{ subject: string; body: string }>(`/api/contacts/${lead.id}/draft`, payload)
       setDraftSubject(res.subject)
       setDraftBody(res.body)
     } catch (err) {
@@ -253,9 +345,9 @@ export function SalesDashboard({ role }: { role: AppRole }) {
                         </td>
                         <td className='py-3 px-4'>{lead.owner_name || 'Unassigned'}</td>
                         <td className='py-3 px-4 text-right'>
-                          <Button size='sm' onClick={() => handleDraft(lead)} disabled={isDrafting}>
-                            <Icons.mail className='mr-2 h-4 w-4' />
-                            Draft Email
+                          <Button size='sm' onClick={() => handleView(lead)}>
+                            <Icons.eye className='mr-2 h-4 w-4' />
+                            View
                           </Button>
                         </td>
                       </tr>
@@ -311,6 +403,194 @@ export function SalesDashboard({ role }: { role: AppRole }) {
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* Lead Detail Dialog */}
+      <Dialog open={!!detailLead} onOpenChange={(open) => { if (!open) { setDetailLead(null); setDetail(null) } }}>
+        <DialogContent className='sm:max-w-4xl max-h-[90vh] overflow-y-auto'>
+          <DialogHeader>
+            <DialogTitle className='flex items-center gap-2'>
+              {detailLead?.first_name} {detailLead?.last_name}
+              {detail && (
+                <Badge variant='outline' className={cn(
+                  'ml-2',
+                  detail.intent_score >= 70 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                    detail.intent_score >= 40 ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                      'bg-slate-50 text-slate-600'
+                )}>
+                  Intent {detail.intent_score}/100
+                </Badge>
+              )}
+            </DialogTitle>
+            <DialogDescription>
+              {detail ? `${detail.lead_stage || 'Unknown'} lead • ${detail.owner_name || 'Unassigned'} • ${detail.account?.name || detail.account_name || '-'}` : 'Loading lead details...'}
+            </DialogDescription>
+          </DialogHeader>
+
+          {detailLoading || !detail ? (
+            <div className='flex justify-center p-8'>
+              <Icons.loader className='h-8 w-8 animate-spin text-muted-foreground' />
+            </div>
+          ) : (
+            <div className='space-y-6'>
+              {/* Intent score bar */}
+              <div className='rounded-xl border bg-slate-50 p-4'>
+                <div className='mb-2 flex items-center justify-between'>
+                  <span className='text-sm font-medium text-brand-navy'>Intent Score</span>
+                  <span className='text-sm font-bold text-brand-navy'>{detail.intent_score}/100</span>
+                </div>
+                <div className='h-2 w-full rounded-full bg-slate-200'>
+                  <div
+                    className={cn(
+                      'h-2 rounded-full',
+                      detail.intent_score >= 70 ? 'bg-emerald-500' :
+                        detail.intent_score >= 40 ? 'bg-amber-500' : 'bg-slate-400'
+                    )}
+                    style={{ width: `${Math.max(0, Math.min(100, detail.intent_score))}%` }}
+                  />
+                </div>
+                {detail.intent_signals.length > 0 && (
+                  <div className='mt-3 flex flex-wrap gap-2'>
+                    {detail.intent_signals.map((s) => (
+                      <Badge key={s} variant='secondary' className='text-[10px]'>{s}</Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Contact + Account grid */}
+              <div className='grid gap-4 md:grid-cols-2'>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className='text-sm font-semibold uppercase tracking-wide text-muted-foreground'>Contact</CardTitle>
+                  </CardHeader>
+                  <CardContent className='space-y-2 text-sm'>
+                    <p><span className='text-muted-foreground'>Email:</span> {detail.email || '-'}</p>
+                    <p><span className='text-muted-foreground'>Phone:</span> {detail.phone || '-'}</p>
+                    <p><span className='text-muted-foreground'>Title:</span> {detail.title || '-'}</p>
+                    <p><span className='text-muted-foreground'>Region:</span> {detail.region || '-'}</p>
+                    <p><span className='text-muted-foreground'>Lead source:</span> {detail.lead_source || '-'}</p>
+                    <p><span className='text-muted-foreground'>Created:</span> {detail.created_date ? new Date(detail.created_date).toLocaleDateString() : '-'}</p>
+                    <p><span className='text-muted-foreground'>Last activity:</span> {detail.last_activity_date ? new Date(detail.last_activity_date).toLocaleDateString() : '-'}</p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className='text-sm font-semibold uppercase tracking-wide text-muted-foreground'>
+                      {detail.account?.name || detail.account_name || 'Company'}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className='space-y-2 text-sm'>
+                    {detail.account ? (
+                      <>
+                        <p><span className='text-muted-foreground'>Industry:</span> {detail.account.industry || '-'}</p>
+                        <p><span className='text-muted-foreground'>Employees:</span> {detail.account.number_of_employees?.toLocaleString() || '-'}</p>
+                        <p><span className='text-muted-foreground'>Type:</span> {detail.account.type || '-'}</p>
+                        <p><span className='text-muted-foreground'>Website:</span> {detail.account.website || '-'}</p>
+                        <p><span className='text-muted-foreground'>Billing country:</span> {detail.account.billing_country || '-'}</p>
+                        <p><span className='text-muted-foreground'>Strategic account:</span> {detail.account.strategic ? 'Yes' : 'No'}</p>
+                      </>
+                    ) : (
+                      <p className='text-muted-foreground'>No account details available.</p>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Privacy */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className='text-sm font-semibold uppercase tracking-wide text-muted-foreground'>Privacy & Consent</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className='flex flex-wrap items-center gap-2'>
+                    <Badge
+                      className={cn(
+                        detail.privacy_status === 'Can contact' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+                      )}
+                    >
+                      {detail.privacy_status}
+                    </Badge>
+                    {detail.consent_basis && (
+                      <Badge variant='outline' className='text-[10px]'>Consent: {detail.consent_basis}</Badge>
+                    )}
+                    {detail.do_not_call && (
+                      <Badge variant='outline' className='text-[10px] text-red-600'>Do Not Call</Badge>
+                    )}
+                    {detail.has_opted_out_of_email && (
+                      <Badge variant='outline' className='text-[10px] text-red-600'>Email Opt-Out</Badge>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Visitor Activity */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className='text-sm font-semibold uppercase tracking-wide text-muted-foreground'>Recent Visitor Activity</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {detail.recent_activities.length === 0 ? (
+                    <p className='text-sm text-muted-foreground'>No recent activity.</p>
+                  ) : (
+                    <div className='space-y-3'>
+                      {detail.recent_activities.map((a) => (
+                        <div key={a.id} className='flex items-start justify-between gap-4 rounded-lg border p-3 text-sm'>
+                          <div>
+                            <p className='font-medium text-brand-navy'>
+                              {a.type || 'Activity'} {a.url ? `on ${a.url}` : ''}
+                            </p>
+                            <p className='text-xs text-muted-foreground'>
+                              {a.campaign ? `Campaign: ${a.campaign}` : ''}
+                              {a.campaign && a.source ? ' · ' : ''}
+                              {a.source ? `Source: ${a.source}` : ''}
+                              {a.channel ? ` · Channel: ${a.channel}` : ''}
+                            </p>
+                          </div>
+                          <div className='text-right text-xs text-muted-foreground'>
+                            <p>{a.created_at ? new Date(a.created_at).toLocaleString() : '-'}</p>
+                            {a.duration_seconds ? <p>{Math.round(a.duration_seconds / 60)}m {a.duration_seconds % 60}s</p> : null}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Email History */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className='text-sm font-semibold uppercase tracking-wide text-muted-foreground'>Recent Email History</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {detail.emails.length === 0 ? (
+                    <p className='text-sm text-muted-foreground'>No emails yet.</p>
+                  ) : (
+                    <div className='space-y-3'>
+                      {detail.emails.map((e) => (
+                        <div key={e.id} className='rounded-lg border p-3 text-sm'>
+                          <p className='font-medium text-brand-navy'>{e.subject}</p>
+                          <p className='text-xs text-muted-foreground'>Sent {new Date(e.sent_at).toLocaleString()} by {e.sent_by}</p>
+                          <p className='mt-1 whitespace-pre-wrap text-xs text-muted-foreground'>{e.body}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <DialogFooter>
+                <Button variant='outline' onClick={() => { setDetailLead(null); setDetail(null) }}>Close</Button>
+                <Button onClick={() => handleDraft(detail)} disabled={detail.has_opted_out_of_email}>
+                  <Icons.mail className='mr-2 h-4 w-4' />
+                  Draft Email
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Draft / Send Dialog */}
       <Dialog open={!!selectedLead} onOpenChange={(open) => !open && setSelectedLead(null)}>

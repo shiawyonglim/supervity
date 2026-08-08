@@ -147,6 +147,7 @@ A new role-aware frontend layer was added for SDR, Sales Agent, Sales Manager, a
   - AI Insights: forecast, actionable insights, draft/send follow-up reminder.
   - AI Manager: full-page chat with marketing strategy starter prompts, persisted sessions, and integrated Knowledge Base document management.
 - CRO AI Manager: view all sales-team chat sessions, review messages, and add recommendations.
+- Sales Dashboard lead cards: click a lead to open a detail modal with intent score, privacy/consent, account/company, visitor activity timeline, email history, and a context-aware "Draft Email" button. The email draft uses Supervity context, visitor activity, lead stage, and intent signals.
 - **CRO views**
   - Command Center dashboard: total revenue, open pipeline, expected revenue, team scoreboard, top SDR, top paying customer, weekly email draft/send.
   - Workbench: editable capacity KPIs per team member, active toggles, reassign stalled.
@@ -160,6 +161,8 @@ A new role-aware frontend layer was added for SDR, Sales Agent, Sales Manager, a
   - `POST /api/org/close/{id}` now accepts an optional `note`
   - `PATCH /api/org/sdr/{id}` now accepts `max_capacity` and `current_capacity`
   - `GET /api/chat/sessions`, `POST /api/chat/sessions`, `GET /api/chat/sessions/{id}`, `POST /api/chat/sessions/{id}/message` for persisted AI Manager sessions.
+  - `GET /api/contacts/{id}` returns full contact details, account, visitor activity, computed intent score, privacy status, and email history.
+  - `POST /api/contacts/{id}/draft` triggers the Supervity Master Orchestrator (`019fd5dd-4f56-7000-8641-9bfdd6c1e3e1`) using the full lead payload (contact, account, activities, intent, privacy, history, knowledge base). It parses the SSE stream, extracts the generated email, and falls back to a rule-based draft if the orchestrator is unavailable.
   - `app/routers/cro.py` and `app/routers/chat.py` registered in the main FastAPI app.
 
 Verified with `npm run build`, `npx tsc --noEmit`, and `npm run lint` (warnings are pre-existing).
